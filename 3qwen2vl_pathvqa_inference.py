@@ -13,10 +13,10 @@ from PIL import Image
 # Must match your training script
 MODEL_ID = "Qwen/Qwen2-VL-7B-Instruct"
 # Path to where your training script saved the adapter
-ADAPTER_PATH = "./qwen2vl_pathvqa_adapters"
+ADAPTER_PATH = "qwen2vl_pathvqa_adapters"
 
 # Input file settings
-IMAGE_PATH = "dataset_pathvqa/test/images/test_00001.jpg"  # Change this to your image
+IMAGE_PATH = "dataset_pathvqa/test/images/test_00001.jpg"
 QUESTION = "how are the histone subunits charged?"
 
 
