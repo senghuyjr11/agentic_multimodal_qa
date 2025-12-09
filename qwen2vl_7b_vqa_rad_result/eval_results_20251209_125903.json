@@ -1,0 +1,16 @@
+{
+  "timestamp": "20251209_125903",
+  "model": "Qwen/Qwen2-VL-7B-Instruct",
+  "adapter": "qwen2vl_7b_vqa_rad_adapters",
+  "test_data": "preprocessed_vqa_rad/test/preprocessed_data.pt",
+  "total_samples": 451,
+  "exact_match": 0.565410199556541,
+  "exact_match_count": 255,
+  "partial_match": 0.656319290465632,
+  "partial_match_count": 296,
+  "yes_no_accuracy": 0.8087649402390438,
+  "yes_no_samples": 251,
+  "yes_no_correct": 203,
+  "total_time_minutes": 2.6081199169158937,
+  "samples_per_second": 2.8820249475166535
+}

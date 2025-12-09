@@ -423,9 +423,9 @@ if TEST_MODE:
     processor.save_pretrained("./qwen2vl_pathvqa_test_adapters")
     print("✓ Test model saved to ./qwen2vl_pathvqa_test_adapters")
 else:
-    model.save_pretrained("./qwen2vl_pathvqa_adapters")
-    processor.save_pretrained("./qwen2vl_pathvqa_adapters")
-    print("✓ Model saved to ./qwen2vl_pathvqa_adapters")
+    model.save_pretrained("./qwen2vl_7b_pathvqa_adapters")
+    processor.save_pretrained("./qwen2vl_7b_pathvqa_adapters")
+    print("✓ Model saved to ./qwen2vl_7b_pathvqa_adapters")
 
 torch.cuda.empty_cache()
 

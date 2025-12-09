@@ -17,8 +17,8 @@ print("="*70 + "\n")
 
 # ========== CONFIG ==========
 MODEL_ID = "Qwen/Qwen2-VL-7B-Instruct"
-ADAPTER_PATH = "qwen2vl_7b_pathvqa_adapters"
-TEST_DATA_PATH = "preprocessed_data_v2/test/preprocessed_data.pt"
+ADAPTER_PATH = "qwen2vl_7b_vqa_rad_adapters"
+TEST_DATA_PATH = "preprocessed_vqa_rad/test/preprocessed_data.pt"
 
 # ========== LOAD MODEL ==========
 print("Loading model...")
@@ -157,7 +157,7 @@ predictions_data = [
     for i, (p, g) in enumerate(zip(predictions, ground_truths))
 ]
 
-predictions_file = f"eval_predictions_{timestamp}.json"
+predictions_file = f"qwen2vl_vqa_rad_result/eval_predictions_{timestamp}.json"
 with open(predictions_file, "w") as f:
     json.dump(predictions_data, f, indent=2)
 print(f"✓ Predictions saved to: {predictions_file}")

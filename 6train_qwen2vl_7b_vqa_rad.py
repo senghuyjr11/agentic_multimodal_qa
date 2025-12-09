@@ -4,7 +4,13 @@ Optimized settings to prevent overfitting
 
 DEBUG MODE: Set TEST_MODE=True to run quick sanity check on small data
 """
+from pathlib import Path
 import os
+PROJECT_ROOT = Path(__file__).parent.resolve()
+CACHE_DIR = (PROJECT_ROOT / ".hf_cache").resolve()
+os.environ.setdefault("HF_HOME", str(CACHE_DIR))
+os.environ.setdefault("TRANSFORMERS_CACHE", str(CACHE_DIR))
+
 def main():
     # ========== TEST MODE CONFIGURATION ==========
     # Set this to True for quick sanity check (5-10 minutes)
@@ -26,6 +32,10 @@ def main():
         print("Running complete training on full dataset")
         print("This will take ~12 hours")
         print("="*70 + "\n")
+
+    os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:128,garbage_collection_threshold:0.8"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     import torch
     from peft import get_peft_model, LoraConfig, prepare_model_for_kbit_training
@@ -68,7 +78,7 @@ def main():
     print("LOADING MODEL")
     print("="*60)
 
-    MODEL_ID = "Qwen/Qwen2-VL-2B-Instruct"
+    MODEL_ID = "Qwen/Qwen2-VL-7B-Instruct"
 
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
@@ -214,7 +224,7 @@ def main():
 
     # ========== TRAINING ARGUMENTS ==========
     training_args = TrainingArguments(
-        output_dir="./qwen2vl_vqa_rad_test" if TEST_MODE else "./qwen2vl_vqa_rad_final",
+        output_dir="./qwen2vl_7b_vqa_rad_test" if TEST_MODE else "./qwen2vl_7b_vqa_rad_final",
 
         # Batch settings
         per_device_train_batch_size=4,
@@ -223,16 +233,16 @@ def main():
 
         # Learning rate and epochs
         learning_rate=5e-5,
-        num_train_epochs=2 if TEST_MODE else 5,  # 2 epochs for test, 3 for real
+        num_train_epochs=2 if TEST_MODE else 6,
         lr_scheduler_type="cosine",
-        warmup_steps=20 if TEST_MODE else 300,  # Quick warmup for test
+        warmup_steps=20 if TEST_MODE else 30,  # Quick warmup for test
         max_grad_norm=1.0,
         weight_decay=0.01,
 
         # Logging/saving - more frequent in test mode
-        logging_steps=5 if TEST_MODE else 50,
-        save_steps=25 if TEST_MODE else 50,
-        eval_steps=25 if TEST_MODE else 50,
+        logging_steps=5 if TEST_MODE else 25,
+        save_steps=25 if TEST_MODE else 25,
+        eval_steps=25 if TEST_MODE else 25,
         eval_strategy="steps",
 
         # Monitor loss only during training
@@ -252,7 +262,10 @@ def main():
 
         # Data loading
         remove_unused_columns=False,
-        dataloader_num_workers=0,
+        dataloader_num_workers=4,
+        dataloader_pin_memory=True,
+        dataloader_prefetch_factor=4,
+        dataloader_persistent_workers=True,
 
         ddp_find_unused_parameters=False,
         report_to="none",
@@ -372,8 +385,8 @@ def main():
 
     except KeyboardInterrupt:
         print("\n⚠️  Training interrupted by user")
-        trainer.save_model("./qwen2vl_vqa_rad_interrupted")
-        print("✓ Saved interrupted checkpoint to ./qwen2vl_vqa_rad_interrupted")
+        trainer.save_model("./qwen2vl_7b_vqa_rad_interrupted")
+        print("✓ Saved interrupted checkpoint to ./qwen2vl_7b_vqa_rad_interrupted")
 
     except Exception as e:
         print(f"\n❌ Training error: {e}")
@@ -381,8 +394,8 @@ def main():
         traceback.print_exc()
         torch.cuda.empty_cache()
         try:
-            trainer.save_model("./qwen2vl_vqa_rad_emergency")
-            print("✓ Emergency save to ./qwen2vl_vqa_rad_emergency")
+            trainer.save_model("./qwen2vl_7b_vqa_rad_emergency")
+            print("✓ Emergency save to ./qwen2vl_7b_vqa_rad_emergency")
         except:
             print("✗ Emergency save failed")
         raise
@@ -391,13 +404,13 @@ def main():
     # ========== SAVE FINAL MODEL ==========
     print("\nSaving final model...")
     if TEST_MODE:
-        model.save_pretrained("./qwen2vl_vqa_rad_test_adapters")
-        processor.save_pretrained("./qwen2vl_vqa_rad_test_adapters")
-        print("✓ Test model saved to ./qwen2vl_vqa_rad_test_adapters")
+        model.save_pretrained("./qwen2vl_7b_vqa_rad_test_adapters")
+        processor.save_pretrained("./qwen2vl_7b_vqa_rad_test_adapters")
+        print("✓ Test model saved to ./qwen2vl_7b_vqa_rad_test_adapters")
     else:
-        model.save_pretrained("./qwen2vl_vqa_rad_adapters")
-        processor.save_pretrained("./qwen2vl_vqa_rad_adapters")
-        print("✓ Model saved to ./qwen2vl_vqa_rad_adapters")
+        model.save_pretrained("./qwen2vl_7b_vqa_rad_adapters")
+        processor.save_pretrained("./qwen2vl_7b_vqa_rad_adapters")
+        print("✓ Model saved to ./qwen2vl_7b_vqa_rad_adapters")
 
     torch.cuda.empty_cache()
 
