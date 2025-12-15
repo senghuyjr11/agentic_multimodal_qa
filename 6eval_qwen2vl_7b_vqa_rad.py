@@ -146,7 +146,7 @@ results = {
     "samples_per_second": len(predictions) / total_time,
 }
 
-results_file = f"eval_results_{timestamp}.json"
+results_file = f"qwen2vl_7b_vqa_rad_result/eval_results_{timestamp}.json"
 with open(results_file, "w") as f:
     json.dump(results, f, indent=2)
 print(f"\n✓ Metrics saved to: {results_file}")
@@ -157,7 +157,7 @@ predictions_data = [
     for i, (p, g) in enumerate(zip(predictions, ground_truths))
 ]
 
-predictions_file = f"qwen2vl_vqa_rad_result/eval_predictions_{timestamp}.json"
+predictions_file = f"qwen2vl_7b_vqa_rad_result/eval_predictions_{timestamp}.json"
 with open(predictions_file, "w") as f:
     json.dump(predictions_data, f, indent=2)
 print(f"✓ Predictions saved to: {predictions_file}")
