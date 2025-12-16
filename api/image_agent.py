@@ -140,20 +140,20 @@ if __name__ == "__main__":
     # Your configs
     pathvqa_config = ModelConfig(
         base_model_id="Qwen/Qwen2-VL-7B-Instruct",
-        adapter_path="qwen2vl_7b_pathvqa_adapters",
+        adapter_path="../qwen2vl_7b_pathvqa_adapters",
         model_class=Qwen2VLForConditionalGeneration
     )
 
     vqa_rad_config = ModelConfig(
         base_model_id="Qwen/Qwen3-VL-2B-Instruct",
-        adapter_path="qwen3vl_2b_vqa_rad_adapters",
+        adapter_path="../qwen3vl_2b_vqa_rad_adapters",
         model_class=Qwen3VLForConditionalGeneration
     )
 
     agent = ImageAgent(
         pathvqa_config=pathvqa_config,
         vqa_rad_config=vqa_rad_config,
-        classifier_path="modality_classifier"
+        classifier_path="../modality_classifier"
     )
 
     # Test PathVQA or VQA-RAD
