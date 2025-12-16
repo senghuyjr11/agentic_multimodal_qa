@@ -28,7 +28,12 @@ class SessionManager:
         existing = [int(d) for d in os.listdir(user_dir) if d.isdigit()]
         return max(existing, default=0) + 1
 
-    def create_session(self, username: str, image_path: str, question: str) -> int:
+    def create_session(
+        self,
+        username: str,
+        question: str,
+        image_path: str = None  # Optional now
+    ) -> int:
         """Create new session for user."""
         user_dir = self._get_user_dir(username)
         os.makedirs(user_dir, exist_ok=True)
@@ -37,18 +42,24 @@ class SessionManager:
         session_dir = self._get_session_dir(username, session_id)
         os.makedirs(session_dir)
 
-        image_ext = os.path.splitext(image_path)[1]
-        new_image_path = os.path.join(session_dir, f"input_image{image_ext}")
-        shutil.copy(image_path, new_image_path)
+        # Copy image if provided
+        saved_image_path = None
+        original_image_path = None
+        if image_path:
+            image_ext = os.path.splitext(image_path)[1]
+            saved_image_path = f"input_image{image_ext}"
+            original_image_path = image_path
+            shutil.copy(image_path, os.path.join(session_dir, saved_image_path))
 
         session_data = {
             "username": username,
             "session_id": session_id,
             "created_at": datetime.now().isoformat(),
             "input": {
-                "image_path": f"input_image{image_ext}",
-                "original_image_path": image_path,
-                "question": question
+                "image_path": saved_image_path,
+                "original_image_path": original_image_path,
+                "question": question,
+                "input_type": self._get_input_type(image_path, question)
             },
             "image_agent": None,
             "vqa_agent": None,
@@ -60,6 +71,14 @@ class SessionManager:
         print(f"✓ Created session: {username}/{session_id}")
 
         return session_id
+
+    def _get_input_type(self, image_path: str, question: str) -> str:
+        if image_path and question:
+            return "image_and_text"
+        elif image_path:
+            return "image_only"
+        else:
+            return "text_only"
 
     def update(self, username: str, session_id: int, agent_name: str, data: dict):
         """Update session with agent output."""

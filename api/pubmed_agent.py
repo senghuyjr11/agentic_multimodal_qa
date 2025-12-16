@@ -1,5 +1,5 @@
 """
-text_agent.py - Knowledge Augmentation
+pubmed_agent.py - Knowledge Augmentation from PubMed
 """
 import requests
 from dataclasses import dataclass
@@ -13,7 +13,7 @@ class Article:
     url: str
 
 
-class TextAgent:
+class PubMedAgent:
     """Augments VQA answers with relevant medical literature from PubMed."""
 
     def __init__(self, email: str, api_key: str = None):
@@ -60,17 +60,6 @@ class TextAgent:
                 continue
         return articles
 
-    def get_knowledge(self, vqa_answer: str, question: str) -> dict:
-        """Get medical knowledge related to VQA answer."""
-        query = f"{vqa_answer} {question}"
-        articles = self.search(query)
-
-        return {
-            "query": query,
-            "articles": articles,
-            "formatted": self._format_output(articles)
-        }
-
     def _format_output(self, articles: list[Article]) -> str:
         if not articles:
             return "No related literature found."
@@ -82,16 +71,23 @@ class TextAgent:
             output += f"    Link: {art.url}\n\n"
         return output
 
+    def get_knowledge(self, vqa_answer: str, question: str) -> dict:
+        """Get knowledge for image + question (combines answer and question)."""
+        query = f"{vqa_answer} {question}"
+        articles = self.search(query)
 
-if __name__ == "__main__":
-    agent = TextAgent(
-        email="senghuymit007@gmail.com",
-        api_key="92da6b3a9eb8f5916e252e7fbc9d9aed3609"
-    )
+        return {
+            "query": query,
+            "articles": articles,
+            "formatted": self._format_output(articles)
+        }
 
-    result = agent.get_knowledge(
-        vqa_answer="positively",
-        question="how are the histone subunits charged?"
-    )
+    def search_topic(self, question: str) -> dict:
+        """Get knowledge for text-only question."""
+        articles = self.search(question)
 
-    print(result["formatted"])
+        return {
+            "query": question,
+            "articles": articles,
+            "formatted": self._format_output(articles)
+        }

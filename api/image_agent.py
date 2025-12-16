@@ -27,10 +27,9 @@ class ModelConfig:
 
 
 class ImageAgent:
-
     DEFAULT_QUESTIONS = {
-        ModelType.PATHVQA: "Describe the key findings in this pathology image.",
-        ModelType.VQA_RAD: "Describe the key findings in this medical image."
+        ModelType.PATHVQA: "What do you see in this pathology image?",
+        ModelType.VQA_RAD: "What abnormalities are visible in this scan?"
     }
 
     def __init__(

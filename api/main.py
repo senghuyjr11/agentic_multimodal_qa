@@ -2,7 +2,8 @@
 main.py - Full pipeline connecting all agents
 """
 from image_agent import ImageAgent, ModelConfig
-from text_agent import TextAgent
+from pubmed_agent import PubMedAgent
+from text_only_agent import TextOnlyAgent
 from reasoning_agent import ReasoningAgent
 from session_manager import SessionManager
 from transformers import Qwen2VLForConditionalGeneration, Qwen3VLForConditionalGeneration
@@ -31,38 +32,64 @@ class MedicalVQAPipeline:
             classifier_path=classifier_path
         )
 
-        self.text_agent = TextAgent(
+        self.text_only_agent = TextOnlyAgent(api_key=google_api_key)
+
+        self.pubmed_agent = PubMedAgent(
             email=ncbi_email,
             api_key=ncbi_api_key
         )
 
-        self.reasoning_agent = ReasoningAgent(
-            api_key=google_api_key
-        )
+        self.reasoning_agent = ReasoningAgent(api_key=google_api_key)
 
         print("âœ“ Pipeline ready\n")
 
     def run(
             self,
             username: str,
-            image_path: str,
-            question: str,
+            question: str = None,
+            image_path: str = None,
             language: str = "English",
-            session_id: int = None  # None = new chat, number = continue chat
+            session_id: int = None
     ) -> dict:
-        """Run full pipeline and store results."""
+
+        if not image_path and not question:
+            raise ValueError("Must provide at least image_path or question")
 
         print("=" * 60)
         print("MEDICAL VQA PIPELINE")
         print("=" * 60)
 
+        # Determine input type
+        if image_path:
+            input_type = "image"
+        else:
+            input_type = "text_only"
+
+        print(f"Input type: {input_type}")
+
         # Create or load session
         if session_id is None:
-            session_id = self.session_manager.create_session(username, image_path, question)
+            session_id = self.session_manager.create_session(username, question or "", image_path)
         else:
             if not self.session_manager.session_exists(username, session_id):
                 raise ValueError(f"Session {username}/{session_id} not found")
             print(f"âœ“ Continuing session: {username}/{session_id}")
+
+        # Route based on input type
+        if input_type == "text_only":
+            return self._run_text_only(username, session_id, question, language)
+        else:
+            return self._run_with_image(username, session_id, image_path, question, language)
+
+    def _run_with_image(
+            self,
+            username: str,
+            session_id: int,
+            image_path: str,
+            question: str,
+            language: str
+    ) -> dict:
+        """Run full pipeline with image."""
 
         # 1. Image Agent
         print("\n[1/3] Image Agent - Routing & Prediction")
@@ -80,14 +107,14 @@ class MedicalVQAPipeline:
 
         print(f"Answer: {vqa_result['answer']}")
 
-        # 2. Text Agent
-        print("\n[2/3] Text Agent - Fetching PubMed Knowledge")
-        knowledge = self.text_agent.get_knowledge(
+        # 2. PubMed Agent
+        print("\n[2/3] PubMed Agent - Fetching Knowledge")
+        knowledge = self.pubmed_agent.get_knowledge(
             vqa_answer=vqa_result["answer"],
             question=vqa_result["question"]
         )
 
-        self.session_manager.update(username, session_id, "text_agent", {
+        self.session_manager.update(username, session_id, "pubmed_agent", {
             "query": knowledge["query"],
             "articles": [
                 {
@@ -116,23 +143,114 @@ class MedicalVQAPipeline:
             "response": reasoning_result["enhanced_response"]
         })
 
-        # Final output
-        print("\n" + "=" * 60)
-        print("FINAL OUTPUT")
-        print("=" * 60)
-        print(reasoning_result["enhanced_response"])
-        print("=" * 60)
-        print(f"Session saved: {username}/{session_id}")
+        self._print_final_output(reasoning_result["enhanced_response"], username, session_id)
 
         return {
             "username": username,
             "session_id": session_id,
+            "input_type": "image",
             "vqa_answer": vqa_result["answer"],
             "enhanced_response": reasoning_result["enhanced_response"]
         }
 
-if __name__ == "__main__":
+    def _run_text_only(
+            self,
+            username: str,
+            session_id: int,
+            question: str,
+            language: str
+    ) -> dict:
+        """Run pipeline for text-only input."""
 
+        # 1. Text-Only Agent (classify and respond)
+        print("\n[1] Text-Only Agent - Classifying Question")
+        text_only_result = self.text_only_agent.respond(question, language)
+
+        self.session_manager.update(username, session_id, "image_agent", {
+            "skipped": True,
+            "reason": "text_only_input"
+        })
+
+        self.session_manager.update(username, session_id, "vqa_agent", {
+            "skipped": True,
+            "reason": "text_only_input"
+        })
+
+        # If casual question, skip PubMed and Reasoning
+        if text_only_result["question_type"] == "casual":
+            self.session_manager.update(username, session_id, "pubmed_agent", {
+                "skipped": True,
+                "reason": "casual_question"
+            })
+
+            self.session_manager.update(username, session_id, "reasoning_agent", {
+                "skipped": True,
+                "reason": "casual_question",
+                "response": text_only_result["response"]
+            })
+
+            self._print_final_output(text_only_result["response"], username, session_id)
+
+            return {
+                "username": username,
+                "session_id": session_id,
+                "input_type": "text_only",
+                "question_type": "casual",
+                "enhanced_response": text_only_result["response"]
+            }
+
+        # Medical question: continue with PubMed + Reasoning
+        print("\n[2] PubMed Agent - Fetching Knowledge")
+        knowledge = self.pubmed_agent.search_topic(question)
+
+        self.session_manager.update(username, session_id, "pubmed_agent", {
+            "query": knowledge["query"],
+            "articles": [
+                {
+                    "title": a.title,
+                    "abstract": a.abstract,
+                    "pmid": a.pmid,
+                    "url": a.url
+                } for a in knowledge["articles"]
+            ]
+        })
+
+        print(f"Found {len(knowledge['articles'])} articles")
+
+        print(f"\n[3] Reasoning Agent - Generating Explanation ({language})")
+        reasoning_result = self.reasoning_agent.generate_response(
+            question=question,
+            vqa_answer="(Text-only question - no image analysis)",
+            pubmed_articles=knowledge["formatted"],
+            language=language
+        )
+
+        self.session_manager.update(username, session_id, "reasoning_agent", {
+            "language": language,
+            "model_used": reasoning_result["model_used"],
+            "response": reasoning_result["enhanced_response"]
+        })
+
+        self._print_final_output(reasoning_result["enhanced_response"], username, session_id)
+
+        return {
+            "username": username,
+            "session_id": session_id,
+            "input_type": "text_only",
+            "question_type": "medical",
+            "enhanced_response": reasoning_result["enhanced_response"]
+        }
+
+    def _print_final_output(self, response: str, username: str, session_id: int):
+        print("\n" + "=" * 60)
+        print("FINAL OUTPUT")
+        print("=" * 60)
+        print(response)
+        print("=" * 60)
+        print(f"Session saved: {username}/{session_id}")
+
+
+if __name__ == "__main__":
     pathvqa_config = ModelConfig(
         base_model_id="Qwen/Qwen2-VL-7B-Instruct",
         adapter_path="../qwen2vl_7b_pathvqa_adapters",
@@ -145,7 +263,6 @@ if __name__ == "__main__":
         model_class=Qwen3VLForConditionalGeneration
     )
 
-    # Initialize pipeline
     pipeline = MedicalVQAPipeline(
         ncbi_email="senghuymit007@gmail.com",
         ncbi_api_key="92da6b3a9eb8f5916e252e7fbc9d9aed3609",
@@ -155,7 +272,30 @@ if __name__ == "__main__":
         classifier_path="../modality_classifier"
     )
 
-    # Run
+    # Test 1: Casual text
+    # print("\n" + "=" * 60)
+    # print("TEST 1: Casual Question")
+    # print("=" * 60)
+    # result = pipeline.run(
+    #     username="kyojuro",
+    #     question="Hi who are you?",
+    #     language="English"
+    # )
+
+    # Test 2: Medical text
+    # print("\n" + "="*60)
+    # print("TEST 2: Medical Question")
+    # print("="*60)
+    # result = pipeline.run(
+    #     username="kyojuro",
+    #     question="What is adenocarcinoma?",
+    #     language="English"
+    # )
+
+    # Test 3: Image + Question
+    print("\n" + "="*60)
+    print("TEST 3: Image + Question")
+    print("="*60)
     result = pipeline.run(
         username="kyojuro",
         image_path="../dataset_pathvqa/test/images/test_00001.jpg",
