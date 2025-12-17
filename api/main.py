@@ -1,16 +1,17 @@
 """
-main.py - Full pipeline connecting all agents
+main.py - Simplified with TranslationAgent as front layer
 """
 from image_agent import ImageAgent, ModelConfig
 from pubmed_agent import PubMedAgent
 from text_only_agent import TextOnlyAgent
 from reasoning_agent import ReasoningAgent
+from translation_agent import TranslationAgent
 from session_manager import SessionManager
 from transformers import Qwen2VLForConditionalGeneration, Qwen3VLForConditionalGeneration
 
 
 class MedicalVQAPipeline:
-    """Connects all agents and manages session storage."""
+    """Connects all agents with translation as front layer."""
 
     def __init__(
             self,
@@ -23,6 +24,9 @@ class MedicalVQAPipeline:
             sessions_dir: str = "sessions"
     ):
         print("Initializing Medical VQA Pipeline...")
+
+        # Translation Agent - FRONT LAYER
+        self.translation_agent = TranslationAgent(api_key=google_api_key)
 
         self.session_manager = SessionManager(sessions_dir)
 
@@ -48,9 +52,12 @@ class MedicalVQAPipeline:
             username: str,
             question: str = None,
             image_path: str = None,
-            language: str = "English",
             session_id: int = None
     ) -> dict:
+        """
+        Main entry point - handles any language input.
+        No need to specify language manually!
+        """
 
         if not image_path and not question:
             raise ValueError("Must provide at least image_path or question")
@@ -58,6 +65,15 @@ class MedicalVQAPipeline:
         print("=" * 60)
         print("MEDICAL VQA PIPELINE")
         print("=" * 60)
+
+        # ===== TRANSLATION LAYER (FRONT) =====
+        original_language = "English"
+        english_question = question
+
+        if question:
+            translation_result = self.translation_agent.process_input(question)
+            original_language = translation_result["detected_language"]
+            english_question = translation_result["english_question"]
 
         # Determine input type
         if image_path:
@@ -69,31 +85,63 @@ class MedicalVQAPipeline:
 
         # Create or load session
         if session_id is None:
-            session_id = self.session_manager.create_session(username, question or "", image_path)
+            session_id = self.session_manager.create_session(
+                username,
+                question or "",
+                image_path
+            )
         else:
             if not self.session_manager.session_exists(username, session_id):
                 raise ValueError(f"Session {username}/{session_id} not found")
             print(f"âœ“ Continuing session: {username}/{session_id}")
 
+        # Save translation info
+        self.session_manager.update(username, session_id, "translation", {
+            "original_language": original_language,
+            "original_question": question,
+            "english_question": english_question
+        })
+
+        # Route based on input type
         # Route based on input type
         if input_type == "text_only":
-            return self._run_text_only(username, session_id, question, language)
+            english_response = self._run_text_only(
+                username, session_id, english_question, original_language  # ADD original_language
+            )
         else:
-            return self._run_with_image(username, session_id, image_path, question, language)
+            english_response = self._run_with_image(
+                username, session_id, image_path, english_question, original_language  # ADD original_language
+            )
+
+        # ===== TRANSLATE BACK (if needed) =====
+        final_response = self.translation_agent.process_output(
+            english_response,
+            original_language
+        )
+
+        self._print_final_output(final_response, username, session_id)
+
+        return {
+            "username": username,
+            "session_id": session_id,
+            "input_type": input_type,
+            "original_language": original_language,
+            "enhanced_response": final_response
+        }
 
     def _run_with_image(
             self,
             username: str,
             session_id: int,
             image_path: str,
-            question: str,
-            language: str
-    ) -> dict:
-        """Run full pipeline with image."""
+            english_question: str,
+            original_language: str
+    ) -> str:
+        """Run full pipeline with image (all in English)."""
 
         # 1. Image Agent
         print("\n[1/3] Image Agent - Routing & Prediction")
-        vqa_result = self.image_agent.predict(image_path, question)
+        vqa_result = self.image_agent.predict(image_path, english_question)
 
         self.session_manager.update(username, session_id, "image_agent", {
             "routed_to": vqa_result["model"],
@@ -116,6 +164,7 @@ class MedicalVQAPipeline:
 
         self.session_manager.update(username, session_id, "pubmed_agent", {
             "query": knowledge["query"],
+            "articles_count": len(knowledge["articles"]),  # ADD THIS LINE
             "articles": [
                 {
                     "title": a.title,
@@ -129,42 +178,37 @@ class MedicalVQAPipeline:
         print(f"Found {len(knowledge['articles'])} articles")
 
         # 3. Reasoning Agent
-        print(f"\n[3/3] Reasoning Agent - Generating Explanation ({language})")
-        reasoning_result = self.reasoning_agent.generate_response(
+        print(f"\n[3/3] Reasoning Agent - Generating Explanation")
+        english_response = self.reasoning_agent.generate_response(
             question=vqa_result["question"],
             vqa_answer=vqa_result["answer"],
-            pubmed_articles=knowledge["formatted"],
-            language=language
+            pubmed_articles=knowledge["formatted"]
+        )
+
+        # Translate to user's language BEFORE saving
+        final_response = self.translation_agent.process_output(
+            english_response,
+            original_language
         )
 
         self.session_manager.update(username, session_id, "reasoning_agent", {
-            "language": language,
-            "model_used": reasoning_result["model_used"],
-            "response": reasoning_result["enhanced_response"]
+            "response": final_response
         })
 
-        self._print_final_output(reasoning_result["enhanced_response"], username, session_id)
-
-        return {
-            "username": username,
-            "session_id": session_id,
-            "input_type": "image",
-            "vqa_answer": vqa_result["answer"],
-            "enhanced_response": reasoning_result["enhanced_response"]
-        }
+        return english_response
 
     def _run_text_only(
             self,
             username: str,
             session_id: int,
-            question: str,
-            language: str
-    ) -> dict:
-        """Run pipeline for text-only input."""
+            english_question: str,
+            original_language: str
+    ) -> str:
+        """Run pipeline for text-only input (all in English)."""
 
         # 1. Text-Only Agent (classify and respond)
         print("\n[1] Text-Only Agent - Classifying Question")
-        text_only_result = self.text_only_agent.respond(question, language)
+        text_only_result = self.text_only_agent.respond(english_question)
 
         self.session_manager.update(username, session_id, "image_agent", {
             "skipped": True,
@@ -178,6 +222,12 @@ class MedicalVQAPipeline:
 
         # If casual question, skip PubMed and Reasoning
         if text_only_result["question_type"] == "casual":
+            # Translate response before saving
+            final_response = self.translation_agent.process_output(
+                text_only_result["response"],
+                original_language
+            )
+
             self.session_manager.update(username, session_id, "pubmed_agent", {
                 "skipped": True,
                 "reason": "casual_question"
@@ -186,25 +236,18 @@ class MedicalVQAPipeline:
             self.session_manager.update(username, session_id, "reasoning_agent", {
                 "skipped": True,
                 "reason": "casual_question",
-                "response": text_only_result["response"]
+                "response": final_response  # Save translated version
             })
 
-            self._print_final_output(text_only_result["response"], username, session_id)
-
-            return {
-                "username": username,
-                "session_id": session_id,
-                "input_type": "text_only",
-                "question_type": "casual",
-                "enhanced_response": text_only_result["response"]
-            }
+            return text_only_result["response"]  # Return English for processing
 
         # Medical question: continue with PubMed + Reasoning
         print("\n[2] PubMed Agent - Fetching Knowledge")
-        knowledge = self.pubmed_agent.search_topic(question)
+        knowledge = self.pubmed_agent.search_topic(english_question)
 
         self.session_manager.update(username, session_id, "pubmed_agent", {
             "query": knowledge["query"],
+            "articles_count": len(knowledge["articles"]),  # ADD THIS LINE
             "articles": [
                 {
                     "title": a.title,
@@ -217,29 +260,24 @@ class MedicalVQAPipeline:
 
         print(f"Found {len(knowledge['articles'])} articles")
 
-        print(f"\n[3] Reasoning Agent - Generating Explanation ({language})")
-        reasoning_result = self.reasoning_agent.generate_response(
-            question=question,
+        print(f"\n[3] Reasoning Agent - Generating Explanation")
+        english_response = self.reasoning_agent.generate_response(
+            question=english_question,
             vqa_answer="(Text-only question - no image analysis)",
-            pubmed_articles=knowledge["formatted"],
-            language=language
+            pubmed_articles=knowledge["formatted"]
+        )
+
+        # Translate to user's language BEFORE saving
+        final_response = self.translation_agent.process_output(
+            english_response,
+            original_language
         )
 
         self.session_manager.update(username, session_id, "reasoning_agent", {
-            "language": language,
-            "model_used": reasoning_result["model_used"],
-            "response": reasoning_result["enhanced_response"]
+            "response": final_response  # Save translated version
         })
 
-        self._print_final_output(reasoning_result["enhanced_response"], username, session_id)
-
-        return {
-            "username": username,
-            "session_id": session_id,
-            "input_type": "text_only",
-            "question_type": "medical",
-            "enhanced_response": reasoning_result["enhanced_response"]
-        }
+        return english_response  # Return English for processing
 
     def _print_final_output(self, response: str, username: str, session_id: int):
         print("\n" + "=" * 60)
@@ -272,33 +310,23 @@ if __name__ == "__main__":
         classifier_path="../modality_classifier"
     )
 
-    # Test 1: Casual text
-    # print("\n" + "=" * 60)
-    # print("TEST 1: Casual Question")
-    # print("=" * 60)
-    # result = pipeline.run(
-    #     username="kyojuro",
-    #     question="Hi who are you?",
-    #     language="English"
-    # )
+    # Test with different languages - NO NEED TO SPECIFY LANGUAGE!
 
-    # Test 2: Medical text
-    # print("\n" + "="*60)
-    # print("TEST 2: Medical Question")
-    # print("="*60)
-    # result = pipeline.run(
-    #     username="kyojuro",
-    #     question="What is adenocarcinoma?",
-    #     language="English"
-    # )
-
-    # Test 3: Image + Question
-    print("\n" + "="*60)
-    print("TEST 3: Image + Question")
-    print("="*60)
+    # Test 1: English (no translation needed)
     result = pipeline.run(
         username="kyojuro",
-        image_path="../dataset_pathvqa/test/images/test_00001.jpg",
-        question="how are the histone subunits charged?",
-        language="English"
+        question="What is adenocarcinoma?"
     )
+
+    # Test 2: Korean (auto-detected and translated)
+    # result = pipeline.run(
+    #     username="kyojuro",
+    #     question="ì„ ì•”ì´ ë­ì˜ˆìš”?"
+    # )
+
+    # Test 3: Image + Korean question
+    # result = pipeline.run(
+    #     username="kyojuro",
+    #     image_path="../dataset_pathvqa/test/images/test_00001.jpg",
+    #     question="ížˆìŠ¤í†¤ í•˜ìœ„ ë‹¨ìœ„ëŠ” ì–´ë–»ê²Œ ì¶©ì „ë˜ë‚˜ìš”?"
+    # )

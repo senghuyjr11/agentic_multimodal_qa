@@ -1,5 +1,5 @@
 """
-api.py - FastAPI endpoints for Medical VQA Pipeline
+api.py - Simplified FastAPI (no manual language parameter needed)
 """
 import os
 import tempfile
@@ -17,8 +17,8 @@ from main import MedicalVQAPipeline
 
 app = FastAPI(
     title="Medical VQA API",
-    description="Multi-agent Medical Visual Question Answering System",
-    version="1.0.0"
+    description="Multi-agent Medical Visual Question Answering System with Auto Language Detection",
+    version="2.0.0"
 )
 
 app.add_middleware(
@@ -77,7 +77,6 @@ async def startup_event():
     print("=" * 60)
 
 
-
 # ============== ENDPOINTS ==============
 
 @app.get("/health")
@@ -90,16 +89,16 @@ async def health_check():
 async def predict(
     username: str = Form(...),
     question: Optional[str] = Form(None),
-    language: str = Form("English"),
     image: Optional[UploadFile] = File(None)
 ):
     """
-    Main prediction endpoint.
+    Main prediction endpoint with AUTO LANGUAGE DETECTION.
 
     - username: required
-    - question: optional (uses default if image provided)
-    - language: default "English"
+    - question: optional (any language - will be auto-detected)
     - image: optional file upload
+
+    No need to specify language manually!
     """
     if pipeline is None:
         raise HTTPException(status_code=503, detail="Pipeline not initialized")
@@ -120,8 +119,8 @@ async def predict(
         result = pipeline.run(
             username=username,
             question=question,
-            image_path=image_path,
-            language=language
+            image_path=image_path
+            # No language parameter needed!
         )
 
         return pipeline.session_manager.load(username, result["session_id"])
@@ -150,7 +149,8 @@ async def list_sessions(username: str):
             "session_id": sid,
             "created_at": data["created_at"],
             "input_type": data["input"].get("input_type", "unknown"),
-            "question": data["input"].get("question")
+            "question": data["input"].get("question"),
+            "language": data.get("translation", {}).get("original_language", "English")
         })
 
     return sessions

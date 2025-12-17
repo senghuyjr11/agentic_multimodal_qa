@@ -5,6 +5,7 @@ import os
 import json
 import shutil
 from datetime import datetime
+from dataclasses import asdict, is_dataclass
 
 
 class SessionManager:
@@ -32,7 +33,7 @@ class SessionManager:
         self,
         username: str,
         question: str,
-        image_path: str = None  # Optional now
+        image_path: str = None
     ) -> int:
         """Create new session for user."""
         user_dir = self._get_user_dir(username)
@@ -61,9 +62,11 @@ class SessionManager:
                 "question": question,
                 "input_type": self._get_input_type(image_path, question)
             },
+            "translation": None,
             "image_agent": None,
             "vqa_agent": None,
             "text_agent": None,
+            "pubmed_agent": None,
             "reasoning_agent": None
         }
 
@@ -83,6 +86,19 @@ class SessionManager:
     def update(self, username: str, session_id: int, agent_name: str, data: dict):
         """Update session with agent output."""
         session_data = self.load(username, session_id)
+
+        # Convert dataclass objects to dicts if needed
+        if "articles" in data:
+            articles_list = []
+            for article in data["articles"]:
+                if is_dataclass(article):
+                    articles_list.append(asdict(article))
+                elif isinstance(article, dict):
+                    articles_list.append(article)
+                else:
+                    articles_list.append(article)
+            data["articles"] = articles_list
+
         session_data[agent_name] = data
         session_data["updated_at"] = datetime.now().isoformat()
         self._save(username, session_id, session_data)
