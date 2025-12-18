@@ -70,8 +70,14 @@ def energy_score(logits: torch.Tensor, T: float = 1.0) -> torch.Tensor:
 
 class ImageAgent:
     DEFAULT_QUESTIONS = {
-        ModelType.PATHVQA: "What do you see in this pathology image?",
-        ModelType.VQA_RAD: "What abnormalities are visible in this scan?",
+        ModelType.PATHVQA: (
+            "What pathological findings do you observe? "
+            "Describe the specific location and characteristics."
+        ),
+        ModelType.VQA_RAD: (
+            "What abnormalities are visible in this scan? "
+            "Specify the anatomical location and extent."
+        ),
     }
 
     def __init__(

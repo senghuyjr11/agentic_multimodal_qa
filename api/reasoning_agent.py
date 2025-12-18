@@ -32,20 +32,20 @@ class ReasoningAgent:
 
         # Use the pre-formatted string for context
         prompt = f"""
-    You are an expert medical AI. Answer based strictly on the visual findings and research context.
+        You are an expert medical AI. Answer based strictly on the visual findings and research context.
 
-    User Question: {question}
-    Visual Findings: {vqa_answer}
-    Research Context:
-    {pubmed_articles}
+        User Question: {question}
+        Visual Findings: {vqa_answer}
+        Research Context: {pubmed_articles}
 
-    STRICT OUTPUT FORMAT (Follow exactly):
-    Answer: (Direct 1-sentence answer)
-    Explanation: (1-2 sentences with citations like [1], [2])
-    Clinical Context: (1-2 sentences on implications, citing [1]-[3])
+        STRICT OUTPUT FORMAT (Follow exactly):
+        Answer: (Direct 1-sentence answer)
+        Location: (Describe WHERE in the image the findings are located - e.g., "right lower lobe", "left anterior region", "throughout the tissue")
+        Explanation: (1-2 sentences explaining the significance, with citations like [1], [2])
+        Clinical Context: (1-2 sentences on clinical implications, citing [1]-[3])
 
-    Do NOT write a References section - it will be auto-generated.
-    """
+        Do NOT write a References section - it will be auto-generated.
+        """
 
         # Call API
         response = self.model.generate_content(prompt)
