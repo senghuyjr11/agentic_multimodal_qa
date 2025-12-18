@@ -61,14 +61,12 @@ Keep your response short and friendly. If asked who you are, mention you help an
                 "needs_pubmed": False
             }
 
+
         else:  # medical
             # Medical questions MUST go through PubMed + Reasoning pipeline
             print("⚠️ Medical question detected - routing to PubMed pipeline")
-
             return {
                 "question": question,
-                "question_type": "medical",
-                "response": None,  # No direct answer
-                "needs_pubmed": True,  # Flag: MUST use PubMed + Reasoning
-                "message": "Medical question - requires PubMed literature search"
+                "question_type": "medical"
+                # No need for response, needs_pubmed, message - main.py checks question_type
             }

@@ -79,16 +79,17 @@ class ImageAgent:
             pathvqa_config: ModelConfig,
             vqa_rad_config: ModelConfig,
             classifier_path: str,
-            ood_config: OODConfig = None  # Add this
+            ood_config: OODConfig = None
     ):
-        self.ood_config = ood_config or OODConfig()
+        self.ood_config = ood_config or OODConfig()  # ← Creates default OODConfig
         self.pathvqa_config = pathvqa_config
         self.vqa_rad_config = vqa_rad_config
 
-        self.msp_threshold = ood_config.msp_threshold
-        self.entropy_threshold = ood_config.entropy_threshold
-        self.energy_threshold = ood_config.energy_threshold
-        self.energy_temperature = ood_config.energy_temperature
+        # Use self.ood_config instead of ood_config
+        self.msp_threshold = self.ood_config.msp_threshold
+        self.entropy_threshold = self.ood_config.entropy_threshold
+        self.energy_threshold = self.ood_config.energy_threshold
+        self.energy_temperature = self.ood_config.energy_temperature
 
         # Load classifier
         print("Loading modality classifier...")

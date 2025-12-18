@@ -13,8 +13,13 @@ class ReasoningAgent:
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel("gemma-3-4b-it")
 
-    def generate_response(self, question: str, vqa_answer: str, pubmed_articles: str,
-                          article_objects: list = None) -> str:
+    def generate_response(
+            self,
+            question: str,
+            vqa_answer: str,
+            pubmed_articles: str,
+            article_objects: list
+    ) -> str:
         """
         Generates a structured medical response.
 
@@ -50,14 +55,12 @@ class ReasoningAgent:
         if "References:" in text_output or "Reference:" in text_output:
             text_output = text_output.split("Reference")[0].strip()
 
-        # Append real links if article objects provided
-        if article_objects:
-            formatted_refs = "\n\nReferences:"
-            for i, article in enumerate(article_objects[:3], 1):  # Top 3 only
-                title = article.title[:60] + "..." if len(article.title) > 60 else article.title
-                formatted_refs += f"\n{i}. [{title}]({article.url}) (PMID: {article.pmid})"
 
-            return text_output + formatted_refs
+        # Always append references (no if check needed)
+        formatted_refs = "\n\nReferences:"
+        for i, article in enumerate(article_objects[:3], 1):  # Top 3 only
+            title = article.title[:60] + "..." if len(article.title) > 60 else article.title
+            formatted_refs += f"\n{i}. [{title}]({article.url}) (PMID: {article.pmid})"
 
-        return text_output
+        return text_output + formatted_refs
 

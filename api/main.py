@@ -185,7 +185,6 @@ class MedicalVQAPipeline:
 
         self.session_manager.update(username, session_id, "pubmed_agent", {
             "query": knowledge["query"],
-            "articles_count": len(knowledge["articles"]),  # ADD THIS LINE
             "articles": [
                 {
                     "title": a.title,
@@ -270,7 +269,6 @@ class MedicalVQAPipeline:
 
         self.session_manager.update(username, session_id, "pubmed_agent", {
             "query": knowledge["query"],
-            "articles_count": len(knowledge["articles"]),  # ADD THIS LINE
             "articles": [
                 {
                     "title": a.title,
