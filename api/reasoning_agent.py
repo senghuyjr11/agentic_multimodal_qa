@@ -13,30 +13,51 @@ class ReasoningAgent:
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel("gemma-3-4b-it")
 
-    def generate_response(
-            self,
-            question: str,
-            vqa_answer: str,
-            pubmed_articles: str
-    ) -> str:
-        """Generate response in English only."""
+    def generate_response(self, question: str, vqa_answer: str, pubmed_articles: str,
+                          article_objects: list = None) -> str:
+        """
+        Generates a structured medical response.
 
-        prompt = f"""You are a medical AI assistant. Based on the following information, provide a clear and helpful response.
+        Args:
+            question: User's question
+            vqa_answer: Visual answer from image model
+            pubmed_articles: Formatted string (for context)
+            article_objects: List of actual article dicts (for links)
+        """
 
-QUESTION: {question}
-VQA MODEL ANSWER: {vqa_answer}
+        # Use the pre-formatted string for context
+        prompt = f"""
+    You are an expert medical AI. Answer based strictly on the visual findings and research context.
 
-RELATED MEDICAL LITERATURE:
-{pubmed_articles}
+    User Question: {question}
+    Visual Findings: {vqa_answer}
+    Research Context:
+    {pubmed_articles}
 
-Please provide your response with the following format:
+    STRICT OUTPUT FORMAT (Follow exactly):
+    Answer: (Direct 1-sentence answer)
+    Explanation: (1-2 sentences with citations like [1], [2])
+    Clinical Context: (1-2 sentences on implications, citing [1]-[3])
 
-1. ANSWER: State the answer clearly
-2. SIMPLE EXPLANATION: Explain what this means in plain language that anyone can understand
-3. CLINICAL CONTEXT: Provide relevant medical context based on the literature
-4. REFERENCES: List the PubMed articles used with their links
+    Do NOT write a References section - it will be auto-generated.
+    """
 
-Keep the explanation friendly and easy to understand. Avoid complex medical jargon unless necessary."""
-
+        # Call API
         response = self.model.generate_content(prompt)
-        return response.text
+        text_output = response.text.strip()
+
+        # Remove any References section the model might add
+        if "References:" in text_output or "Reference:" in text_output:
+            text_output = text_output.split("Reference")[0].strip()
+
+        # Append real links if article objects provided
+        if article_objects:
+            formatted_refs = "\n\nReferences:"
+            for i, article in enumerate(article_objects[:3], 1):  # Top 3 only
+                title = article.title[:60] + "..." if len(article.title) > 60 else article.title
+                formatted_refs += f"\n{i}. [{title}]({article.url}) (PMID: {article.pmid})"
+
+            return text_output + formatted_refs
+
+        return text_output
+

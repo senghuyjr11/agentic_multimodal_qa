@@ -103,7 +103,6 @@ class MedicalVQAPipeline:
         })
 
         # Route based on input type
-        # Route based on input type
         if input_type == "text_only":
             english_response = self._run_text_only(
                 username, session_id, english_question, original_language  # ADD original_language
@@ -143,17 +142,38 @@ class MedicalVQAPipeline:
         print("\n[1/3] Image Agent - Routing & Prediction")
         vqa_result = self.image_agent.predict(image_path, english_question)
 
+        # Save routing info (include OOD fields)
         self.session_manager.update(username, session_id, "image_agent", {
-            "routed_to": vqa_result["model"],
-            "confidence": vqa_result["confidence"]
+            "routed_to": vqa_result.get("model"),
+            "confidence": vqa_result.get("confidence"),
+            "ood": vqa_result.get("ood", False),
+            "ood_rule": vqa_result.get("ood_rule", None),
         })
 
         self.session_manager.update(username, session_id, "vqa_agent", {
-            "question": vqa_result["question"],
-            "answer": vqa_result["answer"]
+            "question": vqa_result.get("question"),
+            "answer": vqa_result.get("answer"),
+            "ood": vqa_result.get("ood", False),
         })
 
         print(f"Answer: {vqa_result['answer']}")
+
+        # ===== OOD SHORT-CIRCUIT =====
+        if vqa_result.get("ood", False) or vqa_result.get("model") == "unknown":
+            # Skip PubMed + Reasoning
+            self.session_manager.update(username, session_id, "pubmed_agent", {
+                "skipped": True,
+                "reason": "ood_rejection"
+            })
+            self.session_manager.update(username, session_id, "reasoning_agent", {
+                "skipped": True,
+                "reason": "ood_rejection",
+                # Save translated response for user convenience
+                "response": self.translation_agent.process_output(vqa_result["answer"], original_language)
+            })
+
+            # Return English for translation layer (run() will translate back)
+            return vqa_result["answer"]
 
         # 2. PubMed Agent
         print("\n[2/3] PubMed Agent - Fetching Knowledge")
@@ -161,6 +181,7 @@ class MedicalVQAPipeline:
             vqa_answer=vqa_result["answer"],
             question=vqa_result["question"]
         )
+
 
         self.session_manager.update(username, session_id, "pubmed_agent", {
             "query": knowledge["query"],
@@ -179,10 +200,12 @@ class MedicalVQAPipeline:
 
         # 3. Reasoning Agent
         print(f"\n[3/3] Reasoning Agent - Generating Explanation")
+
         english_response = self.reasoning_agent.generate_response(
             question=vqa_result["question"],
             vqa_answer=vqa_result["answer"],
-            pubmed_articles=knowledge["formatted"]
+            pubmed_articles=knowledge["formatted"],  # String for context
+            article_objects=knowledge["articles"]  # List for links
         )
 
         # Translate to user's language BEFORE saving
@@ -264,7 +287,8 @@ class MedicalVQAPipeline:
         english_response = self.reasoning_agent.generate_response(
             question=english_question,
             vqa_answer="(Text-only question - no image analysis)",
-            pubmed_articles=knowledge["formatted"]
+            pubmed_articles=knowledge["formatted"],
+            article_objects=knowledge["articles"]
         )
 
         # Translate to user's language BEFORE saving

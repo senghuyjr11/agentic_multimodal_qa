@@ -73,7 +73,7 @@ class PubMedAgent:
 
     def get_knowledge(self, vqa_answer: str, question: str) -> dict:
         """Get knowledge for image + question (combines answer and question)."""
-        query = f"{vqa_answer} {question}"
+        query = f"{vqa_answer}"
         articles = self.search(query)
 
         return {
