@@ -30,11 +30,12 @@ class TextOnlyAgent:
                 return "casual"
         return "medical"
 
-    def respond(self, question: str) -> dict:
+    def respond(self, question: str, conversation_context: str = "") -> dict:
         """Route question based on type.
 
         Args:
             question: Question in English (already translated by TranslationAgent)
+            conversation_context: Previous conversation history (for context-aware responses)
 
         Returns:
             dict with question_type and response (only for casual questions)
@@ -45,12 +46,16 @@ class TextOnlyAgent:
         print(f"Question type: {question_type}")
 
         if question_type == "casual":
-            # Only casual questions get direct responses
-            prompt = f"""You are a friendly Medical VQA Assistant. Answer this simple question briefly and naturally.
+            # Include context for casual responses
+            context_prompt = ""
+            if conversation_context:
+                context_prompt = f"\nPrevious conversation:\n{conversation_context}\n\n"
 
-Question: {question}
+            prompt = f"""{context_prompt}You are a friendly Medical VQA Assistant. Answer this simple question briefly and naturally.
 
-Keep your response short and friendly. If asked who you are, mention you help analyze medical images and answer health-related questions."""
+    Question: {question}
+
+    Keep your response short and friendly. If asked who you are, mention you help analyze medical images and answer health-related questions."""
 
             response = self.model.generate_content(prompt)
 
@@ -58,15 +63,12 @@ Keep your response short and friendly. If asked who you are, mention you help an
                 "question": question,
                 "question_type": "casual",
                 "response": response.text,
-                "needs_pubmed": False
             }
 
-
         else:  # medical
-            # Medical questions MUST go through PubMed + Reasoning pipeline
             print("⚠️ Medical question detected - routing to PubMed pipeline")
+
             return {
                 "question": question,
                 "question_type": "medical"
-                # No need for response, needs_pubmed, message - main.py checks question_type
             }

@@ -56,6 +56,7 @@ class SessionManager:
             "username": username,
             "session_id": session_id,
             "created_at": datetime.now().isoformat(),
+            "conversation_history": [], 
             "input": {
                 "image_path": saved_image_path,
                 "original_image_path": original_image_path,
@@ -131,3 +132,36 @@ class SessionManager:
         """List all usernames."""
         return [d for d in os.listdir(self.base_dir)
                 if os.path.isdir(os.path.join(self.base_dir, d))]
+
+
+    def add_conversation_turn(
+            self,
+            username: str,
+            session_id: int,
+            user_message: str,
+            assistant_message: str
+    ):
+        """Add a single Q&A turn to conversation history."""
+        session_data = self.load(username, session_id)
+
+        # Initialize conversation_history if it doesn't exist
+        if "conversation_history" not in session_data:
+            session_data["conversation_history"] = []
+
+        turn_number = len(session_data["conversation_history"]) + 1
+
+        session_data["conversation_history"].append({
+            "turn": turn_number,
+            "user": user_message,
+            "assistant": assistant_message,
+            "timestamp": datetime.now().isoformat()
+        })
+
+        session_data["updated_at"] = datetime.now().isoformat()
+        self._save(username, session_id, session_data)
+        print(f"✓ Added turn {turn_number} to conversation")
+
+    def get_conversation_history(self, username: str, session_id: int) -> list:
+        """Get all conversation turns from a session."""
+        session_data = self.load(username, session_id)
+        return session_data.get("conversation_history", [])
