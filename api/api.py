@@ -294,5 +294,56 @@ async def list_users():
     return pipeline.session_manager.list_users()
 
 
+@app.get("/debug/memory/{session_id}")
+async def debug_memory(session_id: int, username: str):
+    """
+    Debug endpoint: Show what's in LangChain RAM for a session.
+
+    Query parameter:
+    - username: required for verification
+    """
+    if pipeline is None:
+        raise HTTPException(status_code=503, detail="Pipeline not initialized")
+
+    # Verify session exists for this user
+    if not pipeline.session_manager.session_exists(username, session_id):
+        raise HTTPException(
+            status_code=404,
+            detail=f"Session {session_id} not found for user {username}"
+        )
+
+    # Check if in RAM
+    if session_id not in pipeline.active_conversations:
+        return {
+            "session_id": session_id,
+            "username": username,
+            "in_ram": False,
+            "message": "Session not in RAM cache (will be loaded from JSON on next message)"
+        }
+
+    # Get memory from RAM
+    memory = pipeline.active_conversations[session_id]
+    messages = memory.messages
+
+    from langchain_core.messages import HumanMessage, AIMessage
+
+    debug_info = {
+        "session_id": session_id,
+        "username": username,
+        "in_ram": True,
+        "total_messages": len(messages),
+        "turns": len(messages) // 2,
+        "messages": []
+    }
+
+    for i, msg in enumerate(messages):
+        debug_info["messages"].append({
+            "index": i,
+            "type": "human" if isinstance(msg, HumanMessage) else "ai",
+            "content": msg.content[:200] + "..." if len(msg.content) > 200 else msg.content
+        })
+
+    return debug_info
+
 if __name__ == "__main__":
     uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)

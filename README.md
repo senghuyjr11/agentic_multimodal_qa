@@ -19,13 +19,13 @@ https://huggingface.co/datasets/flaviagiammarino/vqa-rad
                     └────────┬────────┘
                              │
             ┌────────────────┼────────────────┐
-            │                                  │
-            ▼                                  ▼
+            │                                 │
+            ▼                                 ▼
     ┌──────────────┐                  ┌──────────────┐
     │ IMAGE INPUT  │                  │  TEXT ONLY   │
     └──────┬───────┘                  └──────┬───────┘
-           │                                  │
-           ▼                                  ▼
+           │                                 │
+           ▼                                 ▼
     ┌─────────────────────────┐      ┌─────────────────────┐
     │    Image Agent          │      │  Text Only Agent    │
     │ ┌─────────────────────┐ │      │  • Classify:        │
@@ -102,3 +102,78 @@ https://huggingface.co/datasets/flaviagiammarino/vqa-rad
                   │  • session_data.json  │
                   │  • input_image.*      │
                   └───────────────────────┘
+
+
+
+CONVERSATIONAL MEMORY SYSTEM
+
+┌──────────────────────────────────────────────────────┐
+│                   User Request                        │
+│              (username + message + session_id?)       │
+└─────────────────────────┬────────────────────────────┘
+                          │
+                          ▼
+                 ┌────────────────┐
+                 │ Session Check  │
+                 └────────┬───────┘
+                          │
+            ┌─────────────┴─────────────┐
+            │                           │
+      session_id = null           session_id exists
+       (New Chat)                  (Continue Chat)
+            │                           │
+            ▼                           ▼
+    ┌───────────────┐          ┌────────────────┐
+    │ Create New    │          │ Load Session   │
+    │ session_id    │          │ Metadata       │
+    └───────┬───────┘          └────────┬───────┘
+            │                           │
+            │                           ▼
+            │                  ┌────────────────┐
+            │                  │ Memory Check   │
+            │                  └────────┬───────┘
+            │                           │
+            │              ┌────────────┴───────────┐
+            │              │                        │
+            │         In RAM Cache           Not in RAM
+            │              │                        │
+            │              ▼                        ▼
+            │      ┌──────────────┐      ┌──────────────────┐
+            │      │ Use Cached   │      │ Load from JSON   │
+            │      │ Memory       │      │ Restore to RAM   │
+            │      └──────┬───────┘      └─────────┬────────┘
+            │             │                        │
+            └─────────────┴────────────────────────┘
+                          │
+                          ▼
+              ┌───────────────────────┐
+              │ Get Conversation      │
+              │ Context (history)     │
+              └───────────┬───────────┘
+                          │
+                          ▼
+              ┌───────────────────────┐
+              │  Run VQA Pipeline     │ ◄─── Diagram 1
+              │  (with context)       │
+              └───────────┬───────────┘
+                          │
+                          ▼
+              ┌───────────────────────┐
+              │ Save New Turn         │
+              └───────────┬───────────┘
+                          │
+              ┌───────────┴───────────┐
+              │                       │
+              ▼                       ▼
+    ┌──────────────────┐    ┌──────────────────┐
+    │ LangChain Memory │    │ Session Manager  │
+    │ (RAM)            │    │ (JSON)           │
+    │                  │    │                  │
+    │ Active chats:    │    │ Persistent:      │
+    │ {1: memory,      │    │ /username/       │
+    │  2: memory,      │    │   1/data.json    │
+    │  5: memory}      │    │   2/data.json    │
+    │                  │    │                  │
+    │ Cleared on       │    │ Survives app     │
+    │ app restart      │    │ restart          │
+    └──────────────────┘    └──────────────────┘
