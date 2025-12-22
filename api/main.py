@@ -11,6 +11,7 @@ from transformers import Qwen2VLForConditionalGeneration, Qwen3VLForConditionalG
 
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.chat_history import InMemoryChatMessageHistory
+import re
 
 class MedicalVQAPipeline:
     """Connects all agents with translation as front layer."""
@@ -47,7 +48,8 @@ class MedicalVQAPipeline:
 
         self.pubmed_agent = PubMedAgent(
             email=ncbi_email,
-            api_key=ncbi_api_key
+            api_key=ncbi_api_key,
+            google_api_key=google_api_key  # â† ADD: Enable LLM-based term extraction
         )
 
         self.reasoning_agent = ReasoningAgent(api_key=google_api_key)
@@ -112,6 +114,247 @@ class MedicalVQAPipeline:
 
         return "\n".join(context_lines)
 
+    def _extract_topic_from_context(self, conversation_context: str) -> str:
+        """
+        Extract the main medical topic from conversation context.
+        Now looks at ALL previous turns, not just the first question.
+
+        Strategy:
+        1. Look at VQA answers (most reliable source)
+        2. Look at all user questions
+        3. Prioritize medical terms over general words
+        """
+        if not conversation_context:
+            return None
+
+        # Get all lines
+        lines = conversation_context.split('\n')
+
+        # Collect potential topics from different sources
+        vqa_answers = []
+        user_questions = []
+
+        for line in lines:
+            if line.startswith("AI:"):
+                ai_content = line.replace("AI:", "").strip()
+                # Check if this is a VQA answer (contains "Original VQA Detection:")
+                if "Original VQA Detection:" in ai_content:
+                    # Extract the VQA answer
+                    match = re.search(r'Original VQA Detection:\*\*\s*([^\n*]+)', ai_content)
+                    if match:
+                        vqa_answer = match.group(1).strip()
+                        vqa_answers.append(vqa_answer)
+                        print(f"[DEBUG] Found VQA answer: '{vqa_answer}'")
+            elif line.startswith("Human:"):
+                question = line.replace("Human:", "").strip()
+                user_questions.append(question)
+
+        # Priority 1: Use VQA answer (most reliable)
+        if vqa_answers:
+            # Get the most recent VQA answer
+            topic = vqa_answers[-1]
+            # Clean up common VQA outputs
+            topic = topic.replace("[Image uploaded]", "").strip()
+            if topic and len(topic) > 2:
+                print(f"[DEBUG] Extracted topic from VQA: '{topic}'")
+                return topic
+
+        # Priority 2: Extract from first user question (most likely contains topic)
+        if user_questions:
+            first_question = user_questions[0]
+            print(f"[DEBUG] Extracting topic from first question: '{first_question}'")
+
+            # Remove question words
+            question_words = r'\b(what|how|why|when|where|who|which|is|are|can|could|would|should|does|do|did|the|a|an|this|that|these|those)\b'
+            cleaned = re.sub(question_words, ' ', first_question, flags=re.IGNORECASE)
+
+            # Extract remaining words (potential medical terms)
+            words = re.findall(r'\b[A-Za-z]{3,}\b', cleaned)
+
+            # Filter out remaining common words
+            stopwords = {'about', 'there', 'their', 'have', 'has', 'had', 'been', 'being', 'image', 'uploaded'}
+            medical_terms = [w for w in words if w.lower() not in stopwords]
+
+            if medical_terms:
+                topic = medical_terms[0]
+                print(f"[DEBUG] Extracted topic from first question: '{topic}'")
+                return topic
+
+        print(f"[DEBUG] No topic found")
+        return None
+
+    def _enhance_question_with_context(self, question: str, conversation_context: str) -> str:
+        """
+        Enhance a question with context for better PubMed searches.
+        Example: "How is it treated?" + context about pneumonia -> "How is pneumonia treated?"
+        """
+        if not conversation_context:
+            return question
+
+        # Extract topic from context
+        topic = self._extract_topic_from_context(conversation_context)
+
+        if not topic:
+            print(f"[DEBUG] No topic found, using original question: '{question}'")
+            return question
+
+        # If question has pronouns like "it", "this", "that", replace with topic
+        pronouns = r'\b(it|this|that|they|them)\b'
+        if re.search(pronouns, question, re.IGNORECASE):
+            # Replace pronoun with topic
+            enhanced = re.sub(pronouns, topic.lower(), question, flags=re.IGNORECASE, count=1)
+            print(f"âœ“ Enhanced question with context: '{question}' -> '{enhanced}'")
+            return enhanced
+
+        # If question is context-dependent but doesn't have pronouns, prepend topic
+        context_dependent_patterns = [
+            r'^(what|how|why|when|where)\s+(is|are|causes?|treatments?|symptoms?|does|do)',
+            r'^(can|could|should|would|will)',
+        ]
+
+        for pattern in context_dependent_patterns:
+            if re.match(pattern, question, re.IGNORECASE):
+                enhanced = f"{topic} {question}"
+                print(f"âœ“ Enhanced question with context: '{question}' -> '{enhanced}'")
+                return enhanced
+
+        return question
+
+    def _get_state(self, session_id: int) -> dict:
+        """
+        Get session state for topic tracking.
+        Returns a dict with 'topic' key for PubMed query enhancement.
+        """
+        # This is a simple implementation - you can enhance with actual topic extraction
+        return {
+            "topic": None  # Can be enhanced to extract topic from conversation history
+        }
+
+    def _search_pubmed_with_fallback(self, question: str, answer: str, topic: str | None, max_results: int = 3) -> dict | None:
+        """
+        Search PubMed with automatic fallback to broader searches.
+
+        Strategy:
+        1. Try specific search (with LLM-extracted terms)
+        2. If fails, try broader search (topic + main keyword)
+        3. If fails, try broadest search (topic only)
+        4. If still fails, return None
+
+        Args:
+            question: User's question
+            answer: VQA answer or None for text-only
+            topic: Main topic extracted from context
+            max_results: Number of articles to retrieve
+
+        Returns:
+            dict with 'query', 'articles', 'formatted' keys, or None if no articles found
+        """
+
+        # ATTEMPT 1: Specific search with LLM extraction
+        print("[PubMed] Attempt 1: Specific search with LLM-extracted terms")
+
+        if answer:
+            # Image + text: use get_knowledge
+            knowledge = self.pubmed_agent.get_knowledge(
+                vqa_answer=answer,
+                question=question,
+                topic=topic,
+                max_results=max_results
+            )
+        else:
+            # Text-only: use search_topic
+            knowledge = self.pubmed_agent.search_topic(
+                question=question,
+                topic=topic,
+                max_results=max_results
+            )
+
+        if knowledge["articles"]:
+            print(f"[PubMed] âœ“ Found {len(knowledge['articles'])} articles (specific search)")
+            return knowledge
+
+        # ATTEMPT 2: Broader search (topic + main keyword from question)
+        if topic:
+            print("[PubMed] Attempt 2: Broader search (topic + main keyword)")
+
+            # Extract main keyword from question (simple approach)
+            keywords = ["treatment", "causes", "symptoms", "diagnosis", "prevention", "recovery"]
+            main_keyword = None
+            for keyword in keywords:
+                if keyword in question.lower():
+                    main_keyword = keyword
+                    break
+
+            if main_keyword:
+                query = f'("{topic}"[Title/Abstract]) AND ("{main_keyword}"[Title/Abstract])'
+            else:
+                # If no keyword found, just use topic
+                query = f'("{topic}"[Title/Abstract])'
+
+            articles = self.pubmed_agent.search(query, max_results=max_results * 2)
+
+            if articles:
+                print(f"[PubMed] âœ“ Found {len(articles)} articles (broader search)")
+                return {
+                    "query": query,
+                    "articles": articles,
+                    "formatted": self.pubmed_agent._format_output(articles)
+                }
+
+        # ATTEMPT 3: Broadest search (topic only)
+        if topic:
+            print("[PubMed] Attempt 3: Broadest search (topic only)")
+
+            query = f'("{topic}"[Title/Abstract])'
+            articles = self.pubmed_agent.search(query, max_results=max_results * 3)
+
+            if articles:
+                print(f"[PubMed] âœ“ Found {len(articles)} articles (broadest search)")
+                return {
+                    "query": query,
+                    "articles": articles,
+                    "formatted": self.pubmed_agent._format_output(articles)
+                }
+
+        # ALL ATTEMPTS FAILED
+        print("[PubMed] âœ— No articles found after all attempts")
+        return None
+
+    def _handle_no_articles_found(self, username: str, session_id: int, topic: str | None) -> str:
+        """
+        Handle the case when PubMed returns no articles after all attempts.
+        Returns an honest message to the user.
+        """
+        topic_text = f" about '{topic}'" if topic else ""
+
+        honest_response = (
+            f"I apologize, but I couldn't find peer-reviewed research articles "
+            f"to answer your question{topic_text} with proper citations.\n\n"
+            f"This could mean:\n"
+            f"â€¢ The search terms were too specific\n"
+            f"â€¢ Limited published research exists on this exact aspect\n"
+            f"â€¢ The topic might need to be rephrased\n\n"
+            f"ðŸ’¡ Suggestion: Try asking a more general question{topic_text}, "
+            f"or rephrase your question differently.\n\n"
+            f"For medical information, I can only provide answers backed by "
+            f"published research to ensure accuracy and trustworthiness."
+        )
+
+        self.session_manager.update(username, session_id, "pubmed_agent", {
+            "query": "multiple_attempts_failed",
+            "articles": [],
+            "attempts": 3,
+            "status": "no_articles_found"
+        })
+
+        self.session_manager.update(username, session_id, "reasoning_agent", {
+            "skipped": True,
+            "reason": "no_pubmed_articles",
+            "response": honest_response
+        })
+
+        return honest_response
+
     def run(
             self,
             username: str,
@@ -175,6 +418,10 @@ class MedicalVQAPipeline:
         # Get conversation context for agents
         conversation_context = self.get_conversation_context(memory)
 
+        # Debug: Print conversation context
+        if conversation_context:
+            print(f"[DEBUG] Conversation context:\n{conversation_context[:200]}...")
+
         # Save translation info
         self.session_manager.update(username, session_id, "translation", {
             "original_language": original_language,
@@ -205,12 +452,13 @@ class MedicalVQAPipeline:
         memory.add_user_message(question if question else "[Image uploaded]")
         memory.add_ai_message(final_response)
 
-        # Add to JSON (Disk)
+        # Add to JSON (Disk) - Include image path for this turn
         self.session_manager.add_conversation_turn(
             username,
             session_id,
             question if question else "[Image uploaded]",
-            final_response
+            final_response,
+            image_path=image_path  # â† ADD: Pass image path for this turn
         )
 
         self._print_final_output(final_response, username, session_id)
@@ -255,9 +503,10 @@ class MedicalVQAPipeline:
             "question": vqa_result.get("question"),
             "answer": vqa_result.get("answer"),
             "ood": vqa_result.get("ood", False),
+            "original_output": vqa_result.get("answer")  # Save original answer
         })
 
-        print(f"Answer: {vqa_result['answer']}")
+        print(f"VQA Answer: {vqa_result['answer']}")  # Show in console
 
         # ===== OOD SHORT-CIRCUIT =====
         if vqa_result.get("ood", False) or vqa_result.get("model") == "unknown":
@@ -276,13 +525,24 @@ class MedicalVQAPipeline:
             # Return English for translation layer (run() will translate back)
             return vqa_result["answer"]
 
-        # 2. PubMed Agent
+        # 2. PubMed Agent - With fallback search strategy
         print("\n[2/3] PubMed Agent - Fetching Knowledge")
-        knowledge = self.pubmed_agent.get_knowledge(
-            vqa_answer=vqa_result["answer"],
-            question=vqa_result["question"]
+
+        # Extract topic from conversation context
+        topic = self._extract_topic_from_context(conversation_context)
+
+        # Use fallback search strategy (tries specific â†’ broader â†’ broadest)
+        knowledge = self._search_pubmed_with_fallback(
+            question=vqa_result["question"],
+            answer=vqa_result["answer"],
+            topic=topic,
+            max_results=3
         )
 
+        # Check if articles were found after all attempts
+        if knowledge is None or not knowledge["articles"]:
+            print("[PubMed] No articles found - returning honest response")
+            return self._handle_no_articles_found(username, session_id, topic)
 
         self.session_manager.update(username, session_id, "pubmed_agent", {
             "query": knowledge["query"],
@@ -308,6 +568,10 @@ class MedicalVQAPipeline:
             article_objects=knowledge["articles"]  # List for links
         )
 
+        # Prepend original VQA output for transparency
+        original_vqa_section = f"**Original VQA Detection:** {vqa_result['answer']}\n\n---\n\n"
+        english_response = original_vqa_section + english_response
+
         # Translate to user's language BEFORE saving
         final_response = self.translation_agent.process_output(
             english_response,
@@ -315,7 +579,8 @@ class MedicalVQAPipeline:
         )
 
         self.session_manager.update(username, session_id, "reasoning_agent", {
-            "response": final_response
+            "original_vqa_output": vqa_result["answer"],  # Save original
+            "enhanced_response": final_response
         })
 
         return english_response
@@ -336,8 +601,14 @@ class MedicalVQAPipeline:
         # Pass conversation context to text-only agent
         text_only_result = self.text_only_agent.respond(
             english_question,
-            conversation_context  # â† ADD THIS
+            conversation_context
         )
+
+        # Save text-only agent result (only save keys that exist)
+        self.session_manager.update(username, session_id, "text_agent", {
+            "question": text_only_result.get("question"),
+            "question_type": text_only_result.get("question_type")
+        })
 
         self.session_manager.update(username, session_id, "image_agent", {
             "skipped": True,
@@ -372,13 +643,29 @@ class MedicalVQAPipeline:
         # Medical question: continue with PubMed + Reasoning
         print("\n[2] PubMed Agent - Fetching Knowledge")
 
-        # Enhance query with context if available
-        search_query = english_question
-        if conversation_context:
-            # Extract key terms from conversation for better search
-            search_query = f"{english_question} {conversation_context.split('AI:')[-1][:100]}"
+        # ===== FIX: Enhance question with conversation context =====
+        enhanced_question = self._enhance_question_with_context(
+            english_question,
+            conversation_context
+        )
 
-        knowledge = self.pubmed_agent.search_topic(search_query)
+        # Extract topic from context
+        topic = self._extract_topic_from_context(conversation_context)
+
+        print(f"[DEBUG] Using enhanced question: '{enhanced_question}' with topic: '{topic}'")
+
+        # Use fallback search strategy (tries specific â†’ broader â†’ broadest)
+        knowledge = self._search_pubmed_with_fallback(
+            question=enhanced_question,
+            answer=None,  # No VQA answer for text-only
+            topic=topic,
+            max_results=3
+        )
+
+        # Check if articles were found after all attempts
+        if knowledge is None or not knowledge["articles"]:
+            print("[PubMed] No articles found - returning honest response")
+            return self._handle_no_articles_found(username, session_id, topic)
 
         self.session_manager.update(username, session_id, "pubmed_agent", {
             "query": knowledge["query"],

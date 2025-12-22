@@ -45,21 +45,21 @@ class SessionManager:
 
         # Copy image if provided
         saved_image_path = None
-        original_image_path = None
         if image_path:
             image_ext = os.path.splitext(image_path)[1]
-            saved_image_path = f"input_image{image_ext}"
-            original_image_path = image_path
-            shutil.copy(image_path, os.path.join(session_dir, saved_image_path))
+            filename = f"input_image{image_ext}"
+            shutil.copy(image_path, os.path.join(session_dir, filename))
+
+            # Store as API-accessible path
+            saved_image_path = f"sessions/{username}/{session_id}/{filename}"
 
         session_data = {
             "username": username,
             "session_id": session_id,
             "created_at": datetime.now().isoformat(),
-            "conversation_history": [], 
+            "conversation_history": [],
             "input": {
-                "image_path": saved_image_path,
-                "original_image_path": original_image_path,
+                "image_path": saved_image_path,  # Full API path
                 "question": question,
                 "input_type": self._get_input_type(image_path, question)
             },
@@ -139,9 +139,10 @@ class SessionManager:
             username: str,
             session_id: int,
             user_message: str,
-            assistant_message: str
+            assistant_message: str,
+            image_path: str = None  # ← NEW: Optional image path for this turn
     ):
-        """Add a single Q&A turn to conversation history."""
+        """Add a single Q&A turn to conversation history with optional image."""
         session_data = self.load(username, session_id)
 
         # Initialize conversation_history if it doesn't exist
@@ -150,10 +151,23 @@ class SessionManager:
 
         turn_number = len(session_data["conversation_history"]) + 1
 
+        # Copy image for this turn if provided
+        saved_image_path = None
+        if image_path:
+            session_dir = self._get_session_dir(username, session_id)
+            image_ext = os.path.splitext(image_path)[1]
+            # Save with turn number to keep multiple images separate
+            filename = f"input_image_turn{turn_number}{image_ext}"
+            shutil.copy(image_path, os.path.join(session_dir, filename))
+
+            # Store as API-accessible path
+            saved_image_path = f"sessions/{username}/{session_id}/{filename}"
+
         session_data["conversation_history"].append({
             "turn": turn_number,
             "user": user_message,
             "assistant": assistant_message,
+            "image_path": saved_image_path,  # ← Full API path like "sessions/string/1/input_image_turn1.jpg"
             "timestamp": datetime.now().isoformat()
         })
 
