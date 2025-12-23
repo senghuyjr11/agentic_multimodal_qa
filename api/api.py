@@ -130,12 +130,23 @@ async def start_new_chat(
         # Load full session data
         session_data = pipeline.session_manager.load(username, result["session_id"])
 
+        # Backward-compatible language alias
+        output_language = result.get("output_language", result.get("original_language", "English"))
+        source_language = result.get("source_language", "English")
+
         return {
             "message": "New conversation started",
             "session_id": result["session_id"],
             "turn": result["turn"],
             "response": result["enhanced_response"],
-            "original_language": result["original_language"],
+
+            # Correct fields
+            "source_language": source_language,
+            "output_language": output_language,
+
+            # Backward compatibility (old clients)
+            "original_language": output_language,
+
             "full_session": session_data
         }
 
@@ -158,10 +169,6 @@ async def send_message(
     """
     Continue an EXISTING conversation.
 
-    Automatically handles:
-    - If memory is in RAM â†’ uses it (instant)
-    - If memory not in RAM â†’ loads from JSON (resume after app restart)
-
     - session_id: required (from /chat/new response)
     - username: required
     - question: optional (any language - auto-detected)
@@ -173,7 +180,6 @@ async def send_message(
     if not image and not question:
         raise HTTPException(status_code=400, detail="Must provide image or question")
 
-    # Check if session exists
     if not pipeline.session_manager.session_exists(username, session_id):
         raise HTTPException(
             status_code=404,
@@ -190,23 +196,33 @@ async def send_message(
                 f.write(content)
                 image_path = f.name
 
-        # Continue conversation (with session_id)
+        # Continue conversation
         result = pipeline.run(
             username=username,
             question=question,
             image_path=image_path,
-            session_id=session_id  # This triggers memory loading if needed
+            session_id=session_id
         )
 
         # Load full session data
         session_data = pipeline.session_manager.load(username, result["session_id"])
+
+        output_language = result.get("output_language", result.get("original_language", "English"))
+        source_language = result.get("source_language", "English")
 
         return {
             "message": "Message sent",
             "session_id": result["session_id"],
             "turn": result["turn"],
             "response": result["enhanced_response"],
-            "original_language": result["original_language"],
+
+            # Correct fields
+            "source_language": source_language,
+            "output_language": output_language,
+
+            # Backward compatibility
+            "original_language": output_language,
+
             "full_session": session_data
         }
 
@@ -233,9 +249,12 @@ async def list_user_chats(username: str):
     for sid in session_ids:
         data = pipeline.session_manager.load(username, sid)
 
-        # Get first message as preview
         first_question = data["input"].get("question", "[Image uploaded]")
         turns_count = len(data.get("conversation_history", []))
+
+        translation = data.get("translation", {})
+        # Prefer new field, fallback to old sessions
+        lang = translation.get("output_language") or translation.get("original_language") or "English"
 
         chats.append({
             "session_id": sid,
@@ -243,7 +262,7 @@ async def list_user_chats(username: str):
             "updated_at": data.get("updated_at", data["created_at"]),
             "first_message": first_question[:50] + "..." if len(first_question) > 50 else first_question,
             "turns": turns_count,
-            "language": data.get("translation", {}).get("original_language", "English")
+            "language": lang
         })
 
     return {
@@ -278,7 +297,6 @@ async def delete_chat_session(username: str, session_id: int):
     session_dir = pipeline.session_manager._get_session_dir(username, session_id)
     shutil.rmtree(session_dir)
 
-    # Remove from active memory if present
     if session_id in pipeline.active_conversations:
         del pipeline.active_conversations[session_id]
 
@@ -296,23 +314,16 @@ async def list_users():
 
 @app.get("/debug/memory/{session_id}")
 async def debug_memory(session_id: int, username: str):
-    """
-    Debug endpoint: Show what's in LangChain RAM for a session.
-
-    Query parameter:
-    - username: required for verification
-    """
+    """Debug endpoint: Show what's in LangChain RAM for a session."""
     if pipeline is None:
         raise HTTPException(status_code=503, detail="Pipeline not initialized")
 
-    # Verify session exists for this user
     if not pipeline.session_manager.session_exists(username, session_id):
         raise HTTPException(
             status_code=404,
             detail=f"Session {session_id} not found for user {username}"
         )
 
-    # Check if in RAM
     if session_id not in pipeline.active_conversations:
         return {
             "session_id": session_id,
@@ -321,7 +332,6 @@ async def debug_memory(session_id: int, username: str):
             "message": "Session not in RAM cache (will be loaded from JSON on next message)"
         }
 
-    # Get memory from RAM
     memory = pipeline.active_conversations[session_id]
     messages = memory.messages
 

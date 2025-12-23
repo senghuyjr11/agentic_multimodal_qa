@@ -360,17 +360,18 @@ class MedicalVQAPipeline:
             username: str,
             question: str = None,
             image_path: str = None,
-            session_id: int = None  # â† ADD THIS: for continuing conversations
+            session_id: int = None
     ) -> dict:
         """
         Main entry point - handles any language input.
         Now supports multi-turn conversations!
 
-        Args:
-            username: User identifier
-            question: User's question (any language)
-            image_path: Optional image file path
-            session_id: Optional - if provided, continues existing conversation
+        Returns BOTH:
+        - source_language: language user wrote in
+        - output_language: language user wants the reply in
+
+        Backward compatibility:
+        - original_language (alias) = output_language
         """
 
         if not image_path and not question:
@@ -381,24 +382,26 @@ class MedicalVQAPipeline:
         print("=" * 60)
 
         # ===== TRANSLATION LAYER (FRONT) =====
-        original_language = "English"
+        source_language = "English"
+        output_language = "English"
         english_question = question
 
         if question:
             translation_result = self.translation_agent.process_input(question)
-            original_language = translation_result["detected_language"]
+
+            # Correct semantics
+            source_language = translation_result.get("source_language", "English")
+            output_language = translation_result.get(
+                "output_language",
+                translation_result.get("detected_language", "English")  # fallback
+            )
             english_question = translation_result["english_question"]
 
         # Determine input type
-        if image_path:
-            input_type = "image"
-        else:
-            input_type = "text_only"
-
+        input_type = "image" if image_path else "text_only"
         print(f"Input type: {input_type}")
 
         # ===== MEMORY MANAGEMENT =====
-        # Create or continue session
         if session_id is None:
             # New conversation
             session_id = self.session_manager.create_session(
@@ -415,65 +418,78 @@ class MedicalVQAPipeline:
             memory = self.get_or_create_memory(username, session_id)
             print(f"âœ“ Continuing session: {username}/{session_id}")
 
-        # Get conversation context for agents
+        # Conversation context for agents
         conversation_context = self.get_conversation_context(memory)
-
-        # Debug: Print conversation context
         if conversation_context:
             print(f"[DEBUG] Conversation context:\n{conversation_context[:200]}...")
 
-        # Save translation info
+        # ===== SAVE TRANSLATION INFO (correct semantics) =====
         self.session_manager.update(username, session_id, "translation", {
-            "original_language": original_language,
+            "source_language": source_language,
+            "output_language": output_language,
             "original_question": question,
             "english_question": english_question
         })
 
-        # Route based on input type
+        # ===== ROUTE BASED ON INPUT TYPE =====
         if input_type == "text_only":
             english_response = self._run_text_only(
-                username, session_id, english_question, original_language,
-                conversation_context  # â† ADD THIS
+                username=username,
+                session_id=session_id,
+                english_question=english_question,
+                original_language=output_language,  # keep param name in your existing functions
+                conversation_context=conversation_context
             )
         else:
             english_response = self._run_with_image(
-                username, session_id, image_path, english_question, original_language,
-                conversation_context  # â† ADD THIS
+                username=username,
+                session_id=session_id,
+                image_path=image_path,
+                english_question=english_question,
+                original_language=output_language,  # keep param name in your existing functions
+                conversation_context=conversation_context
             )
 
-        # ===== TRANSLATE BACK (if needed) =====
+        # ===== TRANSLATE BACK (to output_language) =====
         final_response = self.translation_agent.process_output(
             english_response,
-            original_language
+            output_language
         )
 
         # ===== SAVE TO MEMORY =====
-        # Add to LangChain memory (RAM)
         memory.add_user_message(question if question else "[Image uploaded]")
         memory.add_ai_message(final_response)
 
-        # Add to JSON (Disk) - Include image path for this turn
+        # Add to JSON conversation history
         self.session_manager.add_conversation_turn(
             username,
             session_id,
             question if question else "[Image uploaded]",
             final_response,
-            image_path=image_path  # â† ADD: Pass image path for this turn
+            image_path=image_path
         )
 
         self._print_final_output(final_response, username, session_id)
 
-        # FIX: Get turn count from JSON (source of truth)
+        # Turn count from JSON (source of truth)
         session_data = self.session_manager.load(username, session_id)
         current_turn = len(session_data.get("conversation_history", []))
 
+        # ===== RETURN RESPONSE =====
         return {
             "username": username,
             "session_id": session_id,
             "input_type": input_type,
-            "original_language": original_language,
+
+            # Correct fields
+            "source_language": source_language,
+            "output_language": output_language,
+
+            # Backward-compatible alias (old clients)
+            "original_language": output_language,
+
             "enhanced_response": final_response,
-            "turn": current_turn  # â† FIXED: Use JSON as source of truth
+            "turn": current_turn
         }
 
     def _run_with_image(
