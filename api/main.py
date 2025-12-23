@@ -116,7 +116,7 @@ class MedicalVQAPipeline:
     def get_conversation_context(
             self,
             memory: InMemoryChatMessageHistory,
-            max_turns: int = 5
+            max_turns: int
     ) -> str:
         """Extract recent conversation history as formatted string.
 
