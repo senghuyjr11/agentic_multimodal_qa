@@ -10,22 +10,22 @@ Key changes vs your previous version:
 
 from __future__ import annotations
 
+import os
 import re
-from typing import Optional, Tuple, Dict, Any
+from typing import Optional
+from typing import Tuple, Dict, Any
+
+from dotenv import load_dotenv
+from langchain_core.chat_history import InMemoryChatMessageHistory
+from langchain_core.messages import HumanMessage, AIMessage
+from transformers import Qwen2VLForConditionalGeneration, Qwen3VLForConditionalGeneration
 
 from image_agent import ImageAgent, ModelConfig, OODConfig
 from pubmed_agent import PubMedAgent
-from text_only_agent import TextOnlyAgent
 from reasoning_agent import ReasoningAgent
-from translation_agent import TranslationAgent
 from session_manager import SessionManager
-
-from transformers import Qwen2VLForConditionalGeneration, Qwen3VLForConditionalGeneration
-
-from langchain_core.messages import HumanMessage, AIMessage
-from langchain_core.chat_history import InMemoryChatMessageHistory
-from dotenv import load_dotenv
-import os
+from text_only_agent import TextOnlyAgent
+from translation_agent import TranslationAgent
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 REQUIRED_KEYS = ["GOOGLE_API_KEY", "NCBI_EMAIL", "NCBI_API_KEY"]
@@ -113,20 +113,49 @@ class MedicalVQAPipeline:
 
         return memory
 
-    def get_conversation_context(self, memory: InMemoryChatMessageHistory) -> str:
-        """Extract conversation history as formatted string for prompts."""
+    def get_conversation_context(
+            self,
+            memory: InMemoryChatMessageHistory,
+            max_turns: int = 5
+    ) -> str:
+        """Extract recent conversation history as formatted string.
+
+        Args:
+            memory: LangChain chat memory
+            max_turns: Number of recent turns to include (default: 5)
+                      Set to 0 or None for unlimited (all turns)
+
+        Returns:
+            Formatted conversation string with recent turns only
+        """
         messages = memory.messages
         if not messages:
             return ""
 
+        # Take last N*2 messages (each turn = 1 user + 1 AI message)
+        if max_turns and max_turns > 0:
+            recent_messages = messages[-(max_turns * 2):]
+        else:
+            recent_messages = messages  # Include all
+
         context_lines = []
-        for msg in messages:
+        for msg in recent_messages:
             if isinstance(msg, HumanMessage):
                 context_lines.append(f"Human: {msg.content}")
             elif isinstance(msg, AIMessage):
                 context_lines.append(f"AI: {msg.content}")
 
-        return "\n".join(context_lines)
+        context = "\n".join(context_lines)
+
+        # Debug log
+        num_turns = len(recent_messages) // 2
+        total_turns = len(messages) // 2
+        if max_turns and num_turns < total_turns:
+            print(f"[Context] Including last {num_turns}/{total_turns} turns ({len(context)} chars)")
+        else:
+            print(f"[Context] Including all {num_turns} turns ({len(context)} chars)")
+
+        return context
 
     # -------------------------
     # Topic extraction / context enhancement
@@ -261,6 +290,12 @@ class MedicalVQAPipeline:
                 query = f'("{topic}"[Title/Abstract])'
 
             articles = self.pubmed_agent.search(query, max_results=max_results * 2)
+            articles = self.pubmed_agent.score_articles(
+                question=question,
+                answer=answer,  # vqa_answer OR None
+                articles=articles
+            )
+
             if articles:
                 print(f"[PubMed] ✓ Found {len(articles)} articles (broader search)")
                 return {
@@ -273,6 +308,12 @@ class MedicalVQAPipeline:
             print("[PubMed] Attempt 3: Broadest search (topic only)")
             query = f'("{topic}"[Title/Abstract])'
             articles = self.pubmed_agent.search(query, max_results=max_results * 3)
+            articles = self.pubmed_agent.score_articles(
+                question=question,
+                answer=answer,  # vqa_answer OR None
+                articles=articles
+            )
+
             if articles:
                 print(f"[PubMed] ✓ Found {len(articles)} articles (broadest search)")
                 return {
@@ -373,7 +414,15 @@ class MedicalVQAPipeline:
             memory = self.get_or_create_memory(username, session_id)
             print(f"✓ Continuing session: {username}/{session_id}")
 
-        conversation_context = self.get_conversation_context(memory)
+        # In run() method:
+
+        # Get recent context only (last 5 turns)
+        # conversation_context = self.get_conversation_context(memory, max_turns=5)
+
+        # Or get all context
+        conversation_context = self.get_conversation_context(memory, max_turns=0)
+
+
         if conversation_context:
             print(f"[DEBUG] Conversation context:\n{conversation_context[:200]}...")
 
@@ -443,6 +492,8 @@ class MedicalVQAPipeline:
             "turn": current_turn
         }
 
+
+
     # -------------------------
     # IMAGE PIPELINE
     # -------------------------
@@ -505,10 +556,25 @@ class MedicalVQAPipeline:
             meta_updates.update(no_article_meta)
             return honest_response, meta_updates
 
+        # ✅ OPTION A: LLM-based relevance & support scoring (per article)
+        knowledge["articles"] = self.pubmed_agent.score_articles(
+            question=vqa_result.get("question", english_question),
+            answer=vqa_result.get("answer", ""),
+            articles=knowledge["articles"]
+        )
+
         meta_updates["pubmed_agent"] = {
             "query": knowledge.get("query"),
             "articles": [
-                {"title": a.title, "abstract": a.abstract, "pmid": a.pmid, "url": a.url}
+                {
+                    "title": a.title,
+                    "abstract": a.abstract,
+                    "pmid": a.pmid,
+                    "url": a.url,
+                    "relevance_score": getattr(a, "relevance_score", None),
+                    "support_score": getattr(a, "support_score", None),
+                    "relevance_why": getattr(a, "relevance_why", None),
+                }
                 for a in knowledge["articles"]
             ]
         }
@@ -525,7 +591,7 @@ class MedicalVQAPipeline:
             article_objects=knowledge["articles"]
         )
 
-        original_vqa_section = f"**Original VQA Detection:** {vqa_result.get('answer','')}\n\n---\n\n"
+        original_vqa_section = f"**Original VQA Detection:** {vqa_result.get('answer', '')}\n\n---\n\n"
         english_response = original_vqa_section + english_response
 
         meta_updates["reasoning_agent"] = {
@@ -588,10 +654,25 @@ class MedicalVQAPipeline:
             meta_updates.update(no_article_meta)
             return honest_response, meta_updates
 
+        # ✅ OPTION A: LLM-based relevance & support scoring (per article)
+        knowledge["articles"] = self.pubmed_agent.score_articles(
+            question=enhanced_question,
+            answer=None,
+            articles=knowledge["articles"]
+        )
+
         meta_updates["pubmed_agent"] = {
             "query": knowledge.get("query"),
             "articles": [
-                {"title": a.title, "abstract": a.abstract, "pmid": a.pmid, "url": a.url}
+                {
+                    "title": a.title,
+                    "abstract": a.abstract,
+                    "pmid": a.pmid,
+                    "url": a.url,
+                    "relevance_score": getattr(a, "relevance_score", None),
+                    "support_score": getattr(a, "support_score", None),
+                    "relevance_why": getattr(a, "relevance_why", None),
+                }
                 for a in knowledge["articles"]
             ]
         }

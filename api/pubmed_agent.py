@@ -1,10 +1,13 @@
 """
 pubmed_agent.py - Knowledge Augmentation from PubMed with LLM-based term extraction
 """
+import json
 import re
-import requests
 from dataclasses import dataclass
+from typing import Optional
+
 import google.generativeai as genai
+import requests
 
 
 @dataclass
@@ -13,6 +16,12 @@ class Article:
     abstract: str
     pmid: str
     url: str
+
+    # NEW (optional fields)
+    relevance_score: Optional[int] = None
+    support_score: Optional[int] = None
+    relevance_why: Optional[str] = None
+
 
 
 class PubMedAgent:
@@ -29,13 +38,92 @@ class PubMedAgent:
 
         genai.configure(api_key=google_api_key)
         self.llm = genai.GenerativeModel("gemma-3-4b-it")
-        print("✓ PubMed Agent: Using LLM-based term extraction (gemma-3-4b-it)")
+        print("✓ PubMed Agent: Using LLM-based term extraction & scoring (gemma-3-4b-it)")
+
+        self.rank_model = self.llm  # reuse same model
 
     def _params(self, extra: dict) -> dict:
         params = {"email": self.email, **extra}
         if self.api_key:
             params["api_key"] = self.api_key
         return params
+
+
+
+    def _extract_json(self, text: str) -> dict | None:
+        """
+        Safely extract first JSON object from LLM output.
+        """
+        if not text:
+            return None
+
+        match = re.search(r"\{.*\}", text, re.DOTALL)
+        if not match:
+            return None
+
+        try:
+            return json.loads(match.group(0))
+        except json.JSONDecodeError:
+            return None
+
+    def score_articles(
+            self,
+            question: str,
+            answer: str | None,
+            articles: list[Article]
+    ) -> list[Article]:
+        """
+        Score relevance and support of each article to the question/answer.
+        """
+
+        if not self.rank_model or not articles:
+            return articles
+
+        for article in articles:
+            abstract = article.abstract or ""
+
+            prompt = f"""
+    You are evaluating how well a scientific article matches a medical question.
+
+    User question:
+    {question}
+
+    Assistant answer:
+    {answer or "(no answer provided)"}
+
+    Article:
+    Title: {article.title}
+    Abstract: {abstract}
+
+    Return ONLY JSON with:
+    - relevance_score (0-100): how relevant this article is to the question
+    - support_score (0-100): how strongly this article supports the answer
+    - why: one short sentence explanation
+
+    Rubric:
+    90-100: directly answers the question
+    70-89: strongly related, useful evidence
+    40-69: same domain but indirect
+    0-39: weak or irrelevant
+    """
+
+            response = self.rank_model.generate_content(prompt)
+            data = self._extract_json(response.text)
+
+            if not data:
+                continue
+
+            article.relevance_score = int(max(0, min(100, data.get("relevance_score", 0))))
+            article.support_score = int(max(0, min(100, data.get("support_score", 0))))
+            article.relevance_why = str(data.get("why", "")).strip()
+
+        # Sort best first
+        articles.sort(
+            key=lambda a: ((a.relevance_score or 0), (a.support_score or 0)),
+            reverse=True
+        )
+
+        return articles
 
     def search(self, query: str, max_results: int = 3) -> list[Article]:
         """Search PubMed for articles matching the query."""
