@@ -1,18 +1,18 @@
+import tempfile
+from typing import Optional
+
 import os
 import tempfile
 from typing import Optional
 
 import uvicorn
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from langchain_core.messages import HumanMessage
-
 from transformers import Qwen2VLForConditionalGeneration, Qwen3VLForConditionalGeneration
 
 from image_agent import ModelConfig
 from main import MedicalVQAPipeline
-from dotenv import load_dotenv
-import os
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 REQUIRED_KEYS = ["GOOGLE_API_KEY", "NCBI_EMAIL", "NCBI_API_KEY"]
@@ -319,45 +319,47 @@ async def list_users():
     return pipeline.session_manager.list_users()
 
 
-@app.get("/debug/memory/{session_id}")
-async def debug_memory(session_id: int, username: str):
-    """
-    Debug endpoint: Show what's in LangChain RAM for a session.
-    """
+from fastapi import Query
+from langchain_core.messages import HumanMessage
+
+
+@app.get("/debug/memory_check/{session_id}")
+async def memory_check(session_id: int, username: str = Query(...)):
     if pipeline is None:
         raise HTTPException(status_code=503, detail="Pipeline not initialized")
 
     if not pipeline.session_manager.session_exists(username, session_id):
-        raise HTTPException(status_code=404, detail=f"Session {session_id} not found for user {username}")
+        raise HTTPException(status_code=404, detail="Session not found")
 
-    if session_id not in pipeline.active_conversations:
-        return {
-            "session_id": session_id,
-            "username": username,
-            "in_ram": False,
-            "message": "Session not in RAM cache (will be loaded from JSON on next message)"
-        }
+    # JSON source of truth
+    session_data = pipeline.session_manager.load(username, session_id)
+    json_turns = len(session_data.get("conversation_history", []))
 
-    memory = pipeline.active_conversations[session_id]
-    messages = memory.messages
+    # RAM memory
+    in_ram = session_id in pipeline.active_conversations
+    ram_messages = []
+    ram_count = 0
 
-    debug_info = {
-        "session_id": session_id,
+    if in_ram:
+        mem = pipeline.active_conversations[session_id]
+        ram_count = len(mem.messages)
+        # last 6 messages (up to 3 turns)
+        last_msgs = mem.messages[-6:]
+        for m in last_msgs:
+            ram_messages.append({
+                "type": "human" if isinstance(m, HumanMessage) else "ai",
+                "content": (m.content[:200] + "...") if len(m.content) > 200 else m.content
+            })
+
+    return {
         "username": username,
-        "in_ram": True,
-        "total_messages": len(messages),
-        "turns": len(messages) // 2,
-        "messages": []
+        "session_id": session_id,
+        "json_turns": json_turns,
+        "in_ram": in_ram,
+        "ram_message_count": ram_count,
+        "ram_tail": ram_messages
     }
 
-    for i, msg in enumerate(messages):
-        debug_info["messages"].append({
-            "index": i,
-            "type": "human" if isinstance(msg, HumanMessage) else "ai",
-            "content": msg.content[:200] + "..." if len(msg.content) > 200 else msg.content
-        })
-
-    return debug_info
 
 
 if __name__ == "__main__":

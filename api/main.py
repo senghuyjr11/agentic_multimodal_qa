@@ -409,8 +409,8 @@ class MedicalVQAPipeline:
         final_response = self.translation_agent.process_output(english_response, output_language)
 
         # Save to RAM memory
-        memory.add_user_message(question if question else "[Image uploaded]")
-        memory.add_ai_message(final_response)
+        memory.add_user_message(english_question if question else "[Image uploaded]")
+        memory.add_ai_message(english_response)
 
         # Save to disk as a new turn with meta (clean schema)
         self.session_manager.add_conversation_turn(
