@@ -1,17 +1,38 @@
 """
-main.py - Simplified with TranslationAgent as front layer
+main.py - Clean turn-based session storage (NO top-level agent redundancy)
+
+Key changes vs your previous version:
+- SessionManager.update(...) is NOT used anywhere.
+- All agent outputs (translation/image/vqa/text/pubmed/reasoning) are stored per-turn in:
+  session_data["conversation_history"][i]["meta"]
+- run() returns (source_language, output_language) and keeps original_language alias.
 """
+
+from __future__ import annotations
+
+import re
+from typing import Optional, Tuple, Dict, Any
+
 from image_agent import ImageAgent, ModelConfig, OODConfig
 from pubmed_agent import PubMedAgent
 from text_only_agent import TextOnlyAgent
 from reasoning_agent import ReasoningAgent
 from translation_agent import TranslationAgent
 from session_manager import SessionManager
+
 from transformers import Qwen2VLForConditionalGeneration, Qwen3VLForConditionalGeneration
 
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.chat_history import InMemoryChatMessageHistory
-import re
+from dotenv import load_dotenv
+import os
+
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
+REQUIRED_KEYS = ["GOOGLE_API_KEY", "NCBI_EMAIL", "NCBI_API_KEY"]
+
+missing = [k for k in REQUIRED_KEYS if not os.getenv(k)]
+if missing:
+    raise RuntimeError(f"Missing environment variables: {missing}")
 
 class MedicalVQAPipeline:
     """Connects all agents with translation as front layer."""
@@ -32,9 +53,10 @@ class MedicalVQAPipeline:
         # Translation Agent - FRONT LAYER
         self.translation_agent = TranslationAgent(api_key=google_api_key)
 
+        # Clean turn-based session manager
         self.session_manager = SessionManager(sessions_dir)
 
-        # ADD THIS LINE - Memory storage for active conversations
+        # Memory storage for active conversations
         self.active_conversations = {}  # {session_id: memory}
 
         self.image_agent = ImageAgent(
@@ -49,62 +71,54 @@ class MedicalVQAPipeline:
         self.pubmed_agent = PubMedAgent(
             email=ncbi_email,
             api_key=ncbi_api_key,
-            google_api_key=google_api_key  # â† ADD: Enable LLM-based term extraction
+            google_api_key=google_api_key
         )
 
         self.reasoning_agent = ReasoningAgent(api_key=google_api_key)
 
-        print("âœ“ Pipeline ready\n")
+        print("✓ Pipeline ready\n")
 
+    # -------------------------
+    # Memory handling
+    # -------------------------
     def get_or_create_memory(self, username: str, session_id: int) -> InMemoryChatMessageHistory:
         """
         Get memory from RAM if exists, otherwise load from JSON.
         This handles both: switching between chats + resuming old chats.
         """
-        # Already in RAM?
         if session_id in self.active_conversations:
-            print(f"âœ“ Using cached memory for session {session_id}")
+            print(f"✓ Using cached memory for session {session_id}")
             return self.active_conversations[session_id]
 
-        # Not in RAM - need to restore from JSON
-        print(f"âŸ³ Loading conversation history from JSON for session {session_id}")
+        print(f"⟳ Loading conversation history from JSON for session {session_id}")
         memory = self._restore_memory_from_json(username, session_id)
 
-        # Cache it in RAM
         self.active_conversations[session_id] = memory
-
         return memory
 
     def _restore_memory_from_json(self, username: str, session_id: int) -> InMemoryChatMessageHistory:
         """Reconstruct LangChain memory from saved JSON conversation history."""
-
-        # Get conversation history from JSON
         conversation_history = self.session_manager.get_conversation_history(username, session_id)
 
-        # Create new memory
         memory = InMemoryChatMessageHistory()
 
-        # Rebuild all previous turns
         for turn in conversation_history:
             memory.add_user_message(turn["user"])
             memory.add_ai_message(turn["assistant"])
 
         if conversation_history:
-            print(f"âœ“ Restored {len(conversation_history)} conversation turns")
+            print(f"✓ Restored {len(conversation_history)} conversation turns")
         else:
-            print(f"âœ“ New conversation started")
+            print("✓ New conversation started")
 
         return memory
 
     def get_conversation_context(self, memory: InMemoryChatMessageHistory) -> str:
         """Extract conversation history as formatted string for prompts."""
-
         messages = memory.messages
-
         if not messages:
             return ""
 
-        # Format as "Human: ...\nAI: ..."
         context_lines = []
         for msg in messages:
             if isinstance(msg, HumanMessage):
@@ -114,64 +128,51 @@ class MedicalVQAPipeline:
 
         return "\n".join(context_lines)
 
-    def _extract_topic_from_context(self, conversation_context: str) -> str:
+    # -------------------------
+    # Topic extraction / context enhancement
+    # -------------------------
+    def _extract_topic_from_context(self, conversation_context: str) -> Optional[str]:
         """
         Extract the main medical topic from conversation context.
-        Now looks at ALL previous turns, not just the first question.
 
         Strategy:
         1. Look at VQA answers (most reliable source)
-        2. Look at all user questions
-        3. Prioritize medical terms over general words
+        2. Look at first user question
         """
         if not conversation_context:
             return None
 
-        # Get all lines
         lines = conversation_context.split('\n')
 
-        # Collect potential topics from different sources
         vqa_answers = []
         user_questions = []
 
         for line in lines:
             if line.startswith("AI:"):
                 ai_content = line.replace("AI:", "").strip()
-                # Check if this is a VQA answer (contains "Original VQA Detection:")
                 if "Original VQA Detection:" in ai_content:
-                    # Extract the VQA answer
                     match = re.search(r'Original VQA Detection:\*\*\s*([^\n*]+)', ai_content)
                     if match:
                         vqa_answer = match.group(1).strip()
                         vqa_answers.append(vqa_answer)
                         print(f"[DEBUG] Found VQA answer: '{vqa_answer}'")
             elif line.startswith("Human:"):
-                question = line.replace("Human:", "").strip()
-                user_questions.append(question)
+                user_questions.append(line.replace("Human:", "").strip())
 
-        # Priority 1: Use VQA answer (most reliable)
         if vqa_answers:
-            # Get the most recent VQA answer
-            topic = vqa_answers[-1]
-            # Clean up common VQA outputs
-            topic = topic.replace("[Image uploaded]", "").strip()
+            topic = vqa_answers[-1].replace("[Image uploaded]", "").strip()
             if topic and len(topic) > 2:
                 print(f"[DEBUG] Extracted topic from VQA: '{topic}'")
                 return topic
 
-        # Priority 2: Extract from first user question (most likely contains topic)
         if user_questions:
             first_question = user_questions[0]
             print(f"[DEBUG] Extracting topic from first question: '{first_question}'")
 
-            # Remove question words
             question_words = r'\b(what|how|why|when|where|who|which|is|are|can|could|would|should|does|do|did|the|a|an|this|that|these|those)\b'
             cleaned = re.sub(question_words, ' ', first_question, flags=re.IGNORECASE)
-
-            # Extract remaining words (potential medical terms)
             words = re.findall(r'\b[A-Za-z]{3,}\b', cleaned)
 
-            # Filter out remaining common words
             stopwords = {'about', 'there', 'their', 'have', 'has', 'had', 'been', 'being', 'image', 'uploaded'}
             medical_terms = [w for w in words if w.lower() not in stopwords]
 
@@ -180,33 +181,25 @@ class MedicalVQAPipeline:
                 print(f"[DEBUG] Extracted topic from first question: '{topic}'")
                 return topic
 
-        print(f"[DEBUG] No topic found")
+        print("[DEBUG] No topic found")
         return None
 
     def _enhance_question_with_context(self, question: str, conversation_context: str) -> str:
-        """
-        Enhance a question with context for better PubMed searches.
-        Example: "How is it treated?" + context about pneumonia -> "How is pneumonia treated?"
-        """
+        """Enhance a question with context for better PubMed searches."""
         if not conversation_context:
             return question
 
-        # Extract topic from context
         topic = self._extract_topic_from_context(conversation_context)
-
         if not topic:
             print(f"[DEBUG] No topic found, using original question: '{question}'")
             return question
 
-        # If question has pronouns like "it", "this", "that", replace with topic
         pronouns = r'\b(it|this|that|they|them)\b'
         if re.search(pronouns, question, re.IGNORECASE):
-            # Replace pronoun with topic
             enhanced = re.sub(pronouns, topic.lower(), question, flags=re.IGNORECASE, count=1)
-            print(f"âœ“ Enhanced question with context: '{question}' -> '{enhanced}'")
+            print(f"✓ Enhanced question with context: '{question}' -> '{enhanced}'")
             return enhanced
 
-        # If question is context-dependent but doesn't have pronouns, prepend topic
         context_dependent_patterns = [
             r'^(what|how|why|when|where)\s+(is|are|causes?|treatments?|symptoms?|does|do)',
             r'^(can|could|should|would|will)',
@@ -215,46 +208,30 @@ class MedicalVQAPipeline:
         for pattern in context_dependent_patterns:
             if re.match(pattern, question, re.IGNORECASE):
                 enhanced = f"{topic} {question}"
-                print(f"âœ“ Enhanced question with context: '{question}' -> '{enhanced}'")
+                print(f"✓ Enhanced question with context: '{question}' -> '{enhanced}'")
                 return enhanced
 
         return question
 
-    def _get_state(self, session_id: int) -> dict:
+    # -------------------------
+    # PubMed fallback strategy
+    # -------------------------
+    def _search_pubmed_with_fallback(
+            self,
+            question: str,
+            answer: Optional[str],
+            topic: Optional[str],
+            max_results: int = 3
+    ) -> Optional[dict]:
         """
-        Get session state for topic tracking.
-        Returns a dict with 'topic' key for PubMed query enhancement.
+        Search PubMed with fallback:
+        1) Specific (LLM extracted)
+        2) Broader (topic + keyword)
+        3) Broadest (topic only)
         """
-        # This is a simple implementation - you can enhance with actual topic extraction
-        return {
-            "topic": None  # Can be enhanced to extract topic from conversation history
-        }
-
-    def _search_pubmed_with_fallback(self, question: str, answer: str, topic: str | None, max_results: int = 3) -> dict | None:
-        """
-        Search PubMed with automatic fallback to broader searches.
-
-        Strategy:
-        1. Try specific search (with LLM-extracted terms)
-        2. If fails, try broader search (topic + main keyword)
-        3. If fails, try broadest search (topic only)
-        4. If still fails, return None
-
-        Args:
-            question: User's question
-            answer: VQA answer or None for text-only
-            topic: Main topic extracted from context
-            max_results: Number of articles to retrieve
-
-        Returns:
-            dict with 'query', 'articles', 'formatted' keys, or None if no articles found
-        """
-
-        # ATTEMPT 1: Specific search with LLM extraction
         print("[PubMed] Attempt 1: Specific search with LLM-extracted terms")
 
         if answer:
-            # Image + text: use get_knowledge
             knowledge = self.pubmed_agent.get_knowledge(
                 vqa_answer=answer,
                 question=question,
@@ -262,99 +239,88 @@ class MedicalVQAPipeline:
                 max_results=max_results
             )
         else:
-            # Text-only: use search_topic
             knowledge = self.pubmed_agent.search_topic(
                 question=question,
                 topic=topic,
                 max_results=max_results
             )
 
-        if knowledge["articles"]:
-            print(f"[PubMed] âœ“ Found {len(knowledge['articles'])} articles (specific search)")
+        if knowledge and knowledge.get("articles"):
+            print(f"[PubMed] ✓ Found {len(knowledge['articles'])} articles (specific search)")
             return knowledge
 
-        # ATTEMPT 2: Broader search (topic + main keyword from question)
         if topic:
             print("[PubMed] Attempt 2: Broader search (topic + main keyword)")
 
-            # Extract main keyword from question (simple approach)
-            keywords = ["treatment", "causes", "symptoms", "diagnosis", "prevention", "recovery"]
-            main_keyword = None
-            for keyword in keywords:
-                if keyword in question.lower():
-                    main_keyword = keyword
-                    break
+            keywords = ["treatment", "causes", "symptoms", "diagnosis", "prevention", "recovery", "pathogenesis"]
+            main_keyword = next((k for k in keywords if k in question.lower()), None)
 
             if main_keyword:
                 query = f'("{topic}"[Title/Abstract]) AND ("{main_keyword}"[Title/Abstract])'
             else:
-                # If no keyword found, just use topic
                 query = f'("{topic}"[Title/Abstract])'
 
             articles = self.pubmed_agent.search(query, max_results=max_results * 2)
-
             if articles:
-                print(f"[PubMed] âœ“ Found {len(articles)} articles (broader search)")
+                print(f"[PubMed] ✓ Found {len(articles)} articles (broader search)")
                 return {
                     "query": query,
                     "articles": articles,
                     "formatted": self.pubmed_agent._format_output(articles)
                 }
 
-        # ATTEMPT 3: Broadest search (topic only)
         if topic:
             print("[PubMed] Attempt 3: Broadest search (topic only)")
-
             query = f'("{topic}"[Title/Abstract])'
             articles = self.pubmed_agent.search(query, max_results=max_results * 3)
-
             if articles:
-                print(f"[PubMed] âœ“ Found {len(articles)} articles (broadest search)")
+                print(f"[PubMed] ✓ Found {len(articles)} articles (broadest search)")
                 return {
                     "query": query,
                     "articles": articles,
                     "formatted": self.pubmed_agent._format_output(articles)
                 }
 
-        # ALL ATTEMPTS FAILED
-        print("[PubMed] âœ— No articles found after all attempts")
+        print("[PubMed] ✗ No articles found after all attempts")
         return None
 
-    def _handle_no_articles_found(self, username: str, session_id: int, topic: str | None) -> str:
-        """
-        Handle the case when PubMed returns no articles after all attempts.
-        Returns an honest message to the user.
-        """
+    def _handle_no_articles_found(self, topic: Optional[str]) -> Tuple[str, dict]:
+        """Return an honest message and meta to store in the turn."""
         topic_text = f" about '{topic}'" if topic else ""
 
         honest_response = (
             f"I apologize, but I couldn't find peer-reviewed research articles "
             f"to answer your question{topic_text} with proper citations.\n\n"
             f"This could mean:\n"
-            f"â€¢ The search terms were too specific\n"
-            f"â€¢ Limited published research exists on this exact aspect\n"
-            f"â€¢ The topic might need to be rephrased\n\n"
-            f"ðŸ’¡ Suggestion: Try asking a more general question{topic_text}, "
+            f"• The search terms were too specific\n"
+            f"• Limited published research exists on this exact aspect\n"
+            f"• The topic might need to be rephrased\n\n"
+            f"Suggestion: Try asking a more general question{topic_text}, "
             f"or rephrase your question differently.\n\n"
             f"For medical information, I can only provide answers backed by "
             f"published research to ensure accuracy and trustworthiness."
         )
 
-        self.session_manager.update(username, session_id, "pubmed_agent", {
-            "query": "multiple_attempts_failed",
-            "articles": [],
-            "attempts": 3,
-            "status": "no_articles_found"
-        })
+        meta = {
+            "pubmed_agent": {
+                "status": "no_articles_found",
+                "query": "multiple_attempts_failed",
+                "articles": [],
+                "attempts": 3,
+                "topic": topic
+            },
+            "reasoning_agent": {
+                "skipped": True,
+                "reason": "no_pubmed_articles",
+                "response": honest_response
+            }
+        }
 
-        self.session_manager.update(username, session_id, "reasoning_agent", {
-            "skipped": True,
-            "reason": "no_pubmed_articles",
-            "response": honest_response
-        })
+        return honest_response, meta
 
-        return honest_response
-
+    # -------------------------
+    # MAIN ENTRYPOINT
+    # -------------------------
     def run(
             self,
             username: str,
@@ -363,17 +329,10 @@ class MedicalVQAPipeline:
             session_id: int = None
     ) -> dict:
         """
-        Main entry point - handles any language input.
-        Now supports multi-turn conversations!
-
-        Returns BOTH:
-        - source_language: language user wrote in
-        - output_language: language user wants the reply in
-
-        Backward compatibility:
-        - original_language (alias) = output_language
+        Clean turn-based run():
+        - No top-level agent keys in session JSON
+        - All per-turn meta stored in conversation_history[*].meta
         """
-
         if not image_path and not question:
             raise ValueError("Must provide at least image_path or question")
 
@@ -381,19 +340,17 @@ class MedicalVQAPipeline:
         print("MEDICAL VQA PIPELINE")
         print("=" * 60)
 
-        # ===== TRANSLATION LAYER (FRONT) =====
+        # --- Translation layer ---
         source_language = "English"
         output_language = "English"
-        english_question = question
+        english_question = question if question else ""
 
         if question:
             translation_result = self.translation_agent.process_input(question)
-
-            # Correct semantics
             source_language = translation_result.get("source_language", "English")
             output_language = translation_result.get(
                 "output_language",
-                translation_result.get("detected_language", "English")  # fallback
+                translation_result.get("detected_language", "English")
             )
             english_question = translation_result["english_question"]
 
@@ -401,324 +358,263 @@ class MedicalVQAPipeline:
         input_type = "image" if image_path else "text_only"
         print(f"Input type: {input_type}")
 
-        # ===== MEMORY MANAGEMENT =====
+        # --- Session / memory ---
         if session_id is None:
-            # New conversation
             session_id = self.session_manager.create_session(
                 username,
                 question or "",
                 image_path
             )
             memory = self.get_or_create_memory(username, session_id)
-            print(f"âœ“ Started new session: {username}/{session_id}")
+            print(f"✓ Started new session: {username}/{session_id}")
         else:
-            # Continue existing conversation
             if not self.session_manager.session_exists(username, session_id):
                 raise ValueError(f"Session {username}/{session_id} not found")
             memory = self.get_or_create_memory(username, session_id)
-            print(f"âœ“ Continuing session: {username}/{session_id}")
+            print(f"✓ Continuing session: {username}/{session_id}")
 
-        # Conversation context for agents
         conversation_context = self.get_conversation_context(memory)
         if conversation_context:
             print(f"[DEBUG] Conversation context:\n{conversation_context[:200]}...")
 
-        # ===== SAVE TRANSLATION INFO (correct semantics) =====
-        self.session_manager.update(username, session_id, "translation", {
-            "source_language": source_language,
-            "output_language": output_language,
-            "original_question": question,
-            "english_question": english_question
-        })
+        # Build per-turn meta root (translation always stored per turn)
+        turn_meta: Dict[str, Any] = {
+            "translation": {
+                "source_language": source_language,
+                "output_language": output_language,
+                "original_question": question,
+                "english_question": english_question
+            }
+        }
 
-        # ===== ROUTE BASED ON INPUT TYPE =====
+        # --- Run agents (English internal) ---
         if input_type == "text_only":
-            english_response = self._run_text_only(
-                username=username,
-                session_id=session_id,
+            english_response, meta_updates = self._run_text_only(
                 english_question=english_question,
-                original_language=output_language,  # keep param name in your existing functions
+                output_language=output_language,
                 conversation_context=conversation_context
             )
         else:
-            english_response = self._run_with_image(
-                username=username,
-                session_id=session_id,
+            english_response, meta_updates = self._run_with_image(
                 image_path=image_path,
                 english_question=english_question,
-                original_language=output_language,  # keep param name in your existing functions
+                output_language=output_language,
                 conversation_context=conversation_context
             )
 
-        # ===== TRANSLATE BACK (to output_language) =====
-        final_response = self.translation_agent.process_output(
-            english_response,
-            output_language
-        )
+        if meta_updates:
+            turn_meta.update(meta_updates)
 
-        # ===== SAVE TO MEMORY =====
+        # Translate back to output language
+        final_response = self.translation_agent.process_output(english_response, output_language)
+
+        # Save to RAM memory
         memory.add_user_message(question if question else "[Image uploaded]")
         memory.add_ai_message(final_response)
 
-        # Add to JSON conversation history
+        # Save to disk as a new turn with meta (clean schema)
         self.session_manager.add_conversation_turn(
-            username,
-            session_id,
-            question if question else "[Image uploaded]",
-            final_response,
-            image_path=image_path
+            username=username,
+            session_id=session_id,
+            user_message=question if question else "[Image uploaded]",
+            assistant_message=final_response,
+            image_path=image_path,
+            meta=turn_meta
         )
 
         self._print_final_output(final_response, username, session_id)
 
-        # Turn count from JSON (source of truth)
         session_data = self.session_manager.load(username, session_id)
         current_turn = len(session_data.get("conversation_history", []))
 
-        # ===== RETURN RESPONSE =====
         return {
             "username": username,
             "session_id": session_id,
             "input_type": input_type,
 
-            # Correct fields
+            # Correct semantics
             "source_language": source_language,
             "output_language": output_language,
 
-            # Backward-compatible alias (old clients)
+            # Backward compatibility alias
             "original_language": output_language,
 
             "enhanced_response": final_response,
             "turn": current_turn
         }
 
+    # -------------------------
+    # IMAGE PIPELINE
+    # -------------------------
     def _run_with_image(
             self,
-            username: str,
-            session_id: int,
             image_path: str,
             english_question: str,
-            original_language: str,
-            conversation_context: str = ""  # â† ADD THIS
-    ) -> str:
-        """Run full pipeline with image (all in English)."""
+            output_language: str,
+            conversation_context: str = ""
+    ) -> Tuple[str, dict]:
+        """Run full pipeline with image (internal processing in English). Returns (english_response, meta_updates)."""
 
-        # 1. Image Agent
+        meta_updates: Dict[str, Any] = {}
+
+        # 1) Image Agent
         print("\n[1/3] Image Agent - Routing & Prediction")
         vqa_result = self.image_agent.predict(image_path, english_question)
 
-        # Save routing info (include OOD fields)
-        self.session_manager.update(username, session_id, "image_agent", {
+        meta_updates["image_agent"] = {
             "routed_to": vqa_result.get("model"),
             "confidence": vqa_result.get("confidence"),
             "ood": vqa_result.get("ood", False),
             "ood_rule": vqa_result.get("ood_rule", None),
-        })
+        }
 
-        self.session_manager.update(username, session_id, "vqa_agent", {
+        meta_updates["vqa_agent"] = {
             "question": vqa_result.get("question"),
             "answer": vqa_result.get("answer"),
             "ood": vqa_result.get("ood", False),
-            "original_output": vqa_result.get("answer")  # Save original answer
-        })
+            "original_output": vqa_result.get("answer")
+        }
 
-        print(f"VQA Answer: {vqa_result['answer']}")  # Show in console
+        print(f"VQA Answer: {vqa_result.get('answer')}")
 
-        # ===== OOD SHORT-CIRCUIT =====
+        # OOD short-circuit
         if vqa_result.get("ood", False) or vqa_result.get("model") == "unknown":
-            # Skip PubMed + Reasoning
-            self.session_manager.update(username, session_id, "pubmed_agent", {
-                "skipped": True,
-                "reason": "ood_rejection"
-            })
-            self.session_manager.update(username, session_id, "reasoning_agent", {
+            meta_updates["pubmed_agent"] = {"skipped": True, "reason": "ood_rejection"}
+            meta_updates["reasoning_agent"] = {
                 "skipped": True,
                 "reason": "ood_rejection",
-                # Save translated response for user convenience
-                "response": self.translation_agent.process_output(vqa_result["answer"], original_language)
-            })
+                "response": vqa_result.get("answer", "")
+            }
+            return vqa_result.get("answer", ""), meta_updates
 
-            # Return English for translation layer (run() will translate back)
-            return vqa_result["answer"]
-
-        # 2. PubMed Agent - With fallback search strategy
+        # 2) PubMed Agent with fallback
         print("\n[2/3] PubMed Agent - Fetching Knowledge")
 
-        # Extract topic from conversation context
         topic = self._extract_topic_from_context(conversation_context)
 
-        # Use fallback search strategy (tries specific â†’ broader â†’ broadest)
         knowledge = self._search_pubmed_with_fallback(
-            question=vqa_result["question"],
-            answer=vqa_result["answer"],
+            question=vqa_result.get("question", english_question),
+            answer=vqa_result.get("answer", ""),
             topic=topic,
             max_results=3
         )
 
-        # Check if articles were found after all attempts
-        if knowledge is None or not knowledge["articles"]:
+        if knowledge is None or not knowledge.get("articles"):
             print("[PubMed] No articles found - returning honest response")
-            return self._handle_no_articles_found(username, session_id, topic)
+            honest_response, no_article_meta = self._handle_no_articles_found(topic)
+            meta_updates.update(no_article_meta)
+            return honest_response, meta_updates
 
-        self.session_manager.update(username, session_id, "pubmed_agent", {
-            "query": knowledge["query"],
+        meta_updates["pubmed_agent"] = {
+            "query": knowledge.get("query"),
             "articles": [
-                {
-                    "title": a.title,
-                    "abstract": a.abstract,
-                    "pmid": a.pmid,
-                    "url": a.url
-                } for a in knowledge["articles"]
+                {"title": a.title, "abstract": a.abstract, "pmid": a.pmid, "url": a.url}
+                for a in knowledge["articles"]
             ]
-        })
+        }
 
         print(f"Found {len(knowledge['articles'])} articles")
 
-        # 3. Reasoning Agent
-        print(f"\n[3/3] Reasoning Agent - Generating Explanation")
+        # 3) Reasoning Agent
+        print("\n[3/3] Reasoning Agent - Generating Explanation")
 
         english_response = self.reasoning_agent.generate_response(
-            question=vqa_result["question"],
-            vqa_answer=vqa_result["answer"],
-            pubmed_articles=knowledge["formatted"],  # String for context
-            article_objects=knowledge["articles"]  # List for links
+            question=vqa_result.get("question", english_question),
+            vqa_answer=vqa_result.get("answer", ""),
+            pubmed_articles=knowledge.get("formatted", ""),
+            article_objects=knowledge["articles"]
         )
 
-        # Prepend original VQA output for transparency
-        original_vqa_section = f"**Original VQA Detection:** {vqa_result['answer']}\n\n---\n\n"
+        original_vqa_section = f"**Original VQA Detection:** {vqa_result.get('answer','')}\n\n---\n\n"
         english_response = original_vqa_section + english_response
 
-        # Translate to user's language BEFORE saving
-        final_response = self.translation_agent.process_output(
-            english_response,
-            original_language
-        )
+        meta_updates["reasoning_agent"] = {
+            "original_vqa_output": vqa_result.get("answer"),
+            "enhanced_response": english_response
+        }
 
-        self.session_manager.update(username, session_id, "reasoning_agent", {
-            "original_vqa_output": vqa_result["answer"],  # Save original
-            "enhanced_response": final_response
-        })
+        return english_response, meta_updates
 
-        return english_response
-
+    # -------------------------
+    # TEXT-ONLY PIPELINE
+    # -------------------------
     def _run_text_only(
             self,
-            username: str,
-            session_id: int,
             english_question: str,
-            original_language: str,
+            output_language: str,
             conversation_context: str = ""
-    ) -> str:
-        """Run pipeline for text-only input (all in English)."""
+    ) -> Tuple[str, dict]:
+        """Run pipeline for text-only input. Returns (english_response, meta_updates)."""
 
-        # 1. Text-Only Agent (classify and respond)
+        meta_updates: Dict[str, Any] = {}
+
+        # 1) Text-only agent
         print("\n[1] Text-Only Agent - Classifying Question")
+        text_only_result = self.text_only_agent.respond(english_question, conversation_context)
 
-        # Pass conversation context to text-only agent
-        text_only_result = self.text_only_agent.respond(
-            english_question,
-            conversation_context
-        )
-
-        # Save text-only agent result (only save keys that exist)
-        self.session_manager.update(username, session_id, "text_agent", {
+        meta_updates["text_agent"] = {
             "question": text_only_result.get("question"),
             "question_type": text_only_result.get("question_type")
-        })
+        }
 
-        self.session_manager.update(username, session_id, "image_agent", {
-            "skipped": True,
-            "reason": "text_only_input"
-        })
-
-        self.session_manager.update(username, session_id, "vqa_agent", {
-            "skipped": True,
-            "reason": "text_only_input"
-        })
-
-        # If casual question, skip PubMed and Reasoning
-        if text_only_result["question_type"] == "casual":
-            final_response = self.translation_agent.process_output(
-                text_only_result["response"],
-                original_language
-            )
-
-            self.session_manager.update(username, session_id, "pubmed_agent", {
-                "skipped": True,
-                "reason": "casual_question"
-            })
-
-            self.session_manager.update(username, session_id, "reasoning_agent", {
+        # Casual -> skip PubMed
+        if text_only_result.get("question_type") == "casual":
+            meta_updates["pubmed_agent"] = {"skipped": True, "reason": "casual_question"}
+            meta_updates["reasoning_agent"] = {
                 "skipped": True,
                 "reason": "casual_question",
-                "response": final_response
-            })
+                "response": text_only_result.get("response", "")
+            }
+            return text_only_result.get("response", ""), meta_updates
 
-            return text_only_result["response"]
-
-        # Medical question: continue with PubMed + Reasoning
+        # 2) PubMed
         print("\n[2] PubMed Agent - Fetching Knowledge")
 
-        # ===== FIX: Enhance question with conversation context =====
-        enhanced_question = self._enhance_question_with_context(
-            english_question,
-            conversation_context
-        )
-
-        # Extract topic from context
+        enhanced_question = self._enhance_question_with_context(english_question, conversation_context)
         topic = self._extract_topic_from_context(conversation_context)
 
         print(f"[DEBUG] Using enhanced question: '{enhanced_question}' with topic: '{topic}'")
 
-        # Use fallback search strategy (tries specific â†’ broader â†’ broadest)
         knowledge = self._search_pubmed_with_fallback(
             question=enhanced_question,
-            answer=None,  # No VQA answer for text-only
+            answer=None,
             topic=topic,
             max_results=3
         )
 
-        # Check if articles were found after all attempts
-        if knowledge is None or not knowledge["articles"]:
+        if knowledge is None or not knowledge.get("articles"):
             print("[PubMed] No articles found - returning honest response")
-            return self._handle_no_articles_found(username, session_id, topic)
+            honest_response, no_article_meta = self._handle_no_articles_found(topic)
+            meta_updates.update(no_article_meta)
+            return honest_response, meta_updates
 
-        self.session_manager.update(username, session_id, "pubmed_agent", {
-            "query": knowledge["query"],
+        meta_updates["pubmed_agent"] = {
+            "query": knowledge.get("query"),
             "articles": [
-                {
-                    "title": a.title,
-                    "abstract": a.abstract,
-                    "pmid": a.pmid,
-                    "url": a.url
-                } for a in knowledge["articles"]
+                {"title": a.title, "abstract": a.abstract, "pmid": a.pmid, "url": a.url}
+                for a in knowledge["articles"]
             ]
-        })
+        }
 
         print(f"Found {len(knowledge['articles'])} articles")
 
-        print(f"\n[3] Reasoning Agent - Generating Explanation")
+        # 3) Reasoning
+        print("\n[3] Reasoning Agent - Generating Explanation")
 
-        # Pass conversation context to reasoning agent
         english_response = self.reasoning_agent.generate_response(
             question=english_question,
             vqa_answer="(Text-only question - no image analysis)",
-            pubmed_articles=knowledge["formatted"],
+            pubmed_articles=knowledge.get("formatted", ""),
             article_objects=knowledge["articles"],
-            conversation_context=conversation_context  # â† ADD THIS
+            conversation_context=conversation_context
         )
 
-        final_response = self.translation_agent.process_output(
-            english_response,
-            original_language
-        )
+        meta_updates["reasoning_agent"] = {"response": english_response}
+        return english_response, meta_updates
 
-        self.session_manager.update(username, session_id, "reasoning_agent", {
-            "response": final_response
-        })
-
-        return english_response
-
+    # -------------------------
+    # Debug output
+    # -------------------------
     def _print_final_output(self, response: str, username: str, session_id: int):
         print("\n" + "=" * 60)
         print("FINAL OUTPUT")
@@ -726,6 +622,7 @@ class MedicalVQAPipeline:
         print(response)
         print("=" * 60)
         print(f"Session saved: {username}/{session_id}")
+
 
 if __name__ == "__main__":
     pathvqa_config = ModelConfig(
@@ -741,34 +638,30 @@ if __name__ == "__main__":
     )
 
     pipeline = MedicalVQAPipeline(
-        ncbi_email="senghuymit007@gmail.com",
-        ncbi_api_key="92da6b3a9eb8f5916e252e7fbc9d9aed3609",
-        google_api_key="GOOGLE_API_KEY_REMOVED",
+        ncbi_email=os.getenv("NCBI_EMAIL"),
+        ncbi_api_key=os.getenv("NCBI_API_KEY"),
+        google_api_key=os.getenv("GOOGLE_API_KEY"),
         pathvqa_config=pathvqa_config,
         vqa_rad_config=vqa_rad_config,
         classifier_path="../modality_classifier"
     )
 
-    # Test conversation with context awareness
     print("\n### TEST: Context-Aware Conversation ###")
 
-    # Turn 1
     result1 = pipeline.run(
         username="kyojuro",
         question="What is pneumonia?"
     )
-    session_id = result1["session_id"]
+    sid = result1["session_id"]
 
-    # Turn 2 - Should understand "it" refers to pneumonia
     result2 = pipeline.run(
         username="kyojuro",
         question="What causes it?",
-        session_id=session_id
+        session_id=sid
     )
 
-    # Turn 3 - Should understand context from previous turns
     result3 = pipeline.run(
         username="kyojuro",
         question="What are the treatment options?",
-        session_id=session_id
+        session_id=sid
     )

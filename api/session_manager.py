@@ -1,5 +1,5 @@
 """
-session_manager.py - Manages session storage per user
+session_manager.py - Manages session storage per user (CLEAN TURN-BASED SCHEMA)
 """
 import os
 import json
@@ -15,6 +15,9 @@ class SessionManager:
         self.base_dir = base_dir
         os.makedirs(base_dir, exist_ok=True)
 
+    def _now_iso(self) -> str:
+        return datetime.now().isoformat()
+
     def _get_user_dir(self, username: str) -> str:
         return os.path.join(self.base_dir, username)
 
@@ -25,56 +28,8 @@ class SessionManager:
         user_dir = self._get_user_dir(username)
         if not os.path.exists(user_dir):
             return 1
-
         existing = [int(d) for d in os.listdir(user_dir) if d.isdigit()]
         return max(existing, default=0) + 1
-
-    def create_session(
-        self,
-        username: str,
-        question: str,
-        image_path: str = None
-    ) -> int:
-        """Create new session for user."""
-        user_dir = self._get_user_dir(username)
-        os.makedirs(user_dir, exist_ok=True)
-
-        session_id = self._get_next_session_id(username)
-        session_dir = self._get_session_dir(username, session_id)
-        os.makedirs(session_dir)
-
-        # Copy image if provided
-        saved_image_path = None
-        if image_path:
-            image_ext = os.path.splitext(image_path)[1]
-            filename = f"input_image{image_ext}"
-            shutil.copy(image_path, os.path.join(session_dir, filename))
-
-            # Store as API-accessible path
-            saved_image_path = f"sessions/{username}/{session_id}/{filename}"
-
-        session_data = {
-            "username": username,
-            "session_id": session_id,
-            "created_at": datetime.now().isoformat(),
-            "conversation_history": [],
-            "input": {
-                "image_path": saved_image_path,  # Full API path
-                "question": question,
-                "input_type": self._get_input_type(image_path, question)
-            },
-            "translation": None,
-            "image_agent": None,
-            "vqa_agent": None,
-            "text_agent": None,
-            "pubmed_agent": None,
-            "reasoning_agent": None
-        }
-
-        self._save(username, session_id, session_data)
-        print(f"✓ Created session: {username}/{session_id}")
-
-        return session_id
 
     def _get_input_type(self, image_path: str, question: str) -> str:
         if image_path and question:
@@ -84,26 +39,44 @@ class SessionManager:
         else:
             return "text_only"
 
-    def update(self, username: str, session_id: int, agent_name: str, data: dict):
-        """Update session with agent output."""
-        session_data = self.load(username, session_id)
+    def create_session(
+        self,
+        username: str,
+        question: str,
+        image_path: str = None
+    ) -> int:
+        """Create new session for user (clean schema)."""
+        user_dir = self._get_user_dir(username)
+        os.makedirs(user_dir, exist_ok=True)
 
-        # Convert dataclass objects to dicts if needed
-        if "articles" in data:
-            articles_list = []
-            for article in data["articles"]:
-                if is_dataclass(article):
-                    articles_list.append(asdict(article))
-                elif isinstance(article, dict):
-                    articles_list.append(article)
-                else:
-                    articles_list.append(article)
-            data["articles"] = articles_list
+        session_id = self._get_next_session_id(username)
+        session_dir = self._get_session_dir(username, session_id)
+        os.makedirs(session_dir)
 
-        session_data[agent_name] = data
-        session_data["updated_at"] = datetime.now().isoformat()
+        # Copy initial image if provided
+        saved_image_path = None
+        if image_path:
+            image_ext = os.path.splitext(image_path)[1] or ".jpg"
+            filename = f"input_image{image_ext}"
+            shutil.copy(image_path, os.path.join(session_dir, filename))
+            saved_image_path = f"sessions/{username}/{session_id}/{filename}"
+
+        session_data = {
+            "username": username,
+            "session_id": session_id,
+            "created_at": self._now_iso(),
+            "updated_at": self._now_iso(),
+            "input": {
+                "image_path": saved_image_path,
+                "question": question,
+                "input_type": self._get_input_type(image_path, question)
+            },
+            "conversation_history": []
+        }
+
         self._save(username, session_id, session_data)
-        print(f"✓ Updated {agent_name}")
+        print(f"✓ Created session: {username}/{session_id}")
+        return session_id
 
     def load(self, username: str, session_id: int) -> dict:
         """Load session data."""
@@ -130,22 +103,36 @@ class SessionManager:
 
     def list_users(self) -> list[str]:
         """List all usernames."""
-        return [d for d in os.listdir(self.base_dir)
-                if os.path.isdir(os.path.join(self.base_dir, d))]
+        return [
+            d for d in os.listdir(self.base_dir)
+            if os.path.isdir(os.path.join(self.base_dir, d))
+        ]
 
+    def _normalize(self, obj):
+        """Ensure object is JSON serializable; converts dataclasses recursively."""
+        if is_dataclass(obj):
+            return asdict(obj)
+        if isinstance(obj, list):
+            return [self._normalize(x) for x in obj]
+        if isinstance(obj, dict):
+            return {k: self._normalize(v) for k, v in obj.items()}
+        return obj
 
     def add_conversation_turn(
-            self,
-            username: str,
-            session_id: int,
-            user_message: str,
-            assistant_message: str,
-            image_path: str = None  # ← NEW: Optional image path for this turn
+        self,
+        username: str,
+        session_id: int,
+        user_message: str,
+        assistant_message: str,
+        image_path: str = None,
+        meta: dict = None
     ):
-        """Add a single Q&A turn to conversation history with optional image."""
+        """
+        Add a single Q&A turn to conversation history with optional image + per-turn meta.
+        CLEAN: all agent outputs live ONLY inside turn.meta (no top-level agent fields).
+        """
         session_data = self.load(username, session_id)
 
-        # Initialize conversation_history if it doesn't exist
         if "conversation_history" not in session_data:
             session_data["conversation_history"] = []
 
@@ -155,23 +142,24 @@ class SessionManager:
         saved_image_path = None
         if image_path:
             session_dir = self._get_session_dir(username, session_id)
-            image_ext = os.path.splitext(image_path)[1]
-            # Save with turn number to keep multiple images separate
+            image_ext = os.path.splitext(image_path)[1] or ".jpg"
             filename = f"input_image_turn{turn_number}{image_ext}"
             shutil.copy(image_path, os.path.join(session_dir, filename))
-
-            # Store as API-accessible path
             saved_image_path = f"sessions/{username}/{session_id}/{filename}"
+
+        meta = meta or {}
+        meta = self._normalize(meta)
 
         session_data["conversation_history"].append({
             "turn": turn_number,
             "user": user_message,
             "assistant": assistant_message,
-            "image_path": saved_image_path,  # ← Full API path like "sessions/string/1/input_image_turn1.jpg"
-            "timestamp": datetime.now().isoformat()
+            "image_path": saved_image_path,
+            "timestamp": self._now_iso(),
+            "meta": meta
         })
 
-        session_data["updated_at"] = datetime.now().isoformat()
+        session_data["updated_at"] = self._now_iso()
         self._save(username, session_id, session_data)
         print(f"✓ Added turn {turn_number} to conversation")
 
