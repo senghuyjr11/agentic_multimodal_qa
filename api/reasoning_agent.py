@@ -18,45 +18,63 @@ class ReasoningAgent:
             question: str,
             vqa_answer: str,
             pubmed_articles: str,
-            article_objects: list,
-            conversation_context: str = ""  # ← ADD THIS
+            article_objects: list = None,
+            conversation_context: str = "",
+            is_image_question: bool = False  # ← Add this parameter
     ) -> str:
-        """
-        Generates a structured medical response with conversation awareness.
+        """Generate evidence-based response with appropriate format."""
 
-        Args:
-            question: User's question
-            vqa_answer: Visual answer from image model
-            pubmed_articles: Formatted string (for context)
-            article_objects: List of actual article dicts (for links)
-            conversation_context: Previous conversation history
-        """
+        if is_image_question:
+            # Structured format for image analysis
+            prompt = f"""You are a medical expert analyzing a medical image.
 
-        # Build context-aware prompt
-        context_section = ""
-        if conversation_context:
-            context_section = f"""
-    Previous Conversation:
-    {conversation_context}
+    Question: {question}
+    Image Analysis: {vqa_answer}
 
-    IMPORTANT: Use the conversation history above to provide context-aware answers. If the current question refers to something discussed earlier (like "What are the symptoms?" after discussing a disease), reference that previous context.
-    """
-
-        prompt = f"""{context_section}
-    You are an expert medical AI. Answer based strictly on the visual findings and research context.
-
-    User Question: {question}
-    Visual Findings: {vqa_answer}
-    Research Context:
+    Related Medical Literature:
     {pubmed_articles}
 
-    STRICT OUTPUT FORMAT (Follow exactly):
-    Answer: (Direct 1-sentence answer that considers previous conversation if relevant)
-    Location: (Describe WHERE in the image the findings are located - e.g., "right lower lobe", "left anterior region", "throughout the tissue")
-    Explanation: (1-2 sentences explaining the significance, with citations like [1], [2])
-    Clinical Context: (1-2 sentences on clinical implications, citing [1]-[3])
+    Provide a comprehensive response in this format:
 
-    Do NOT write a References section - it will be auto-generated.
+    Answer: [Concise 1-2 sentence answer]
+    Location: [Where in the image this finding is located]
+    Explanation: [Detailed explanation with citations]
+    Clinical Context: [Clinical significance]
+
+    References:
+    [List numbered references with PMIDs]
+
+    Guidelines:
+    - Use markdown links: [Title](URL)
+    - Cite using [1], [2], [3]
+    - Location should describe the anatomical/spatial location in the image
+    """
+        else:
+            # Natural format for text questions
+            prompt = f"""You are a medical expert answering questions based on peer-reviewed research.
+
+    Question: {question}
+
+    Related Medical Literature:
+    {pubmed_articles}
+
+    Provide a comprehensive, evidence-based answer with these guidelines:
+
+    1. Start with a direct answer (2-3 sentences)
+    2. Provide detailed explanation with supporting evidence
+    3. Include clinical context and practical implications
+    4. Cite sources naturally throughout your response using [1], [2], [3]
+    5. End with a "References" section listing all cited sources
+
+    Style Guidelines:
+    - Write naturally in prose (not structured sections)
+    - Use markdown links: [Title](URL) (PMID: XXXXX)
+    - Be concise but thorough
+    - Focus on answering the question directly
+
+    References format:
+    1. [Article Title](URL) (PMID: XXXXX)
+    2. [Article Title](URL) (PMID: XXXXX)
     """
 
         # Call API

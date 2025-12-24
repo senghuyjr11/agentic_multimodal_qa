@@ -598,7 +598,8 @@ class MedicalVQAPipeline:
             question=vqa_result.get("question", english_question),
             vqa_answer=vqa_result.get("answer", ""),
             pubmed_articles=knowledge.get("formatted", ""),
-            article_objects=knowledge["articles"]
+            article_objects=knowledge["articles"],
+            is_image_question=True
         )
 
         original_vqa_section = f"**Original VQA Detection:** {vqa_result.get('answer', '')}\n\n---\n\n"
@@ -704,7 +705,8 @@ class MedicalVQAPipeline:
             vqa_answer="(Text-only question - no image analysis)",
             pubmed_articles=knowledge.get("formatted", ""),
             article_objects=knowledge["articles"],
-            conversation_context=conversation_context
+            conversation_context=conversation_context,
+            is_image_question=False
         )
 
         meta_updates["reasoning_agent"] = {"response": english_response}
