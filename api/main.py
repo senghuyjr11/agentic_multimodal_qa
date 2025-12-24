@@ -20,8 +20,8 @@ from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage
 from transformers import Qwen2VLForConditionalGeneration, Qwen3VLForConditionalGeneration
 
+from pubmed_embedding_agent import PubMedEmbeddingAgent
 from image_agent import ImageAgent, ModelConfig, OODConfig
-from pubmed_agent import PubMedAgent
 from reasoning_agent import ReasoningAgent
 from session_manager import SessionManager
 from text_only_agent import TextOnlyAgent
@@ -68,7 +68,7 @@ class MedicalVQAPipeline:
 
         self.text_only_agent = TextOnlyAgent(api_key=google_api_key)
 
-        self.pubmed_agent = PubMedAgent(
+        self.pubmed_agent = PubMedEmbeddingAgent(
             email=ncbi_email,
             api_key=ncbi_api_key,
             google_api_key=google_api_key
@@ -250,15 +250,16 @@ class MedicalVQAPipeline:
             question: str,
             answer: Optional[str],
             topic: Optional[str],
-            max_results: int = 3
+            max_results: int
     ) -> Optional[dict]:
-        """
-        Search PubMed with fallback:
-        1) Specific (LLM extracted)
-        2) Broader (topic + keyword)
-        3) Broadest (topic only)
-        """
-        print("[PubMed] Attempt 1: Specific search with LLM-extracted terms")
+        """Search PubMed with fallback."""
+
+        print(f"\n[DEBUG FALLBACK] Starting fallback search")
+        print(f"[DEBUG FALLBACK] Question: '{question}'")
+        print(f"[DEBUG FALLBACK] Answer: '{answer}'")
+        print(f"[DEBUG FALLBACK] Topic: '{topic}'")
+
+        print("\n[PubMed] Attempt 1: Specific search with LLM-extracted terms")
 
         if answer:
             knowledge = self.pubmed_agent.get_knowledge(
@@ -273,6 +274,8 @@ class MedicalVQAPipeline:
                 topic=topic,
                 max_results=max_results
             )
+
+        print(f"[DEBUG FALLBACK] Attempt 1 result: {len(knowledge.get('articles', [])) if knowledge else 0} articles")
 
         if knowledge and knowledge.get("articles"):
             print(f"[PubMed] ✓ Found {len(knowledge['articles'])} articles (specific search)")
@@ -547,7 +550,7 @@ class MedicalVQAPipeline:
             question=vqa_result.get("question", english_question),
             answer=vqa_result.get("answer", ""),
             topic=topic,
-            max_results=3
+            max_results=10
         )
 
         if knowledge is None or not knowledge.get("articles"):
@@ -556,26 +559,33 @@ class MedicalVQAPipeline:
             meta_updates.update(no_article_meta)
             return honest_response, meta_updates
 
-        # ✅ OPTION A: LLM-based relevance & support scoring (per article)
-        knowledge["articles"] = self.pubmed_agent.score_articles(
+        # OPTION A: LLM-based relevance & support scoring (per article)
+        # knowledge["articles"] = self.pubmed_agent.score_articles(
+        #     question=vqa_result.get("question", english_question),
+        #     answer=vqa_result.get("answer", ""),
+        #     articles=knowledge["articles"]
+        # )
+
+        # Embedding-based relevance scoring (fast!)
+        knowledge["articles"] = self.pubmed_agent.score_articles_with_embeddings(
             question=vqa_result.get("question", english_question),
-            answer=vqa_result.get("answer", ""),
             articles=knowledge["articles"]
         )
 
+        # Store only top 3 most relevant articles
         meta_updates["pubmed_agent"] = {
             "query": knowledge.get("query"),
+            "total_articles_retrieved": len(knowledge["articles"]),
             "articles": [
                 {
                     "title": a.title,
                     "abstract": a.abstract,
                     "pmid": a.pmid,
                     "url": a.url,
-                    "relevance_score": getattr(a, "relevance_score", None),
-                    "support_score": getattr(a, "support_score", None),
-                    "relevance_why": getattr(a, "relevance_why", None),
+                    "relevance_score": a.relevance_score,
+                    "relevance_why": a.relevance_why,
                 }
-                for a in knowledge["articles"]
+                for a in knowledge["articles"][:3]  # ← Only top 3
             ]
         }
 
@@ -645,7 +655,7 @@ class MedicalVQAPipeline:
             question=enhanced_question,
             answer=None,
             topic=topic,
-            max_results=3
+            max_results=10
         )
 
         if knowledge is None or not knowledge.get("articles"):
@@ -654,26 +664,33 @@ class MedicalVQAPipeline:
             meta_updates.update(no_article_meta)
             return honest_response, meta_updates
 
-        # ✅ OPTION A: LLM-based relevance & support scoring (per article)
-        knowledge["articles"] = self.pubmed_agent.score_articles(
+        # OPTION A: LLM-based relevance & support scoring (per article)
+        # knowledge["articles"] = self.pubmed_agent.score_articles(
+        #     question=enhanced_question,
+        #     answer=None,
+        #     articles=knowledge["articles"]
+        # )
+
+        # Embedding-based relevance scoring
+        knowledge["articles"] = self.pubmed_agent.score_articles_with_embeddings(
             question=enhanced_question,
-            answer=None,
             articles=knowledge["articles"]
         )
 
+        # Store only top 3 most relevant articles
         meta_updates["pubmed_agent"] = {
             "query": knowledge.get("query"),
+            "total_articles_retrieved": len(knowledge["articles"]),
             "articles": [
                 {
                     "title": a.title,
                     "abstract": a.abstract,
                     "pmid": a.pmid,
                     "url": a.url,
-                    "relevance_score": getattr(a, "relevance_score", None),
-                    "support_score": getattr(a, "support_score", None),
-                    "relevance_why": getattr(a, "relevance_why", None),
+                    "relevance_score": a.relevance_score,
+                    "relevance_why": a.relevance_why,
                 }
-                for a in knowledge["articles"]
+                for a in knowledge["articles"][:3]  # ← Only top 3
             ]
         }
 
