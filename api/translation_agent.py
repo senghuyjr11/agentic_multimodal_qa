@@ -50,6 +50,8 @@ class TranslationAgent:
                 "de": "German",
                 "vi": "Vietnamese",
                 "ar": "Arabic",
+                "ur" : "Urdu",
+                "sw":"Swahili"
             }
             return lang_map.get(code, "English")
         except Exception:
