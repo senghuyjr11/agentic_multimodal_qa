@@ -11,6 +11,7 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from transformers import Qwen2VLForConditionalGeneration, Qwen3VLForConditionalGeneration
 
+from auth import router as auth_router
 from image_agent import ModelConfig
 from main import MedicalVQAPipeline
 
@@ -36,6 +37,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth_router)
 
 pipeline: Optional[MedicalVQAPipeline] = None
 
