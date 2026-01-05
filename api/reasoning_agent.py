@@ -1,6 +1,8 @@
 """
 reasoning_agent.py - Simplified (English only)
 """
+import re
+
 import google.generativeai as genai
 
 
@@ -110,31 +112,49 @@ class ReasoningAgent:
 
     def rewrite_response(self, last_answer: str, instruction: str) -> str:
         """
-        Rewrite the previous answer following the user's instruction
-        (e.g., shorten, simplify, bullet points) WITHOUT adding new facts.
+        Rewrite ONLY the last answer according to the instruction.
+        Strongly disallow adding any new references/links/citations.
         """
-        if not last_answer.strip():
-            return ""
-
         prompt = f"""
-        You are rewriting the assistant's previous answer.
-        
-        User instruction: "{instruction}"
-        
-        Rules:
-        - DO NOT add new medical facts.
-        - DO NOT invent citations.
-        - Keep the meaning, remove redundancy.
-        - If there is a References section, you may keep it but shorten to max 3 items.
-        - Output ONLY the rewritten answer (no preamble).
-        
-        Previous answer:
-        \"\"\"{last_answer}\"\"\"
-        
-        Rewritten answer:
-        """
-        response = self.model.generate_content(prompt)
-        return response.text.strip()
+You are editing an existing assistant answer.
+
+INSTRUCTION:
+{instruction}
+
+TEXT TO EDIT (keep meaning the same unless instruction says otherwise):
+---BEGIN---
+{last_answer}
+---END---
+
+STRICT RULES:
+- Do NOT add any new references, links, URLs, PMIDs, citations, or "References" section.
+- If the text contains a "References" or "Reference" section, REMOVE it completely.
+- If the text contains inline citations like [1], [2], remove them ONLY if needed to keep the text clean after removing references.
+- Output ONLY the rewritten text. No preamble.
+"""
+
+        resp = self.model.generate_content(prompt)
+        rewritten = (resp.text or "").strip()
+
+        # Safety net: hard-remove references sections + trailing URLs
+        rewritten = self._strip_references(rewritten)
+
+        return rewritten
+
+    def _strip_references(self, text: str) -> str:
+        if not text:
+            return text
+
+        # Remove sections starting with "References:" or "Reference:"
+        text = re.split(r"\n\s*References?\s*:\s*\n", text, flags=re.IGNORECASE)[0].strip()
+
+        # Also remove common "References" header without colon
+        text = re.split(r"\n\s*References?\s*\n", text, flags=re.IGNORECASE)[0].strip()
+
+        # Remove trailing numbered URL-only lines (extra safety)
+        text = re.sub(r"\n\s*\d+\.\s*https?://\S+\s*$", "", text, flags=re.MULTILINE).strip()
+
+        return text
 
     def _score_to_badge(self, score: float | None) -> tuple[str, str]:
         """

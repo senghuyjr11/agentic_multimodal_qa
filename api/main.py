@@ -217,6 +217,12 @@ class MedicalVQAPipeline:
 
     def _enhance_question_with_context(self, question: str, conversation_context: str) -> str:
         """Enhance a question with context for better PubMed searches."""
+
+        # Don't "enhance" formatting/rewrite requests
+        if self._is_format_request(question):
+            print(f"[DEBUG] Format/rewrite request detected. Skipping enhancement: '{question}'")
+            return question
+
         if not conversation_context:
             return question
 
@@ -399,6 +405,20 @@ class MedicalVQAPipeline:
         }
 
         return honest_response, meta
+
+    def _is_format_request(self, text: str) -> bool:
+        t = (text or "").strip().lower()
+        if not t:
+            return False
+
+        patterns = [
+            "remove the references", "remove references", "remove citation", "remove citations",
+            "hide references", "no references", "without references",
+            "make it shorter", "shorter", "summarize", "summary", "tl;dr",
+            "rewrite", "rephrase", "simplify", "bullet", "bullets",
+            "make it more concise", "condense", "format", "clean up"
+        ]
+        return any(p in t for p in patterns)
 
     # -------------------------
     # MAIN ENTRYPOINT
@@ -624,6 +644,15 @@ class MedicalVQAPipeline:
                 return msg.content
         return None
 
+    def _get_last_ai_message_from_context(self, conversation_context: str) -> Optional[str]:
+        if not conversation_context:
+            return None
+        lines = [l.strip() for l in conversation_context.split("\n") if l.strip()]
+        for line in reversed(lines):
+            if line.startswith("AI:"):
+                return line.replace("AI:", "", 1).strip()
+        return None
+
     # -------------------------
     # IMAGE PIPELINE
     # -------------------------
@@ -767,6 +796,19 @@ class MedicalVQAPipeline:
             "question_type": text_only_result.get("question_type")
         }
 
+        # Formatting/rewrite request: rewrite last assistant answer, no PubMed
+        if self._is_format_request(english_question):
+            last_answer = self._get_last_ai_message_from_context(conversation_context)
+            if last_answer:
+                rewritten = self.reasoning_agent.rewrite_response(
+                    last_answer=last_answer,
+                    instruction=english_question
+                )
+                meta_updates["pubmed_agent"] = {"skipped": True, "reason": "format_request"}
+                meta_updates["reasoning_agent"] = {"skipped": True, "reason": "format_request"}
+                meta_updates["rewrite_agent"] = {"instruction": english_question}
+                return rewritten, meta_updates
+
         # Casual -> skip PubMed
         if text_only_result.get("question_type") == "casual":
             meta_updates["pubmed_agent"] = {"skipped": True, "reason": "casual_question"}
@@ -805,7 +847,6 @@ class MedicalVQAPipeline:
         #     articles=knowledge["articles"]
         # )
 
-        # Embedding-based relevance scoring
         # Embedding-based relevance scoring
         knowledge["articles"] = self.pubmed_agent.score_articles_with_embeddings(
             question=enhanced_question,
