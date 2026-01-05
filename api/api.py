@@ -239,30 +239,23 @@ async def send_message(
 
 
 # ============== HISTORY ENDPOINTS ==============
-
-@app.get("/chat/history/{username}")
+@app.get("/chat/history")
 async def list_user_chats(
-    username: str,
     current_user: str = Depends(get_current_user)
 ):
-    """List all chat sessions for a user (Protected)."""
+    """List all chat sessions for current user (Protected)."""
     if pipeline is None:
         raise HTTPException(status_code=503, detail="Pipeline not initialized")
 
-    # Security: Users can only access their own chat history
-    if username != current_user:
-        raise HTTPException(status_code=403, detail="Access denied: You can only view your own chat history")
-
-    session_ids = pipeline.session_manager.list_user_sessions(username)
+    session_ids = pipeline.session_manager.list_user_sessions(current_user)
 
     chats = []
     for sid in session_ids:
-        data = pipeline.session_manager.load(username, sid)
+        data = pipeline.session_manager.load(current_user, sid)
 
         first_question = data.get("input", {}).get("question", "[Image uploaded]")
         turns_count = len(data.get("conversation_history", []))
 
-        # In clean schema, language should be read from latest turn meta.translation if available
         history = data.get("conversation_history", [])
         if history:
             last_meta = history[-1].get("meta", {})
@@ -280,7 +273,7 @@ async def list_user_chats(
         })
 
     return {
-        "username": username,
+        "username": current_user,
         "total_chats": len(chats),
         "chats": chats
     }
