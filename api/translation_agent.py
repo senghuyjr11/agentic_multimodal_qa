@@ -33,6 +33,16 @@ class TranslationAgent:
     # ---------- Source-language detection (what language the text is written in) ----------
     def detect_source_language(self, text: str) -> str:
         try:
+            # Quick check for common English words/greetings
+            text_lower = text.lower().strip()
+            english_greetings = {
+                "hi", "hello", "hey", "thanks", "thank you", "bye", "goodbye",
+                "yes", "no", "ok", "okay", "please", "sorry"
+            }
+
+            if text_lower in english_greetings:
+                return "English"
+
             # Khmer script check
             if any('\u1780' <= c <= '\u17FF' for c in text):
                 return "Khmer"
@@ -50,8 +60,8 @@ class TranslationAgent:
                 "de": "German",
                 "vi": "Vietnamese",
                 "ar": "Arabic",
-                "ur" : "Urdu",
-                "sw":"Swahili"
+                "ur": "Urdu",
+                "sw": "Swahili"
             }
             return lang_map.get(code, "English")
         except Exception:

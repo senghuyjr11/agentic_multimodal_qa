@@ -4,9 +4,9 @@ auth.py - User authentication system
 import json
 import os
 from datetime import datetime, timedelta
-
-from fastapi import APIRouter, HTTPException, status
-from jose import jwt
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import APIRouter, HTTPException, status, Depends
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 from pydantic import BaseModel
 
@@ -20,6 +20,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "kyojurojr11")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24 hours
+
+
+security = HTTPBearer()
 
 # User storage file
 USERS_FILE = "users.json"
@@ -147,7 +150,7 @@ async def login(user: UserLogin):
     if user.username not in users:
         raise HTTPException(
             status_code=401,
-            detail="Invalid username or password"
+            detail="Invalid username"
         )
 
     # Get stored user data
@@ -157,7 +160,7 @@ async def login(user: UserLogin):
     if not verify_password(user.password, stored_user["hashed_password"]):
         raise HTTPException(
             status_code=401,
-            detail="Invalid username or password"
+            detail="Invalid password"
         )
 
     # Create access token
@@ -167,3 +170,27 @@ async def login(user: UserLogin):
         "access_token": access_token,
         "token_type": "bearer"
     }
+
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+    """
+    Verify JWT token and return username.
+    """
+    try:
+        token = credentials.credentials  # Extract token from Bearer
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+
+        if username is None:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid authentication token"
+            )
+
+        return username
+
+    except JWTError:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authentication token"
+        )

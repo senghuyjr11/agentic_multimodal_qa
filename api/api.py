@@ -7,11 +7,11 @@ from typing import Optional
 
 import uvicorn
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from transformers import Qwen2VLForConditionalGeneration, Qwen3VLForConditionalGeneration
 
-from auth import router as auth_router
+from auth import router as auth_router, get_current_user
 from image_agent import ModelConfig
 from main import MedicalVQAPipeline
 
@@ -103,7 +103,7 @@ async def health_check():
     return {
         "status": "healthy",
         "pipeline_ready": pipeline is not None,
-        "features": ["multi-turn conversations", "auto language detection", "memory persistence", "per-turn citations/meta"],
+        "features": ["multi-turn conversations", "auto language detection", "memory persistence", "per-turn citations/meta", "JWT authentication"],
         "schema": "clean_turn_meta"
     }
 
@@ -112,14 +112,13 @@ async def health_check():
 
 @app.post("/chat/new")
 async def start_new_chat(
-    username: str = Form(...),
+    current_user: str = Depends(get_current_user),
     question: Optional[str] = Form(None),
     image: Optional[UploadFile] = File(None)
 ):
     """
-    Start a NEW conversation.
+    Start a NEW conversation (Protected - requires authentication).
 
-    - username: required
     - question: optional
     - image: optional file upload
 
@@ -146,12 +145,12 @@ async def start_new_chat(
                 image_path = f.name
 
         result = pipeline.run(
-            username=username,
+            username=current_user,
             question=question,
             image_path=image_path
         )
 
-        session_data = pipeline.session_manager.load(username, result["session_id"])
+        session_data = pipeline.session_manager.load(current_user, result["session_id"])
 
         return {
             "message": "New conversation started",
@@ -175,15 +174,14 @@ async def start_new_chat(
 @app.post("/chat/{session_id}/message")
 async def send_message(
     session_id: int,
-    username: str = Form(...),
+    current_user: str = Depends(get_current_user),
     question: Optional[str] = Form(None),
     image: Optional[UploadFile] = File(None)
 ):
     """
-    Continue an EXISTING conversation.
+    Continue an EXISTING conversation (Protected - requires authentication).
 
     - session_id: required
-    - username: required
     - question: optional
     - image: optional upload
 
@@ -200,8 +198,8 @@ async def send_message(
     if not image and not question:
         raise HTTPException(status_code=400, detail="Must provide image or question")
 
-    if not pipeline.session_manager.session_exists(username, session_id):
-        raise HTTPException(status_code=404, detail=f"Session {session_id} not found for user {username}")
+    if not pipeline.session_manager.session_exists(current_user, session_id):
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found for user {current_user}")
 
     image_path = None
     try:
@@ -213,13 +211,13 @@ async def send_message(
                 image_path = f.name
 
         result = pipeline.run(
-            username=username,
+            username=current_user,
             question=question,
             image_path=image_path,
             session_id=session_id
         )
 
-        session_data = pipeline.session_manager.load(username, result["session_id"])
+        session_data = pipeline.session_manager.load(current_user, result["session_id"])
 
         return {
             "message": "Message sent",
@@ -243,10 +241,17 @@ async def send_message(
 # ============== HISTORY ENDPOINTS ==============
 
 @app.get("/chat/history/{username}")
-async def list_user_chats(username: str):
-    """List all chat sessions for a user."""
+async def list_user_chats(
+    username: str,
+    current_user: str = Depends(get_current_user)
+):
+    """List all chat sessions for a user (Protected)."""
     if pipeline is None:
         raise HTTPException(status_code=503, detail="Pipeline not initialized")
+
+    # Security: Users can only access their own chat history
+    if username != current_user:
+        raise HTTPException(status_code=403, detail="Access denied: You can only view your own chat history")
 
     session_ids = pipeline.session_manager.list_user_sessions(username)
 
@@ -282,28 +287,34 @@ async def list_user_chats(username: str):
 
 
 @app.get("/chat/{session_id}")
-async def get_chat_session(username: str, session_id: int):
-    """Get full conversation history for a session."""
+async def get_chat_session(
+    session_id: int,
+    current_user: str = Depends(get_current_user)
+):
+    """Get full conversation history for a session (Protected)."""
     if pipeline is None:
         raise HTTPException(status_code=503, detail="Pipeline not initialized")
 
-    if not pipeline.session_manager.session_exists(username, session_id):
+    if not pipeline.session_manager.session_exists(current_user, session_id):
         raise HTTPException(status_code=404, detail="Session not found")
 
-    return pipeline.session_manager.load(username, session_id)
+    return pipeline.session_manager.load(current_user, session_id)
 
 
 @app.delete("/chat/{session_id}")
-async def delete_chat_session(username: str, session_id: int):
-    """Delete a chat session."""
+async def delete_chat_session(
+    session_id: int,
+    current_user: str = Depends(get_current_user)
+):
+    """Delete a chat session (Protected)."""
     if pipeline is None:
         raise HTTPException(status_code=503, detail="Pipeline not initialized")
 
-    if not pipeline.session_manager.session_exists(username, session_id):
+    if not pipeline.session_manager.session_exists(current_user, session_id):
         raise HTTPException(status_code=404, detail="Session not found")
 
     import shutil
-    session_dir = pipeline.session_manager._get_session_dir(username, session_id)
+    session_dir = pipeline.session_manager._get_session_dir(current_user, session_id)
     shutil.rmtree(session_dir)
 
     # Remove from active RAM memory if present
@@ -315,7 +326,7 @@ async def delete_chat_session(username: str, session_id: int):
 
 @app.get("/users")
 async def list_users():
-    """List all users."""
+    """List all users (Public - for admin/debug purposes)."""
     if pipeline is None:
         raise HTTPException(status_code=503, detail="Pipeline not initialized")
 
@@ -327,15 +338,19 @@ from langchain_core.messages import HumanMessage
 
 
 @app.get("/debug/memory_check/{session_id}")
-async def memory_check(session_id: int, username: str = Query(...)):
+async def memory_check(
+    session_id: int,
+    current_user: str = Depends(get_current_user)
+):
+    """Debug endpoint to check memory state (Protected)."""
     if pipeline is None:
         raise HTTPException(status_code=503, detail="Pipeline not initialized")
 
-    if not pipeline.session_manager.session_exists(username, session_id):
+    if not pipeline.session_manager.session_exists(current_user, session_id):
         raise HTTPException(status_code=404, detail="Session not found")
 
     # JSON source of truth
-    session_data = pipeline.session_manager.load(username, session_id)
+    session_data = pipeline.session_manager.load(current_user, session_id)
     json_turns = len(session_data.get("conversation_history", []))
 
     # RAM memory
@@ -355,14 +370,13 @@ async def memory_check(session_id: int, username: str = Query(...)):
             })
 
     return {
-        "username": username,
+        "username": current_user,
         "session_id": session_id,
         "json_turns": json_turns,
         "in_ram": in_ram,
         "ram_message_count": ram_count,
         "ram_tail": ram_messages
     }
-
 
 
 if __name__ == "__main__":
