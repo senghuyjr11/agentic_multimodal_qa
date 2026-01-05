@@ -20,8 +20,8 @@ from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.messages import HumanMessage, AIMessage
 from transformers import Qwen2VLForConditionalGeneration, Qwen3VLForConditionalGeneration
 
-from pubmed_embedding_agent import PubMedEmbeddingAgent
 from image_agent import ImageAgent, ModelConfig, OODConfig
+from pubmed_embedding_agent import PubMedEmbeddingAgent
 from reasoning_agent import ReasoningAgent
 from session_manager import SessionManager
 from text_only_agent import TextOnlyAgent
@@ -251,15 +251,22 @@ class MedicalVQAPipeline:
             answer: Optional[str],
             topic: Optional[str],
             max_results: int
-    ) -> Optional[dict]:
-        """Search PubMed with fallback."""
+    ) -> dict:
+        """Search PubMed with fallback. Always returns a dict with query/articles/formatted."""
 
         print(f"\n[DEBUG FALLBACK] Starting fallback search")
         print(f"[DEBUG FALLBACK] Question: '{question}'")
         print(f"[DEBUG FALLBACK] Answer: '{answer}'")
         print(f"[DEBUG FALLBACK] Topic: '{topic}'")
 
+        last_query = None
+        attempts = 0
+
+        # ----------------
+        # Attempt 1: LLM extracted terms (your current best)
+        # ----------------
         print("\n[PubMed] Attempt 1: Specific search with LLM-extracted terms")
+        attempts += 1
 
         if answer:
             knowledge = self.pubmed_agent.get_knowledge(
@@ -275,60 +282,89 @@ class MedicalVQAPipeline:
                 max_results=max_results
             )
 
-        print(f"[DEBUG FALLBACK] Attempt 1 result: {len(knowledge.get('articles', [])) if knowledge else 0} articles")
+        last_query = knowledge.get("query") if knowledge else last_query
+        n1 = len(knowledge.get("articles", [])) if knowledge else 0
+        print(f"[DEBUG FALLBACK] Attempt 1 result: {n1} articles | query={last_query}")
 
         if knowledge and knowledge.get("articles"):
             print(f"[PubMed] ✓ Found {len(knowledge['articles'])} articles (specific search)")
             return knowledge
 
-        if topic:
-            print("[PubMed] Attempt 2: Broader search (topic + main keyword)")
-
-            keywords = ["treatment", "causes", "symptoms", "diagnosis", "prevention", "recovery", "pathogenesis"]
-            main_keyword = next((k for k in keywords if k in question.lower()), None)
-
-            if main_keyword:
-                query = f'("{topic}"[Title/Abstract]) AND ("{main_keyword}"[Title/Abstract])'
-            else:
-                query = f'("{topic}"[Title/Abstract])'
-
-            articles = self.pubmed_agent.search(query, max_results=max_results * 2)
-            articles = self.pubmed_agent.score_articles(
+        # Build a fallback base even if topic is None
+        base = topic
+        if not base and answer:
+            # derive a base from LLM terms (same extractor used for attempt1)
+            terms = self.pubmed_agent._extract_medical_terms_with_llm(
+                topic=None,
                 question=question,
-                answer=answer,  # vqa_answer OR None
-                articles=articles
+                answer=answer
             )
+            base = " ".join(terms[:2]) if terms else None
+            print(f"[DEBUG FALLBACK] Derived fallback base from terms: {base} | terms={terms}")
 
-            if articles:
-                print(f"[PubMed] ✓ Found {len(articles)} articles (broader search)")
-                return {
-                    "query": query,
-                    "articles": articles,
-                    "formatted": self.pubmed_agent._format_output(articles)
-                }
+        if not base:
+            base = question  # last resort
+            print(f"[DEBUG FALLBACK] Using question as fallback base: {base}")
 
-        if topic:
-            print("[PubMed] Attempt 3: Broadest search (topic only)")
-            query = f'("{topic}"[Title/Abstract])'
-            articles = self.pubmed_agent.search(query, max_results=max_results * 3)
-            articles = self.pubmed_agent.score_articles(
-                question=question,
-                answer=answer,  # vqa_answer OR None
-                articles=articles
-            )
+        # ----------------
+        # Attempt 2: Broader search (base + keyword)
+        # ----------------
+        print("[PubMed] Attempt 2: Broader search (base + main keyword)")
+        attempts += 1
 
-            if articles:
-                print(f"[PubMed] ✓ Found {len(articles)} articles (broadest search)")
-                return {
-                    "query": query,
-                    "articles": articles,
-                    "formatted": self.pubmed_agent._format_output(articles)
-                }
+        keywords = ["treatment", "causes", "symptoms", "diagnosis", "prevention", "recovery", "pathogenesis"]
+        main_keyword = next((k for k in keywords if k in (question or "").lower()), None)
+
+        if main_keyword:
+            query = f'("{base}"[Title/Abstract]) AND ("{main_keyword}"[Title/Abstract])'
+        else:
+            query = f'("{base}"[Title/Abstract])'
+
+        last_query = query
+        articles = self.pubmed_agent.search(query, max_results=max_results * 2)
+        articles = self.pubmed_agent.score_articles_with_embeddings(question=question, articles=articles)
+
+        if articles:
+            print(f"[PubMed] ✓ Found {len(articles)} articles (broader search)")
+            return {
+                "query": query,
+                "articles": articles,
+                "formatted": self.pubmed_agent._format_output(articles),
+                "attempts": attempts
+            }
+
+        # ----------------
+        # Attempt 3: Broadest search (base only)
+        # ----------------
+        print("[PubMed] Attempt 3: Broadest search (base only)")
+        attempts += 1
+
+        query = f'("{base}"[Title/Abstract])'
+        last_query = query
+        articles = self.pubmed_agent.search(query, max_results=max_results * 3)
+        articles = self.pubmed_agent.score_articles_with_embeddings(question=question, articles=articles)
+
+        if articles:
+            print(f"[PubMed] ✓ Found {len(articles)} articles (broadest search)")
+            return {
+                "query": query,
+                "articles": articles,
+                "formatted": self.pubmed_agent._format_output(articles),
+                "attempts": attempts
+            }
 
         print("[PubMed] ✗ No articles found after all attempts")
-        return None
+        return {
+            "query": last_query,
+            "articles": [],
+            "formatted": "No related literature found.",
+            "failed": True,
+            "attempts": attempts,
+            "topic": topic
+        }
 
-    def _handle_no_articles_found(self, topic: Optional[str]) -> Tuple[str, dict]:
+    def _handle_no_articles_found(self, topic: Optional[str], last_query: Optional[str], attempts: int = 3) -> Tuple[
+        str, dict]:
         """Return an honest message and meta to store in the turn."""
         topic_text = f" about '{topic}'" if topic else ""
 
@@ -348,9 +384,9 @@ class MedicalVQAPipeline:
         meta = {
             "pubmed_agent": {
                 "status": "no_articles_found",
-                "query": "multiple_attempts_failed",
+                "query": last_query or "unknown",
                 "articles": [],
-                "attempts": 3,
+                "attempts": attempts,
                 "topic": topic
             },
             "reasoning_agent": {
@@ -425,6 +461,72 @@ class MedicalVQAPipeline:
         # Or get all context
         conversation_context = self.get_conversation_context(memory, max_turns=0)
 
+        # -------------------------
+        # SMART SHORT-CIRCUIT: rewrite requests (no PubMed needed)
+        # -------------------------
+        if question and session_id is not None and self._is_rewrite_request(english_question):
+            last_answer = self._get_last_ai_message(memory)
+
+            if last_answer:
+                print("[SMART ROUTE] Rewrite request detected. Skipping PubMed and rewriting last answer.")
+
+                english_response = self.reasoning_agent.rewrite_response(
+                    last_answer=last_answer,
+                    instruction=english_question
+                )
+
+                meta_updates = {
+                    "rewrite_agent": {
+                        "mode": "rewrite_previous_answer",
+                        "instruction": english_question,
+                        "used_last_answer": True
+                    },
+                    "pubmed_agent": {"skipped": True, "reason": "rewrite_request"},
+                    "reasoning_agent": {"skipped": True, "reason": "rewrite_request"}
+                }
+
+                # build per-turn meta root (translation always stored per turn)
+                turn_meta: Dict[str, Any] = {
+                    "translation": {
+                        "source_language": source_language,
+                        "output_language": output_language,
+                        "original_question": question,
+                        "english_question": english_question
+                    }
+                }
+                turn_meta.update(meta_updates)
+
+                final_response = self.translation_agent.process_output(english_response, output_language)
+
+                # Save to RAM memory
+                memory.add_user_message(english_question)
+                memory.add_ai_message(english_response)
+
+                # Save to disk turn
+                self.session_manager.add_conversation_turn(
+                    username=username,
+                    session_id=session_id,
+                    user_message=question,
+                    assistant_message=final_response,
+                    image_path=None,
+                    meta=turn_meta
+                )
+
+                self._print_final_output(final_response, username, session_id)
+
+                session_data = self.session_manager.load(username, session_id)
+                current_turn = len(session_data.get("conversation_history", []))
+
+                return {
+                    "username": username,
+                    "session_id": session_id,
+                    "input_type": "text_only",
+                    "source_language": source_language,
+                    "output_language": output_language,
+                    "original_language": output_language,
+                    "enhanced_response": final_response,
+                    "turn": current_turn
+                }
 
         if conversation_context:
             print(f"[DEBUG] Conversation context:\n{conversation_context[:200]}...")
@@ -495,7 +597,30 @@ class MedicalVQAPipeline:
             "turn": current_turn
         }
 
+    def _is_rewrite_request(self, english_question: str) -> bool:
+        """
+        Detect user intents like: shorten/summarize/rephrase/rewrite/bullets
+        so we can skip PubMed and just rewrite the previous answer.
+        """
+        if not english_question:
+            return False
 
+        q = english_question.strip().lower()
+
+        triggers = [
+            "shorter", "make it shorter", "explain shorter", "summarize", "summary",
+            "tldr", "tl;dr", "simplify", "rephrase", "rewrite", "condense",
+            "bullet", "bullets", "in 3 bullet", "in three bullet",
+            "short version", "simpler", "make it simple"
+        ]
+        return any(t in q for t in triggers)
+
+    def _get_last_ai_message(self, memory: InMemoryChatMessageHistory) -> Optional[str]:
+        """Return the most recent assistant message from RAM memory."""
+        for msg in reversed(memory.messages):
+            if isinstance(msg, AIMessage) and getattr(msg, "content", None):
+                return msg.content
+        return None
 
     # -------------------------
     # IMAGE PIPELINE
@@ -553,9 +678,10 @@ class MedicalVQAPipeline:
             max_results=10
         )
 
-        if knowledge is None or not knowledge.get("articles"):
-            print("[PubMed] No articles found - returning honest response")
-            honest_response, no_article_meta = self._handle_no_articles_found(topic)
+        if not knowledge or not knowledge.get("articles"):
+            last_query = knowledge.get("query") if knowledge else None
+            attempts = knowledge.get("attempts", 3) if knowledge else 3
+            honest_response, no_article_meta = self._handle_no_articles_found(topic, last_query, attempts)
             meta_updates.update(no_article_meta)
             return honest_response, meta_updates
 

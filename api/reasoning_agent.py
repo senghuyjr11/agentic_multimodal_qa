@@ -14,15 +14,15 @@ class ReasoningAgent:
         self.model = genai.GenerativeModel("gemma-3-4b-it")
 
     def generate_response(
-            self,
-            question: str,
-            vqa_answer: str,
-            pubmed_articles: str,
-            article_objects: list = None,
-            conversation_context: str = "",
-            is_image_question: bool = False  # ← Add this parameter
+        self,
+        question: str,
+        vqa_answer: str,
+        pubmed_articles: str,
+        article_objects: list = None,
+        conversation_context: str = "",
+        is_image_question: bool = False
     ) -> str:
-        """Generate evidence-based response with appropriate format."""
+        article_objects = article_objects or []
 
         if is_image_question:
             # Structured format for image analysis
@@ -81,15 +81,44 @@ class ReasoningAgent:
         response = self.model.generate_content(prompt)
         text_output = response.text.strip()
 
-        # Remove any References section the model might add
         if "References:" in text_output or "Reference:" in text_output:
             text_output = text_output.split("Reference")[0].strip()
 
-        # Append real links
+        if not article_objects:
+            return text_output
+
         formatted_refs = "\n\nReferences:"
         for i, article in enumerate(article_objects[:3], 1):
             title = article.title[:60] + "..." if len(article.title) > 60 else article.title
             formatted_refs += f"\n{i}. [{title}]({article.url}) (PMID: {article.pmid})"
 
         return text_output + formatted_refs
+
+    def rewrite_response(self, last_answer: str, instruction: str) -> str:
+        """
+        Rewrite the previous answer following the user's instruction
+        (e.g., shorten, simplify, bullet points) WITHOUT adding new facts.
+        """
+        if not last_answer.strip():
+            return ""
+
+        prompt = f"""
+        You are rewriting the assistant's previous answer.
+        
+        User instruction: "{instruction}"
+        
+        Rules:
+        - DO NOT add new medical facts.
+        - DO NOT invent citations.
+        - Keep the meaning, remove redundancy.
+        - If there is a References section, you may keep it but shorten to max 3 items.
+        - Output ONLY the rewritten answer (no preamble).
+        
+        Previous answer:
+        \"\"\"{last_answer}\"\"\"
+        
+        Rewritten answer:
+        """
+        response = self.model.generate_content(prompt)
+        return response.text.strip()
 
