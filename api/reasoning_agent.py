@@ -46,7 +46,7 @@ class ReasoningAgent:
 
     Guidelines:
     - Use markdown links: [Title](URL)
-    - Cite using [1], [2], [3]
+    - - Cite using [1]–[5] only (do NOT cite [6] or higher)
     - Location should describe the anatomical/spatial location in the image
     """
         else:
@@ -63,7 +63,7 @@ class ReasoningAgent:
     1. Start with a direct answer (2-3 sentences)
     2. Provide detailed explanation with supporting evidence
     3. Include clinical context and practical implications
-    4. Cite sources naturally throughout your response using [1], [2], [3]
+    4. Cite sources naturally throughout your response using [1]–[5] only (no [6]+)
     5. End with a "References" section listing all cited sources
 
     Style Guidelines:
@@ -88,7 +88,7 @@ class ReasoningAgent:
             return text_output
 
         formatted_refs = "\n\nReferences:"
-        for i, article in enumerate(article_objects[:3], 1):
+        for i, article in enumerate((article_objects or [])[:5], 1):
             title = article.title[:60] + "..." if len(article.title) > 60 else article.title
             formatted_refs += f"\n{i}. [{title}]({article.url}) (PMID: {article.pmid})"
 

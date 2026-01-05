@@ -34,6 +34,8 @@ missing = [k for k in REQUIRED_KEYS if not os.getenv(k)]
 if missing:
     raise RuntimeError(f"Missing environment variables: {missing}")
 
+TOP_K = 5
+
 class MedicalVQAPipeline:
     """Connects all agents with translation as front layer."""
 
@@ -675,7 +677,7 @@ class MedicalVQAPipeline:
             question=vqa_result.get("question", english_question),
             answer=vqa_result.get("answer", ""),
             topic=topic,
-            max_results=10
+            max_results=TOP_K
         )
 
         if not knowledge or not knowledge.get("articles"):
@@ -693,15 +695,20 @@ class MedicalVQAPipeline:
         # )
 
         # Embedding-based relevance scoring (fast!)
+        # Embedding-based relevance scoring (fast!)
         knowledge["articles"] = self.pubmed_agent.score_articles_with_embeddings(
             question=vqa_result.get("question", english_question),
             articles=knowledge["articles"]
         )
 
-        # Store only top 3 most relevant articles
+        # Keep only TOP_K everywhere (LLM + meta + final references)
+        top_articles = knowledge["articles"][:TOP_K]
+        pubmed_text = self.pubmed_agent._format_output(top_articles)
+
         meta_updates["pubmed_agent"] = {
             "query": knowledge.get("query"),
             "total_articles_retrieved": len(knowledge["articles"]),
+            "shown_to_user": TOP_K,
             "articles": [
                 {
                     "title": a.title,
@@ -711,11 +718,11 @@ class MedicalVQAPipeline:
                     "relevance_score": a.relevance_score,
                     "relevance_why": a.relevance_why,
                 }
-                for a in knowledge["articles"][:3]  # ← Only top 3
+                for a in top_articles
             ]
         }
 
-        print(f"Found {len(knowledge['articles'])} articles")
+        print(f"Found {len(knowledge['articles'])} articles (showing {TOP_K})")
 
         # 3) Reasoning Agent
         print("\n[3/3] Reasoning Agent - Generating Explanation")
@@ -723,8 +730,8 @@ class MedicalVQAPipeline:
         english_response = self.reasoning_agent.generate_response(
             question=vqa_result.get("question", english_question),
             vqa_answer=vqa_result.get("answer", ""),
-            pubmed_articles=knowledge.get("formatted", ""),
-            article_objects=knowledge["articles"],
+            pubmed_articles=pubmed_text,
+            article_objects=top_articles,
             is_image_question=True
         )
 
@@ -782,7 +789,7 @@ class MedicalVQAPipeline:
             question=enhanced_question,
             answer=None,
             topic=topic,
-            max_results=10
+            max_results=TOP_K
         )
 
         if knowledge is None or not knowledge.get("articles"):
@@ -799,15 +806,20 @@ class MedicalVQAPipeline:
         # )
 
         # Embedding-based relevance scoring
+        # Embedding-based relevance scoring
         knowledge["articles"] = self.pubmed_agent.score_articles_with_embeddings(
             question=enhanced_question,
             articles=knowledge["articles"]
         )
 
-        # Store only top 3 most relevant articles
+        # Keep only TOP_K everywhere (LLM + meta + final references)
+        top_articles = knowledge["articles"][:TOP_K]
+        pubmed_text = self.pubmed_agent._format_output(top_articles)
+
         meta_updates["pubmed_agent"] = {
             "query": knowledge.get("query"),
             "total_articles_retrieved": len(knowledge["articles"]),
+            "shown_to_user": TOP_K,
             "articles": [
                 {
                     "title": a.title,
@@ -817,11 +829,11 @@ class MedicalVQAPipeline:
                     "relevance_score": a.relevance_score,
                     "relevance_why": a.relevance_why,
                 }
-                for a in knowledge["articles"][:3]  # ← Only top 3
+                for a in top_articles
             ]
         }
 
-        print(f"Found {len(knowledge['articles'])} articles")
+        print(f"Found {len(knowledge['articles'])} articles (showing {TOP_K})")
 
         # 3) Reasoning
         print("\n[3] Reasoning Agent - Generating Explanation")
@@ -829,8 +841,8 @@ class MedicalVQAPipeline:
         english_response = self.reasoning_agent.generate_response(
             question=english_question,
             vqa_answer="(Text-only question - no image analysis)",
-            pubmed_articles=knowledge.get("formatted", ""),
-            article_objects=knowledge["articles"],
+            pubmed_articles=pubmed_text,
+            article_objects=top_articles,
             conversation_context=conversation_context,
             is_image_question=False
         )
