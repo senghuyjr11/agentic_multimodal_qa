@@ -1,38 +1,48 @@
 """
-auth.py - User authentication system
+auth.py - Authentication endpoints
+
+Provides:
+- User registration
+- User login
+- Current user info
+- Simple JSON-based user storage
 """
+
 import json
 import os
 from datetime import datetime, timedelta
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi import APIRouter, HTTPException, status, Depends
-from jose import jwt, JWTError
-from passlib.context import CryptContext
-from pydantic import BaseModel
+from typing import Optional
 
-# Router
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from jose import jwt
+from pydantic import BaseModel
+from passlib.context import CryptContext
+
+# Configuration
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# JWT settings
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "kyojurojr11")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24 hours
-
-
+# HTTP Bearer token
 security = HTTPBearer()
 
-# User storage file
+# Router
+router = APIRouter(prefix="/auth", tags=["authentication"])
+
+# Users file
 USERS_FILE = "users.json"
 
 
-# === Models ===
+# ===== Models =====
 
 class UserRegister(BaseModel):
     username: str
     password: str
+    email: Optional[str] = None
 
 
 class UserLogin(BaseModel):
@@ -43,92 +53,152 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    username: str
 
 
-# === Helper Functions ===
+class UserInfo(BaseModel):
+    username: str
+    email: Optional[str]
+    created_at: str
 
-def load_users() -> dict:
-    """Load users from JSON file."""
+
+# ===== Helper Functions =====
+
+def load_users():
+    """Load users from JSON file"""
     if not os.path.exists(USERS_FILE):
         return {}
 
-    with open(USERS_FILE, "r") as f:
+    with open(USERS_FILE, 'r') as f:
         return json.load(f)
 
 
-def save_users(users: dict):
-    """Save users to JSON file."""
-    with open(USERS_FILE, "w") as f:
+def save_users(users):
+    """Save users to JSON file"""
+    with open(USERS_FILE, 'w') as f:
         json.dump(users, f, indent=2)
 
 
-def hash_password(password: str) -> str:
-    """Hash a password."""
-    return pwd_context.hash(password)
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:  # ← ADD THIS
-    """Verify a password against a hash."""
+def verify_password(plain_password, hashed_password):
+    """Verify a password against its hash"""
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def create_access_token(data: dict) -> str:  # ← ADD THIS
-    """Create a JWT access token."""
+def get_password_hash(password):
+    """Hash a password"""
+    return pwd_context.hash(password)
+
+
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    """Create JWT access token"""
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
     return encoded_jwt
 
-# === Endpoint ===
-@router.post("/register", status_code=status.HTTP_201_CREATED)
-async def register(user: UserRegister):
-    """
-    Register a new user.
 
-    - username: unique username (3-20 characters)
-    - password: minimum 6 characters
-    """
-
-    print(f"[DEBUG] Username: {user.username}")
-    print(f"[DEBUG] Password length: {len(user.password)}")
-    print(f"[DEBUG] Password: {repr(user.password)}")
-
-    # Load existing users
-    users = load_users()
-
-    # Validation
-    if len(user.username) < 3 or len(user.username) > 20:
+def decode_token(token: str) -> dict:
+    """Decode and verify JWT token"""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
         raise HTTPException(
-            status_code=400,
-            detail="Username must be between 3 and 20 characters"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired"
+        )
+    except jwt.JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials"
         )
 
+
+# ===== Dependency =====
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+    """
+    Get current authenticated user from JWT token
+
+    Returns:
+        username (str)
+    """
+    token = credentials.credentials
+    payload = decode_token(token)
+    username = payload.get("sub")
+
+    if username is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials"
+        )
+
+    # Verify user still exists
+    users = load_users()
+    if username not in users:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found"
+        )
+
+    return username
+
+
+# ===== Endpoints =====
+
+@router.post("/register", response_model=Token)
+async def register(user: UserRegister):
+    """
+    Register a new user
+
+    Returns JWT access token
+    """
+    users = load_users()
+
+    # Check if username exists
+    if user.username in users:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username already registered"
+        )
+
+    # Validate username
+    if len(user.username) < 3:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username must be at least 3 characters"
+        )
+
+    # Validate password
     if len(user.password) < 6:
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Password must be at least 6 characters"
         )
 
-    # Check if username already exists
-    if user.username in users:
-        raise HTTPException(
-            status_code=400,
-            detail="Username already exists"
-        )
-
-    # Create new user
+    # Create user
     users[user.username] = {
         "username": user.username,
-        "hashed_password": hash_password(user.password),
-        "created_at": datetime.now().isoformat()
+        "password_hash": get_password_hash(user.password),
+        "email": user.email,
+        "created_at": datetime.utcnow().isoformat()
     }
 
-    # Save to file
     save_users(users)
 
+    # Create access token
+    access_token = create_access_token(data={"sub": user.username})
+
     return {
-        "message": "User registered successfully",
+        "access_token": access_token,
+        "token_type": "bearer",
         "username": user.username
     }
 
@@ -136,31 +206,26 @@ async def register(user: UserRegister):
 @router.post("/login", response_model=Token)
 async def login(user: UserLogin):
     """
-    Login and get access token.
+    Login user
 
-    - username: your username
-    - password: your password
-
-    Returns JWT bearer token valid for 24 hours.
+    Returns JWT access token
     """
-    # Load users
     users = load_users()
 
     # Check if user exists
     if user.username not in users:
         raise HTTPException(
-            status_code=401,
-            detail="Invalid username"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password"
         )
 
-    # Get stored user data
-    stored_user = users[user.username]
+    user_data = users[user.username]
 
     # Verify password
-    if not verify_password(user.password, stored_user["hashed_password"]):
+    if not verify_password(user.password, user_data["password_hash"]):
         raise HTTPException(
-            status_code=401,
-            detail="Invalid password"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password"
         )
 
     # Create access token
@@ -168,29 +233,82 @@ async def login(user: UserLogin):
 
     return {
         "access_token": access_token,
-        "token_type": "bearer"
+        "token_type": "bearer",
+        "username": user.username
     }
 
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+@router.get("/me", response_model=UserInfo)
+async def get_me(username: str = Depends(get_current_user)):
     """
-    Verify JWT token and return username.
+    Get current user info
+
+    Requires authentication
     """
-    try:
-        token = credentials.credentials  # Extract token from Bearer
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
+    users = load_users()
+    user_data = users[username]
 
-        if username is None:
-            raise HTTPException(
-                status_code=401,
-                detail="Invalid authentication token"
-            )
+    return {
+        "username": user_data["username"],
+        "email": user_data.get("email"),
+        "created_at": user_data["created_at"]
+    }
 
-        return username
 
-    except JWTError:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid authentication token"
-        )
+@router.get("/verify")
+async def verify_token(username: str = Depends(get_current_user)):
+    """
+    Verify if token is valid
+
+    Returns username if valid
+    """
+    return {"valid": True, "username": username}
+
+
+# ===== Optional: List all users (admin only - implement your own auth) =====
+
+@router.get("/users")
+async def list_users():
+    """
+    List all registered users (for debugging)
+
+    WARNING: Remove this endpoint in production or add proper authorization!
+    """
+    users = load_users()
+
+    return {
+        "count": len(users),
+        "users": [
+            {
+                "username": u["username"],
+                "email": u.get("email"),
+                "created_at": u["created_at"]
+            }
+            for u in users.values()
+        ]
+    }
+
+
+if __name__ == "__main__":
+    # Test
+    print("Testing auth system...")
+
+    # Create test user
+    users = {}
+    users["test"] = {
+        "username": "test",
+        "password_hash": get_password_hash("test123"),
+        "email": "test@example.com",
+        "created_at": datetime.utcnow().isoformat()
+    }
+
+    save_users(users)
+    print("✓ Created test user: test / test123")
+
+    # Test token
+    token = create_access_token(data={"sub": "test"})
+    print(f"✓ Generated token: {token[:50]}...")
+
+    # Verify token
+    payload = decode_token(token)
+    print(f"✓ Token valid for user: {payload['sub']}")

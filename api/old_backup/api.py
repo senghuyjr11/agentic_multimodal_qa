@@ -15,7 +15,7 @@ from auth import router as auth_router, get_current_user
 from image_agent import ModelConfig
 from main import MedicalVQAPipeline
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../..", ".env"))
 REQUIRED_KEYS = ["GOOGLE_API_KEY", "NCBI_EMAIL", "NCBI_API_KEY"]
 
 missing = [k for k in REQUIRED_KEYS if not os.getenv(k)]
@@ -61,13 +61,13 @@ async def startup_event():
 
     pathvqa_config = ModelConfig(
         base_model_id="Qwen/Qwen2-VL-7B-Instruct",
-        adapter_path="../qwen2vl_7b_pathvqa_adapters",
+        adapter_path="../../qwen2vl_7b_pathvqa_adapters",
         model_class=Qwen2VLForConditionalGeneration
     )
 
     vqa_rad_config = ModelConfig(
         base_model_id="Qwen/Qwen3-VL-2B-Instruct",
-        adapter_path="../qwen3vl_2b_vqa_rad_adapters",
+        adapter_path="../../qwen3vl_2b_vqa_rad_adapters",
         model_class=Qwen3VLForConditionalGeneration
     )
 
@@ -77,7 +77,7 @@ async def startup_event():
         google_api_key=os.getenv("GOOGLE_API_KEY"),
         pathvqa_config=pathvqa_config,
         vqa_rad_config=vqa_rad_config,
-        classifier_path="../modality_classifier"
+        classifier_path="../../modality_classifier"
     )
 
     # Preload VQA models (optional but recommended)

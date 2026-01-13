@@ -1,5 +1,5 @@
 """
-main.py - Clean turn-based session storage (NO top-level agent redundancy)
+main_simple.py - Clean turn-based session storage (NO top-level agent redundancy)
 
 Key changes vs your previous version:
 - SessionManager.update(...) is NOT used anywhere.
@@ -27,7 +27,7 @@ from session_manager import SessionManager
 from text_only_agent import TextOnlyAgent
 from translation_agent import TranslationAgent
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../..", ".env"))
 REQUIRED_KEYS = ["GOOGLE_API_KEY", "NCBI_EMAIL", "NCBI_API_KEY"]
 
 missing = [k for k in REQUIRED_KEYS if not os.getenv(k)]
@@ -906,13 +906,13 @@ class MedicalVQAPipeline:
 if __name__ == "__main__":
     pathvqa_config = ModelConfig(
         base_model_id="Qwen/Qwen2-VL-7B-Instruct",
-        adapter_path="../qwen2vl_7b_pathvqa_adapters",
+        adapter_path="../../qwen2vl_7b_pathvqa_adapters",
         model_class=Qwen2VLForConditionalGeneration
     )
 
     vqa_rad_config = ModelConfig(
         base_model_id="Qwen/Qwen3-VL-2B-Instruct",
-        adapter_path="../qwen3vl_2b_vqa_rad_adapters",
+        adapter_path="../../qwen3vl_2b_vqa_rad_adapters",
         model_class=Qwen3VLForConditionalGeneration
     )
 
@@ -922,7 +922,7 @@ if __name__ == "__main__":
         google_api_key=os.getenv("GOOGLE_API_KEY"),
         pathvqa_config=pathvqa_config,
         vqa_rad_config=vqa_rad_config,
-        classifier_path="../modality_classifier"
+        classifier_path="../../modality_classifier"
     )
 
     print("\n### TEST: Context-Aware Conversation ###")

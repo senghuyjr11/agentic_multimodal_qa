@@ -36,9 +36,9 @@ https://huggingface.co/datasets/flaviagiammarino/vqa-rad
     │ │  • OOD Detection:   │ │    ┌────────┴──────────┐
     │ │    - MSP < 0.80     │ │    │                   │
     │ │    - Entropy > 0.55 │ │    ▼                   ▼
-    │ │    - Energy > -2.0  │ │  casual            medical
+    │ │    - Energy > -2.0  │ │  _casual            medical
     │ └─────────┬───────────┘ │  response         (continue)
-    │           │             │                        │
+    │           │             │_                        │
     │  ┌────────┴────────┐   │                        │
     │  │ If OOD:         │   │                        │
     │  │ Return rejection│   │                        │
