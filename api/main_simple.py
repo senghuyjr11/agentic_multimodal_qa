@@ -173,6 +173,22 @@ class MedicalVQAPipeline:
             vqa_answer = vqa_result["answer"]
             print(f"  VQA: {vqa_answer}")
 
+            # **NEW: Decide if VQA answer needs PubMed explanation**
+            if decision.needs_pubmed:
+                should_search = self.router.should_search_pubmed_for_vqa(
+                    vqa_answer=vqa_answer,
+                    original_question=english_question
+                )
+
+                if should_search:
+                    print("\n[Step 4a-extra] VQA answer contains medical terms - generating search query...")
+                    decision.search_query = self.router.extract_medical_terms(vqa_answer)
+                    print(f"  Search query: {decision.search_query}")
+                else:
+                    print("\n[Step 4a-extra] VQA answer is simple (yes/no/number) - skipping PubMed")
+                    decision.needs_pubmed = False
+                    decision.search_query = None
+
         # 4b. PubMed search?
         if decision.needs_pubmed and decision.search_query:
             print(f"\n[Step 4b] PubMed search: '{decision.search_query}'")
@@ -200,6 +216,11 @@ class MedicalVQAPipeline:
         if decision.response_mode == "modify_previous":
             previous_response = self.memory.get_last_ai_message(session_id)
 
+        # CRITICAL: If we have VQA answer, ALWAYS use medical mode
+        if vqa_answer:
+            decision.response_mode = "medical_answer"
+            print("  Override: VQA result present → forcing medical_answer mode")
+
         # Generate response
         english_response = self.response_gen.generate(
             message=english_question,
@@ -211,16 +232,21 @@ class MedicalVQAPipeline:
             has_image=bool(image_path)
         )
 
-        print(f"  Generated {len(english_response)} characters")
-
         # ==========================================
         # STEP 6: TRANSLATE OUTPUT
         # ==========================================
         print("\n[Step 6] Translation...")
-        final_response = self.translator.process_output(
-            english_response,
-            output_lang
-        )
+
+        # Skip translation for casual chat - keep it in English
+        if decision.response_mode == "casual_chat":
+            final_response = english_response
+            output_lang = "en"
+            print("  Casual chat - keeping in English")
+        else:
+            final_response = self.translator.process_output(
+                english_response,
+                output_lang
+            )
 
         # ==========================================
         # STEP 7: SAVE TO MEMORY & DISK

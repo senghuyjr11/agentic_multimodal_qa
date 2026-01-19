@@ -80,7 +80,7 @@ class PubMedAgent:
             params["api_key"] = self.api_key
 
         try:
-            resp = requests.get(f"{self.base_url}/esearch.fcgi", params=params, timeout=10)
+            resp = requests.get(f"{self.base_url}/esearch.fcgi", params=params, timeout=30)  # Changed from 10 to 30
             resp.raise_for_status()
 
             result = resp.json()
@@ -112,15 +112,49 @@ class PubMedAgent:
         if self.api_key:
             params["api_key"] = self.api_key
 
-        try:
-            resp = requests.get(f"{self.base_url}/efetch.fcgi", params=params, timeout=15)
-            resp.raise_for_status()
+        # Add retry logic
+        max_retries = 3
 
-            return self._parse_xml(resp.text)
+        for attempt in range(max_retries):
+            try:
+                print(f"[PubMed] Fetching articles (attempt {attempt + 1}/{max_retries})...")
 
-        except Exception as e:
-            print(f"[PubMed] Fetch error: {e}")
-            return []
+                resp = requests.get(
+                    f"{self.base_url}/efetch.fcgi",
+                    params=params,
+                    timeout=30  # Increased from 15 to 30 seconds
+                )
+                resp.raise_for_status()
+
+                return self._parse_xml(resp.text)
+
+            except requests.exceptions.Timeout:
+                print(f"[PubMed] Timeout on attempt {attempt + 1}")
+                if attempt < max_retries - 1:
+                    import time
+                    wait_time = (attempt + 1) * 2
+                    print(f"[PubMed] Waiting {wait_time} seconds before retry...")
+                    time.sleep(wait_time)
+                else:
+                    print(f"[PubMed] All retries failed due to timeout")
+                    return []
+
+            except requests.exceptions.ConnectionError as e:
+                print(f"[PubMed] Connection error on attempt {attempt + 1}: {e}")
+                if attempt < max_retries - 1:
+                    import time
+                    wait_time = (attempt + 1) * 2
+                    print(f"[PubMed] Waiting {wait_time} seconds before retry...")
+                    time.sleep(wait_time)
+                else:
+                    print(f"[PubMed] All retries failed due to connection error")
+                    return []
+
+            except Exception as e:
+                print(f"[PubMed] Fetch error: {e}")
+                return []
+
+        return []
 
     def _parse_xml(self, xml_text: str) -> List[Article]:
         """Parse PubMed XML response"""
