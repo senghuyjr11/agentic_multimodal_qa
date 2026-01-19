@@ -6,10 +6,9 @@ ONE JOB: Decide what agents are needed for this message
 NO response generation - that's response_generator.py's job
 """
 
+import google.generativeai as genai
 from dataclasses import dataclass
 from typing import Optional
-
-import google.generativeai as genai
 
 # Import from our simple memory manager (relative import)
 from .memory_manager import InMemoryConversation
@@ -60,53 +59,86 @@ class RouterAgent:
         # Build prompt for LLM
         prompt = f"""You are a routing agent. Decide what's needed for this message.
 
-        CONVERSATION HISTORY:
-        {context}
+CONVERSATION HISTORY:
+{context}
 
-        CURRENT MESSAGE:
-        User: {message}
-        Has image: {has_image}
+CURRENT MESSAGE:
+User: {message}
+Has image: {has_image}
 
-        ROUTING OPTIONS:
-        1. needs_vqa: true if image needs analysis
-        2. needs_pubmed: true if medical literature needed
-        3. response_mode:
-           - "medical_answer": Medical question needing explanation
-           - "casual_chat": Greeting, thanks, acknowledgments ONLY (no images)
-           - "modify_previous": "remove references", "make shorter", "translate to X"
+ROUTING OPTIONS:
+1. needs_vqa: true if image needs analysis
+2. needs_pubmed: true if medical literature needed
+3. response_mode:
+   - "medical_answer": Medical question needing explanation
+   - "casual_chat": Greeting, thanks, acknowledgments, system questions
+   - "modify_previous": "remove references", "make shorter", "translate to X"
 
-        DECISION RULES (FOLLOW STRICTLY):
+DECISION RULES (FOLLOW STRICTLY):
 
-        RULE 1 - IMAGE UPLOADS:
-        - If has_image=true → response_mode="medical_answer", needs_vqa=true, needs_pubmed=true
-        - Image questions like "what do you see" → ALWAYS medical_answer, NOT casual_chat
+RULE 1 - IMAGE UPLOADS:
+- If has_image=true → response_mode="medical_answer", needs_vqa=true, needs_pubmed=true
+- Image questions like "what do you see" → ALWAYS medical_answer, NOT casual_chat
+- CRITICAL: If has_image=true, you MUST set needs_vqa=true and response_mode="medical_answer"!
 
-        RULE 2 - CASUAL RESPONSES (NO PUBMED):
-        - Greetings: hi, hello, hey, good morning
-        - Thanks: thanks, thank you, appreciate it, grateful
-        - Acknowledgments: ok, I see, got it, understood, good, great, nice
-        - User info: "my name is X", "I'm X", "call me X", "remember me"
-        - Memory questions: "do you remember my name?", "what's my name?", "who am I?"
-        - System questions: "who are you?", "what can you do?"
-        - Farewells: bye, goodbye, see you
-        - ALL casual responses → response_mode="casual_chat", needs_pubmed=FALSE, needs_vqa=FALSE, search_query=null
+RULE 2 - CASUAL RESPONSES (NO PUBMED):
+- Greetings: hi, hello, hey, good morning, good afternoon, good evening
+- Thanks: thanks, thank you, appreciate it, grateful, awesome, great job
+- Acknowledgments: ok, okay, I see, got it, understood, good, great, nice, cool, wow
+- User info: "my name is X", "I'm X", "call me X", "remember me", "I am X"
+- Memory questions: "do you remember my name?", "what's my name?", "who am I?"
+- System/capability questions: 
+  * "who are you?", "what can you do?", "what are your capabilities?"
+  * "how many languages?", "what languages do you speak?", "can you speak X?"
+  * "do you know [language]?", "do you understand [language]?"
+  * "how about [language]?", "[language]?" (e.g., "Korean?", "Khmer?")
+  * "how to say X in [language]?", "say hi in [language]"
+- Farewells: bye, goodbye, see you, take care, see you later
+- CRITICAL: Questions about AI's language abilities → casual_chat, NOT medical_answer
+- CRITICAL: Single words acknowledging previous answer (good, ok, thanks) → casual_chat
+- ALL casual responses → response_mode="casual_chat", needs_pubmed=FALSE, needs_vqa=FALSE, search_query=null
 
-        RULE 3 - MEDICAL QUESTIONS:
-        - Questions about diseases, symptoms, definitions → medical_answer, needs_pubmed=true
+RULE 3 - MEDICAL QUESTIONS:
+- Questions about diseases, symptoms, conditions → medical_answer, needs_pubmed=true
+- Questions about treatments, medications → medical_answer, needs_pubmed=true
+- Medical definitions ("what is diabetes?", "what is ischemic?") → medical_answer, needs_pubmed=true
+- If has_image=false AND medical topic → needs_vqa=false, needs_pubmed=true
 
-        RULE 4 - MODIFICATIONS:
-        - "summary", "shorter", "translate to X" → modify_previous
+RULE 4 - MODIFICATIONS:
+- "summary", "summarize", "make it shorter" → modify_previous, needs_pubmed=false
+- "remove references", "without citations" → modify_previous, needs_pubmed=false
+- "translate to X", "in Spanish", "explain in Khmer" → modify_previous, needs_pubmed=false
+- Explicit translation requests → modify_previous
 
-        OUTPUT (JSON only):
-        {{
-          "needs_vqa": true/false,
-          "needs_pubmed": true/false,
-          "search_query": "search terms" or null,
-          "response_mode": "medical_answer"|"casual_chat"|"modify_previous",
-          "reasoning": "why this decision"
-        }}
+EXAMPLES:
 
-        CRITICAL: If has_image=true, you MUST set needs_vqa=true and response_mode="medical_answer"!"""
+User: "my name is Senghuy" → casual_chat, needs_pubmed=false, search_query=null
+User: "do you remember my name?" → casual_chat, needs_pubmed=false, search_query=null
+User: "how many languages can you speak?" → casual_chat, needs_pubmed=false, search_query=null
+User: "do you know Khmer?" → casual_chat, needs_pubmed=false, search_query=null
+User: "how about korean?" → casual_chat, needs_pubmed=false, search_query=null
+User: "Khmer" → casual_chat, needs_pubmed=false, search_query=null
+User: "Korean?" → casual_chat, needs_pubmed=false, search_query=null
+User: "how to say hi in Korean?" → casual_chat, needs_pubmed=false, search_query=null
+User: "who are you?" → casual_chat, needs_pubmed=false, search_query=null
+User: "thanks" → casual_chat, needs_pubmed=false, search_query=null
+User: "good job" → casual_chat, needs_pubmed=false, search_query=null
+User: "ok I see" → casual_chat, needs_pubmed=false, search_query=null
+User: "what is diabetes?" → medical_answer, needs_pubmed=true, search_query="diabetes"
+User: "what is ischemic?" → medical_answer, needs_pubmed=true, search_query="ischemic"
+User: [uploads medical image] "what do you see?" → medical_answer, needs_vqa=true, needs_pubmed=true, search_query=null
+User: [uploads medical image] "what disease?" → medical_answer, needs_vqa=true, needs_pubmed=true, search_query=null
+User: "summary" → modify_previous, needs_pubmed=false, search_query=null
+User: "translate to Spanish" → modify_previous, needs_pubmed=false, search_query=null
+
+OUTPUT (JSON only):
+{{
+  "needs_vqa": true/false,
+  "needs_pubmed": true/false,
+  "search_query": "search terms" or null,
+  "response_mode": "medical_answer"|"casual_chat"|"modify_previous",
+  "reasoning": "why this decision"
+}}"""
 
         # Ask LLM
         response = self.model.generate_content(prompt)
@@ -140,6 +172,91 @@ class RouterAgent:
 
         return decision
 
+    def should_search_pubmed_for_vqa(
+        self,
+        vqa_answer: str,
+        original_question: str
+    ) -> bool:
+        """
+        Decide if VQA answer needs PubMed literature search.
+
+        Returns False if answer is simple (yes/no/numbers/colors/simple locations)
+        Returns True if answer contains medical terminology that needs explanation
+        """
+
+        answer_lower = vqa_answer.lower().strip()
+
+        # Step 1: Check for medical keywords first (HIGH PRIORITY)
+        medical_keywords = [
+            'infarct', 'fracture', 'lesion', 'tumor', 'mass', 'opacity',
+            'pneumonia', 'carcinoma', 'infiltrate', 'edema', 'hemorrhage',
+            'stenosis', 'occlusion', 'thrombosis', 'ischemia', 'necrosis',
+            'hyperplasia', 'atrophy', 'hypertrophy', 'inflammation',
+            'fibrosis', 'sclerosis', 'cirrhosis', 'emphysema', 'effusion',
+            'nodule', 'cyst', 'abscess', 'aneurysm', 'embolism',
+            'metastasis', 'lymphoma', 'melanoma', 'sarcoma', 'adenoma',
+            'disease', 'syndrome', 'disorder', 'condition',
+            'pneumothorax', 'pleural', 'consolidation', 'atelectasis'
+        ]
+
+        # If ANY medical keyword found, ALWAYS search PubMed
+        if any(keyword in answer_lower for keyword in medical_keywords):
+            return True
+
+        # Step 2: Simple answers that don't need literature (ONLY if no medical keywords)
+        import re
+        simple_patterns = [
+            r'^(yes|no|yeah|nope)\.?$',  # Yes/No
+            r'^(normal|abnormal)\.?$',  # Normal/Abnormal
+            r'^\d+\.?$',  # Just numbers
+            r'^(left|right|upper|lower|anterior|posterior)\.?$',  # Simple locations only
+            r'^(white|black|red|blue|green|yellow|gray|grey)\.?$',  # Colors
+        ]
+
+        for pattern in simple_patterns:
+            if re.match(pattern, answer_lower, re.IGNORECASE):
+                return False
+
+        # Step 3: Check question type + answer length
+        yes_no_questions = ['is this', 'is there', 'are there', 'does this', 'can you see']
+        words = vqa_answer.split()
+
+        # If it's a yes/no question AND answer is 1-2 words AND no medical keywords
+        if len(words) <= 2 and any(q in original_question.lower() for q in yes_no_questions):
+            return False
+
+        # Step 4: Default - if answer is more than 1 word, likely needs explanation
+        return len(words) >= 1
+
+    def extract_medical_terms(self, vqa_answer: str) -> str:
+        """
+        Extract searchable medical terms from VQA answer.
+
+        For complex answers, extracts key medical terminology.
+        For simple diagnoses, returns the answer as-is.
+        """
+
+        # If answer is already concise (2-4 words), use it directly
+        words = vqa_answer.split()
+        if 2 <= len(words) <= 4:
+            return vqa_answer
+
+        # For longer answers, extract key terms
+        prompt = f"""Extract the main medical condition/diagnosis from this VQA answer for PubMed search.
+
+VQA ANSWER: {vqa_answer}
+
+Return ONLY the key medical term(s) for searching (2-5 words max).
+Examples:
+- "cerebral infarct in the right hemisphere" → "cerebral infarct"
+- "fracture of the left femur with displacement" → "femur fracture"
+- "large mass in the lung with surrounding opacity" → "lung mass"
+
+Medical search terms:"""
+
+        response = self.model.generate_content(prompt)
+        return response.text.strip()
+
     def _get_context(
         self,
         memory: InMemoryConversation,
@@ -159,115 +276,6 @@ class RouterAgent:
                 context_lines.append(f"Assistant: {content}")
 
         return "\n".join(context_lines) if context_lines else "(New conversation)"
-
-    def generate_search_from_vqa(
-            self,
-            vqa_answer: str,
-            original_question: str
-    ) -> str:
-        """
-        Generate PubMed search query from VQA answer.
-
-        Called when router decides needs_pubmed=true but couldn't generate
-        search_query because VQA hadn't run yet.
-        """
-
-        prompt = f"""Extract medical search terms for PubMed from this VQA result.
-
-    ORIGINAL QUESTION: {original_question}
-    VQA ANSWER: {vqa_answer}
-
-    Generate concise PubMed search terms (2-5 key medical terms).
-    Focus on:
-    - Specific conditions/diseases mentioned
-    - Anatomical locations
-    - Pathological findings
-    - Medical terminology
-
-    OUTPUT (search terms only, no explanation):"""
-
-        response = self.model.generate_content(prompt)
-        search_query = response.text.strip()
-
-        return search_query
-
-    def should_search_pubmed_for_vqa(
-            self,
-            vqa_answer: str,
-            original_question: str
-    ) -> bool:
-        """
-        Decide if VQA answer needs PubMed literature search.
-
-        Returns False if answer is simple (yes/no/numbers/colors/locations)
-        Returns True if answer contains medical terminology that needs explanation
-        """
-
-        # Simple answers that don't need literature
-        simple_patterns = [
-            r'^(yes|no|yeah|nope)\.?$',  # Yes/No
-            r'^(normal|abnormal)\.?$',  # Normal/Abnormal
-            r'^\d+\.?$',  # Just numbers
-            r'^(left|right|upper|lower|anterior|posterior)\.?$',  # Simple locations
-            r'^(white|black|red|blue|green|yellow|gray|grey)\.?$',  # Colors
-        ]
-
-        answer_lower = vqa_answer.lower().strip()
-
-        import re
-        for pattern in simple_patterns:
-            if re.match(pattern, answer_lower, re.IGNORECASE):
-                return False
-
-        # If answer is very short (1-3 words) and question is yes/no type
-        words = vqa_answer.split()
-        yes_no_questions = ['is this', 'is there', 'are there', 'does this', 'can you see']
-
-        if len(words) <= 3 and any(q in original_question.lower() for q in yes_no_questions):
-            return False
-
-        # If answer contains medical terminology (more than 3 words or medical keywords)
-        medical_keywords = [
-            'infarct', 'fracture', 'lesion', 'tumor', 'mass', 'opacity',
-            'pneumonia', 'carcinoma', 'infiltrate', 'edema', 'hemorrhage',
-            'stenosis', 'occlusion', 'thrombosis', 'ischemia', 'necrosis',
-            'hyperplasia', 'atrophy', 'hypertrophy', 'inflammation'
-        ]
-
-        if any(keyword in answer_lower for keyword in medical_keywords):
-            return True
-
-        # Default: if answer is longer than 3 words, probably needs explanation
-        return len(words) > 3
-
-    def extract_medical_terms(self, vqa_answer: str) -> str:
-        """
-        Extract searchable medical terms from VQA answer.
-
-        For complex answers, extracts key medical terminology.
-        For simple diagnoses, returns the answer as-is.
-        """
-
-        # If answer is already concise (2-4 words), use it directly
-        words = vqa_answer.split()
-        if 2 <= len(words) <= 4:
-            return vqa_answer
-
-        # For longer answers, extract key terms
-        prompt = f"""Extract the main medical condition/diagnosis from this VQA answer for PubMed search.
-
-    VQA ANSWER: {vqa_answer}
-
-    Return ONLY the key medical term(s) for searching (2-5 words max).
-    Examples:
-    - "cerebral infarct in the right hemisphere" → "cerebral infarct"
-    - "fracture of the left femur with displacement" → "femur fracture"
-    - "large mass in the lung with surrounding opacity" → "lung mass"
-
-    Medical search terms:"""
-
-        response = self.model.generate_content(prompt)
-        return response.text.strip()
 
 
 if __name__ == "__main__":
@@ -295,3 +303,11 @@ if __name__ == "__main__":
         memory=memory
     )
     print(f"\nTest 2 Result: {decision}")
+
+    # Test 3: Language question
+    decision = router.decide(
+        message="do you know Khmer?",
+        has_image=False,
+        memory=memory
+    )
+    print(f"\nTest 3 Result: {decision}")
