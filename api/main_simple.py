@@ -46,7 +46,7 @@ class MedicalVQAPipeline:
         self.router = RouterAgent(google_api_key)
         self.response_gen = ResponseGenerator(google_api_key)
         self.memory = MemoryManager()
-        self.translator = TranslationAgent()
+        self.translator = TranslationAgent(google_api_key=google_api_key)
         self.session_mgr = SessionManager()
 
         self.image_agent = ImageAgent(
@@ -121,7 +121,7 @@ class MedicalVQAPipeline:
             # New session
             session_id = self.session_mgr.create_session(
                 username=username,
-                question=display_question,  # Show [Image Uploaded] to user
+                question=display_question,
                 image_path=image_path
             )
             conversation_history = []
@@ -132,6 +132,40 @@ class MedicalVQAPipeline:
                 username, session_id
             )
             print(f"  Continuing session: {session_id}")
+
+        # **CHECK THAI BLOCKING AFTER SESSION EXISTS**
+        if english_question == "THAI_LANGUAGE_BLOCKED":
+            print("  Thai language blocked - saving message to session")
+
+            blocked_message = (
+                "Sorry, this system does not support Thai language."
+            )
+
+            # Save the blocked message to conversation history
+            self.session_mgr.add_conversation_turn(
+                username=username,
+                session_id=session_id,
+                user_message=question,  # Original Thai question
+                assistant_message=blocked_message,
+                image_path=image_path,
+                meta={
+                    "translation": {
+                        "source_language": "th-BLOCKED",
+                        "output_language": "en"
+                    },
+                    "blocked": True,
+                    "reason": "thai_language_blocked"
+                }
+            )
+
+            return {
+                "response": blocked_message,
+                "session_id": session_id,
+                "metadata": {
+                    "blocked": True,
+                    "reason": "thai_language_blocked"
+                }
+            }
 
         # Get memory for this session
         memory = self.memory.get_or_create(session_id, conversation_history)

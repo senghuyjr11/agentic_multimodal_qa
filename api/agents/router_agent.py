@@ -57,88 +57,54 @@ class RouterAgent:
         context = self._get_context(memory, num_turns=5)
 
         # Build prompt for LLM
-        prompt = f"""You are a routing agent. Decide what's needed for this message.
+        prompt = f"""You are a routing agent for a Medical Visual Question Answering system. Analyze the user's message and decide what processing is needed.
 
-CONVERSATION HISTORY:
-{context}
+        CONVERSATION HISTORY:
+        {context}
 
-CURRENT MESSAGE:
-User: {message}
-Has image: {has_image}
+        CURRENT MESSAGE:
+        User: {message}
+        Has image: {has_image}
 
-ROUTING OPTIONS:
-1. needs_vqa: true if image needs analysis
-2. needs_pubmed: true if medical literature needed
-3. response_mode:
-   - "medical_answer": Medical question needing explanation
-   - "casual_chat": Greeting, thanks, acknowledgments, system questions
-   - "modify_previous": "remove references", "make shorter", "translate to X"
+        YOUR JOB:
+        Decide which agents should process this message based on its intent and content.
 
-DECISION RULES (FOLLOW STRICTLY):
+        RESPONSE MODES:
+        1. "casual_chat" - Conversational messages: greetings, thanks, acknowledgments, personal info, system questions
+        2. "medical_answer" - Medical questions needing explanation, diagnosis help, or image analysis
+        3. "modify_previous" - Requests to change the previous response (summarize, translate, remove parts)
 
-RULE 1 - IMAGE UPLOADS:
-- If has_image=true → response_mode="medical_answer", needs_vqa=true, needs_pubmed=true
-- Image questions like "what do you see" → ALWAYS medical_answer, NOT casual_chat
-- CRITICAL: If has_image=true, you MUST set needs_vqa=true and response_mode="medical_answer"!
+        AVAILABLE AGENTS:
+        - VQA (Visual Question Answering): Analyzes medical images
+        - PubMed Search: Finds medical literature for explanations
+        - Response Generator: Creates the final answer
 
-RULE 2 - CASUAL RESPONSES (NO PUBMED):
-- Greetings: hi, hello, hey, good morning, good afternoon, good evening
-- Thanks: thanks, thank you, appreciate it, grateful, awesome, great job
-- Acknowledgments: ok, okay, I see, got it, understood, good, great, nice, cool, wow
-- User info: "my name is X", "I'm X", "call me X", "remember me", "I am X"
-- Memory questions: "do you remember my name?", "what's my name?", "who am I?"
-- System/capability questions: 
-  * "who are you?", "what can you do?", "what are your capabilities?"
-  * "how many languages?", "what languages do you speak?", "can you speak X?"
-  * "do you know [language]?", "do you understand [language]?"
-  * "how about [language]?", "[language]?" (e.g., "Korean?", "Khmer?")
-  * "how to say X in [language]?", "say hi in [language]"
-- Farewells: bye, goodbye, see you, take care, see you later
-- CRITICAL: Questions about AI's language abilities → casual_chat, NOT medical_answer
-- CRITICAL: Single words acknowledging previous answer (good, ok, thanks) → casual_chat
-- ALL casual responses → response_mode="casual_chat", needs_pubmed=FALSE, needs_vqa=FALSE, search_query=null
+        GUIDELINES:
+        - Casual conversations (hi, thanks, good, who are you, language questions) → casual_chat, no agents needed
+        - Medical images uploaded → medical_answer, use VQA + PubMed to explain findings
+        - Medical questions without image → medical_answer, use PubMed for literature
+        - Requests to modify previous response → modify_previous, no new agents needed
 
-RULE 3 - MEDICAL QUESTIONS:
-- Questions about diseases, symptoms, conditions → medical_answer, needs_pubmed=true
-- Questions about treatments, medications → medical_answer, needs_pubmed=true
-- Medical definitions ("what is diabetes?", "what is ischemic?") → medical_answer, needs_pubmed=true
-- If has_image=false AND medical topic → needs_vqa=false, needs_pubmed=true
+        IMPORTANT:
+        - Images ALWAYS need VQA analysis
+        - Medical terms/conditions usually benefit from PubMed literature
+        - Casual responses don't need PubMed (even if they mention medical words in context)
+        - When unsure, prefer being helpful over being restrictive
 
-RULE 4 - MODIFICATIONS:
-- "summary", "summarize", "make it shorter" → modify_previous, needs_pubmed=false
-- "remove references", "without citations" → modify_previous, needs_pubmed=false
-- "translate to X", "in Spanish", "explain in Khmer" → modify_previous, needs_pubmed=false
-- Explicit translation requests → modify_previous
+        OUTPUT FORMAT (JSON only):
+        {{
+          "needs_vqa": true/false,
+          "needs_pubmed": true/false,
+          "search_query": "medical search terms" or null,
+          "response_mode": "medical_answer"|"casual_chat"|"modify_previous",
+          "reasoning": "brief explanation of your decision"
+        }}
 
-EXAMPLES:
+        Examples:
+        - "good response" → {{"needs_vqa": false, "needs_pubmed": false, "response_mode": "casual_chat", "search_query": null}}
+        - "what is diabetes?" → {{"needs_vqa": false, "needs_pubmed": true, "response_mode": "medical_answer", "search_query": "diabetes"}}
+        - [image uploaded] "what do you see?" → {{"needs_vqa": true, "needs_pubmed": true, "response_mode": "medical_answer", "search_query": null}}"""
 
-User: "my name is Senghuy" → casual_chat, needs_pubmed=false, search_query=null
-User: "do you remember my name?" → casual_chat, needs_pubmed=false, search_query=null
-User: "how many languages can you speak?" → casual_chat, needs_pubmed=false, search_query=null
-User: "do you know Khmer?" → casual_chat, needs_pubmed=false, search_query=null
-User: "how about korean?" → casual_chat, needs_pubmed=false, search_query=null
-User: "Khmer" → casual_chat, needs_pubmed=false, search_query=null
-User: "Korean?" → casual_chat, needs_pubmed=false, search_query=null
-User: "how to say hi in Korean?" → casual_chat, needs_pubmed=false, search_query=null
-User: "who are you?" → casual_chat, needs_pubmed=false, search_query=null
-User: "thanks" → casual_chat, needs_pubmed=false, search_query=null
-User: "good job" → casual_chat, needs_pubmed=false, search_query=null
-User: "ok I see" → casual_chat, needs_pubmed=false, search_query=null
-User: "what is diabetes?" → medical_answer, needs_pubmed=true, search_query="diabetes"
-User: "what is ischemic?" → medical_answer, needs_pubmed=true, search_query="ischemic"
-User: [uploads medical image] "what do you see?" → medical_answer, needs_vqa=true, needs_pubmed=true, search_query=null
-User: [uploads medical image] "what disease?" → medical_answer, needs_vqa=true, needs_pubmed=true, search_query=null
-User: "summary" → modify_previous, needs_pubmed=false, search_query=null
-User: "translate to Spanish" → modify_previous, needs_pubmed=false, search_query=null
-
-OUTPUT (JSON only):
-{{
-  "needs_vqa": true/false,
-  "needs_pubmed": true/false,
-  "search_query": "search terms" or null,
-  "response_mode": "medical_answer"|"casual_chat"|"modify_previous",
-  "reasoning": "why this decision"
-}}"""
 
         # Ask LLM
         response = self.model.generate_content(prompt)
