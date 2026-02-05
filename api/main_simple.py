@@ -181,6 +181,36 @@ class MedicalVQAPipeline:
             memory=memory
         )
 
+        # NEW: Hard override - if image present, force VQA
+        if bool(image_path) and not decision.needs_vqa:
+            print(f"  ⚠️  Override: Image detected, forcing VQA")
+            decision.needs_vqa = True
+            if decision.response_mode == "casual_chat":
+                decision.response_mode = "medical_answer"
+
+        # Check 1: Follow-up asking for explanation of previous short answer
+        if not decision.needs_pubmed and not decision.needs_vqa:
+            needs_pubmed_followup, search_query = self.router.detect_followup_needs_pubmed(
+                message=english_question,
+                memory=memory
+            )
+
+            if needs_pubmed_followup:
+                decision.needs_pubmed = True
+                decision.search_query = search_query
+                decision.response_mode = "medical_answer"
+                print(f"  → Follow-up detected, will search PubMed")
+
+        # Check 2: User asking to elaborate on existing references
+        use_cached_articles = False
+        if decision.needs_pubmed and self.router.is_asking_about_previous_references(english_question):
+            cached_articles = self.memory.get_pubmed_articles(session_id)
+
+            if cached_articles:
+                print(f"\n[REUSING ARTICLES] User asking to elaborate on previous response")
+                print(f"  Found {len(cached_articles)} cached articles")
+                use_cached_articles = True  # Flag to skip search in Step 4b
+
         # ==========================================
         # STEP 4: EXECUTE BASED ON DECISION
         # ==========================================
@@ -207,38 +237,45 @@ class MedicalVQAPipeline:
             vqa_answer = vqa_result["answer"]
             print(f"  VQA: {vqa_answer}")
 
-            # **NEW: Decide if VQA answer needs PubMed explanation**
-            if decision.needs_pubmed:
-                should_search = self.router.should_search_pubmed_for_vqa(
-                    vqa_answer=vqa_answer,
-                    original_question=english_question
-                )
-
-                if should_search:
-                    print("\n[Step 4a-extra] VQA answer contains medical terms - generating search query...")
-                    decision.search_query = self.router.extract_medical_terms(vqa_answer)
-                    print(f"  Search query: {decision.search_query}")
-                else:
-                    print("\n[Step 4a-extra] VQA answer is simple (yes/no/number) - skipping PubMed")
-                    decision.needs_pubmed = False
-                    decision.search_query = None
+            # NEW SIMPLE LOGIC: Just show VQA answer, don't search PubMed
+            # User will ask follow-up if confused
+            print("  → Image answered by VQA model")
+            print("  → Skipping PubMed (user can ask follow-up for explanation)")
+            decision.needs_pubmed = False
+            decision.search_query = None
 
         # 4b. PubMed search?
-        if decision.needs_pubmed and decision.search_query:
-            print(f"\n[Step 4b] PubMed search: '{decision.search_query}'")
-            articles = self.pubmed_agent.search(
-                decision.search_query,
-                max_results=5
-            )
+        if decision.needs_pubmed:
+            # Case 1: Reuse cached articles
+            if use_cached_articles:
+                pubmed_articles = self.memory.get_pubmed_articles(session_id)
+                print(f"  Using {len(pubmed_articles)} cached articles (no new search)")
 
-            if articles:
-                pubmed_articles = self.pubmed_agent.score_articles(
-                    query=english_question,
-                    articles=articles
+            # Case 2: Search PubMed (only for text-only questions, not images)
+            elif decision.search_query and not vqa_answer:
+                print(f"\n[Step 4b] PubMed search: '{decision.search_query}'")
+                articles = self.pubmed_agent.search(
+                    decision.search_query,
+                    max_results=5
                 )
-                print(f"  Found {len(pubmed_articles)} articles")
-            else:
-                print("  No articles found")
+
+                if articles:
+                    pubmed_articles = self.pubmed_agent.score_articles(
+                        query=english_question,
+                        articles=articles
+                    )
+                    print(f"  Found {len(pubmed_articles)} articles")
+
+                    # Store articles in memory for future reference
+                    self.memory.store_pubmed_articles(session_id, pubmed_articles)
+                else:
+                    print("  No articles found")
+
+                    # Try using cached articles from previous turn
+                    cached_articles = self.memory.get_pubmed_articles(session_id)
+                    if cached_articles:
+                        print(f"  → Using {len(cached_articles)} cached articles from previous turn")
+                        pubmed_articles = cached_articles
 
         # ==========================================
         # STEP 5: GENERATE RESPONSE
@@ -249,11 +286,6 @@ class MedicalVQAPipeline:
         previous_response = None
         if decision.response_mode == "modify_previous":
             previous_response = self.memory.get_last_ai_message(session_id)
-
-        # CRITICAL: If we have VQA answer, ALWAYS use medical mode
-        if vqa_answer:
-            decision.response_mode = "medical_answer"
-            print("  Override: VQA result present → forcing medical_answer mode")
 
         # Generate response
         english_response = self.response_gen.generate(

@@ -57,7 +57,7 @@ class RouterAgent:
         context = self._get_context(memory, num_turns=5)
 
         # Build prompt for LLM
-        prompt = f"""You are a routing agent for a Medical Visual Question Answering system. Analyze the user's message and decide what processing is needed.
+        prompt = f"""You are a routing agent. Analyze the message and decide what's needed.
 
         CONVERSATION HISTORY:
         {context}
@@ -66,44 +66,32 @@ class RouterAgent:
         User: {message}
         Has image: {has_image}
 
-        YOUR JOB:
-        Decide which agents should process this message based on its intent and content.
+        DECISION TYPES:
+        1. "casual_chat" - Greetings, thanks, small talk, system questions
+        2. "medical_answer" - Medical questions needing explanation
+        3. "modify_previous" - User wants to change the last response
 
-        RESPONSE MODES:
-        1. "casual_chat" - Conversational messages: greetings, thanks, acknowledgments, personal info, system questions
-        2. "medical_answer" - Medical questions needing explanation, diagnosis help, or image analysis
-        3. "modify_previous" - Requests to change the previous response (summarize, translate, remove parts)
+        AGENTS AVAILABLE:
+        - PubMed: Search medical literature
 
-        AVAILABLE AGENTS:
-        - VQA (Visual Question Answering): Analyzes medical images
-        - PubMed Search: Finds medical literature for explanations
-        - Response Generator: Creates the final answer
+        RULES:
+        - Casual chat (hi, thanks, good) → casual_chat, no PubMed
+        - Medical questions → medical_answer, use PubMed
+        - "translate", "summarize", "remove references" → modify_previous
 
-        GUIDELINES:
-        - Casual conversations (hi, thanks, good, who are you, language questions) → casual_chat, no agents needed
-        - Medical images uploaded → medical_answer, use VQA + PubMed to explain findings
-        - Medical questions without image → medical_answer, use PubMed for literature
-        - Requests to modify previous response → modify_previous, no new agents needed
-
-        IMPORTANT:
-        - Images ALWAYS need VQA analysis
-        - Medical terms/conditions usually benefit from PubMed literature
-        - Casual responses don't need PubMed (even if they mention medical words in context)
-        - When unsure, prefer being helpful over being restrictive
-
-        OUTPUT FORMAT (JSON only):
+        OUTPUT (JSON only):
         {{
-          "needs_vqa": true/false,
           "needs_pubmed": true/false,
-          "search_query": "medical search terms" or null,
-          "response_mode": "medical_answer"|"casual_chat"|"modify_previous",
-          "reasoning": "brief explanation of your decision"
+          "search_query": "search terms" or null,
+          "response_mode": "casual_chat"|"medical_answer"|"modify_previous",
+          "reasoning": "why you decided this"
         }}
 
         Examples:
-        - "good response" → {{"needs_vqa": false, "needs_pubmed": false, "response_mode": "casual_chat", "search_query": null}}
-        - "what is diabetes?" → {{"needs_vqa": false, "needs_pubmed": true, "response_mode": "medical_answer", "search_query": "diabetes"}}
-        - [image uploaded] "what do you see?" → {{"needs_vqa": true, "needs_pubmed": true, "response_mode": "medical_answer", "search_query": null}}"""
+        - "hi" → {{"needs_pubmed": false, "response_mode": "casual_chat", "search_query": null, "reasoning": "greeting"}}
+        - "what is diabetes?" → {{"needs_pubmed": true, "response_mode": "medical_answer", "search_query": "diabetes", "reasoning": "medical question"}}
+        - "make it shorter" → {{"needs_pubmed": false, "response_mode": "modify_previous", "search_query": null, "reasoning": "modify request"}}
+        """
 
 
         # Ask LLM
@@ -114,18 +102,23 @@ class RouterAgent:
         import json
         import re
 
-        # Remove markdown code blocks if present
         text = re.sub(r'```json\s*|\s*```', '', text)
         decision_dict = json.loads(text)
 
         # Create decision object
         decision = RoutingDecision(
-            needs_vqa=decision_dict.get("needs_vqa", False),
+            needs_vqa=False,  # Will be set by hard rule below
             needs_pubmed=decision_dict.get("needs_pubmed", False),
             search_query=decision_dict.get("search_query"),
             response_mode=decision_dict.get("response_mode", "medical_answer"),
             reasoning=decision_dict.get("reasoning", "")
         )
+
+        # HARD RULE: Image = VQA required
+        if has_image:
+            decision.needs_vqa = True
+            if decision.response_mode == "casual_chat":
+                decision.response_mode = "medical_answer"
 
         # Log decision
         print(f"\n[ROUTER DECISION]")
@@ -242,6 +235,97 @@ Medical search terms:"""
                 context_lines.append(f"Assistant: {content}")
 
         return "\n".join(context_lines) if context_lines else "(New conversation)"
+
+    def detect_followup_needs_pubmed(
+            self,
+            message: str,
+            memory: InMemoryConversation
+    ) -> tuple[bool, Optional[str]]:
+        """
+        Detect if user is asking for explanation of previous VQA answer.
+
+        Returns: (needs_pubmed, search_query)
+        """
+
+        # Get last 2 messages (user question + AI answer)
+        if len(memory.messages) < 2:
+            return False, None
+
+        last_user_msg = None
+        last_ai_msg = None
+
+        # Find last user and AI messages
+        for msg in reversed(memory.messages):
+            if msg.role == "assistant" and last_ai_msg is None:
+                last_ai_msg = msg.content
+            elif msg.role == "user" and last_user_msg is None:
+                last_user_msg = msg.content
+
+            if last_user_msg and last_ai_msg:
+                break
+
+        if not last_ai_msg:
+            return False, None
+
+        message_lower = message.lower()
+
+        # Patterns that indicate asking for explanation
+        explanation_patterns = [
+            "what does", "what is", "what are",
+            "explain", "meaning", "definition",
+            "why", "how", "tell me more",
+            "what do you mean", "elaborate",
+            "can you explain", "don't understand"
+        ]
+
+        # Check if current message is asking for explanation
+        is_asking_explanation = any(pattern in message_lower for pattern in explanation_patterns)
+
+        if not is_asking_explanation:
+            return False, None
+
+        # Check if previous AI answer was short (likely VQA answer)
+        words_in_last_answer = len(last_ai_msg.split())
+
+        if words_in_last_answer <= 5:  # Short answer like "positively"
+            print(f"\n[FOLLOW-UP DETECTED]")
+            print(f"  Previous answer: {last_ai_msg}")
+            print(f"  User asking: {message}")
+            print(f"  → Will search PubMed for explanation")
+
+            # Use previous answer as search query
+            # Or combine with current question
+            if len(last_ai_msg.split()) <= 3:
+                # Very short answer - combine with context
+                search_query = f"{last_ai_msg} {last_user_msg}"
+            else:
+                search_query = last_ai_msg
+
+            return True, search_query
+
+        return False, None
+
+    def is_asking_about_previous_references(self, message: str) -> bool:
+        """
+        Detect if user is asking to explain/elaborate on previous response.
+
+        Patterns:
+        - "explain from those resources"
+        - "tell me more about that"
+        - "elaborate"
+        - "can you explain more"
+        """
+        message_lower = message.lower()
+
+        patterns = [
+            "explain", "tell me more", "elaborate", "expand",
+            "those resources", "those articles", "those references",
+            "from that", "based on that", "using that",
+            "go deeper", "more detail", "in detail",
+            "from the", "using the", "based on the"
+        ]
+
+        return any(pattern in message_lower for pattern in patterns)
 
 
 if __name__ == "__main__":

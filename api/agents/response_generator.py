@@ -177,68 +177,46 @@ MODIFIED RESPONSE:"""
     ) -> str:
         """Generate medical answer with literature"""
 
-        # If we have VQA answer with image
+        # SCENARIO 1: Image with VQA answer - return it directly
         if has_image and vqa_answer:
-            response_parts = [f"VQA Detection: {vqa_answer}\n"]
+            return vqa_answer
 
-            # If we have PubMed articles, use them to explain the term
-            if pubmed_articles:
-                # Build context from articles
-                lit_context = "\n\n".join([
-                    f"Article {i}: {article.title}\n{article.abstract[:500]}"
-                    for i, article in enumerate(pubmed_articles[:5], 1)
-                ])
-
-                explain_prompt = f"""You are a medical expert. Explain this VQA detection using the provided medical literature.
-
-    VQA DETECTION: {vqa_answer}
-
-    MEDICAL LITERATURE:
-    {lit_context}
-
-    Task:
-    1. Provide a clear 2-3 sentence explanation of "{vqa_answer}" in medical context
-    2. Use information from the articles to support your explanation
-    3. If the exact term isn't in the articles, explain the general medical concept
-    4. Keep it concise and educational
-
-    IMPORTANT: Do NOT say "definition not available" - synthesize information from the articles to explain the concept.
-
-    Explanation:"""
-
-                explanation = self.model.generate_content(explain_prompt)
-                response_parts.append(explanation.text.strip())
-
-                # Add "References" section
-                response_parts.append("\n\n**References:**")
-                for i, article in enumerate(pubmed_articles[:5], 1):
-                    score_text = ""
-                    if hasattr(article, 'relevance_score') and article.relevance_score:
-                        score_pct = int(article.relevance_score * 100)
-                        score_text = f" (relevance: {score_pct}%)"
-
-                    title = article.title[:80] + "..." if len(article.title) > 80 else article.title
-                    response_parts.append(f"{i}. [{title}]({article.url}){score_text}")
-            else:
-                # No PubMed articles - just show VQA result
-                response_parts.append("No additional medical literature found for this detection.")
-
-            return "\n".join(response_parts)
-
-        # If no image (text-only medical question)
-        else:
+        # SCENARIO 2: Text question with PubMed articles
+        if pubmed_articles:
             context = self._get_context(memory, num_turns=3) if memory else ""
 
-            if pubmed_articles:
-                lit_lines = ["Medical Literature:"]
-                for i, article in enumerate(pubmed_articles[:5], 1):
-                    lit_lines.append(f"[{i}] {article.title}")
-                    lit_lines.append(f"    {article.abstract[:300]}...")
-                lit_section = "\n".join(lit_lines)
-            else:
-                lit_section = "No medical literature available."
+            lit_lines = ["Medical Literature:"]
+            for i, article in enumerate(pubmed_articles[:5], 1):
+                lit_lines.append(f"[{i}] {article.title}")
+                lit_lines.append(f"    {article.abstract[:300]}...")
+            lit_section = "\n".join(lit_lines)
 
-            prompt = f"""You are a medical assistant.
+            # Check if user is asking for elaboration
+            message_lower = message.lower()
+            is_elaboration = any(word in message_lower for word in
+                                 ["explain", "elaborate", "tell me more", "detail", "those resources"])
+
+            if is_elaboration:
+                prompt = f"""You are a medical assistant. The user wants MORE DETAIL about the previous response.
+
+    CONVERSATION HISTORY:
+    {context}
+
+    CURRENT REQUEST:
+    {message}
+
+    MEDICAL LITERATURE:
+    {lit_section}
+
+    Task: Provide a MORE DETAILED explanation using the literature. 
+    - Go deeper into the mechanisms
+    - Explain the biological/chemical basis
+    - Include specific details from the articles
+    - Cite sources [1][2][3]
+
+    Detailed Response:"""
+            else:
+                prompt = f"""You are a medical assistant.
 
     {f"CONVERSATION HISTORY:{context}" if context else ""}
 
@@ -248,26 +226,28 @@ MODIFIED RESPONSE:"""
     {lit_section}
 
     Answer the question using the medical literature provided.
-    {"Cite sources [1][2][3]" if pubmed_articles else "Do NOT make up references"}
+    Cite sources [1][2][3]
 
     Response:"""
 
             response = self.model.generate_content(prompt)
             answer = response.text.strip()
 
-            # Add references if available (same format as image responses)
-            if pubmed_articles:
-                answer += "\n\n**References:**"
-                for i, article in enumerate(pubmed_articles[:5], 1):
-                    score_text = ""
-                    if hasattr(article, 'relevance_score') and article.relevance_score:
-                        score_pct = int(article.relevance_score * 100)
-                        score_text = f" (relevance: {score_pct}%)"
+            # Add references
+            answer += "\n\n**References:**"
+            for i, article in enumerate(pubmed_articles[:5], 1):
+                score_text = ""
+                if hasattr(article, 'relevance_score') and article.relevance_score:
+                    score_pct = int(article.relevance_score * 100)
+                    score_text = f" (relevance: {score_pct}%)"
 
-                    title = article.title[:80] + "..." if len(article.title) > 80 else article.title
-                    answer += f"\n{i}. [{title}]({article.url}){score_text}"
+                title = article.title[:80] + "..." if len(article.title) > 80 else article.title
+                answer += f"\n{i}. [{title}]({article.url}){score_text}"
 
             return answer
+
+        # SCENARIO 3: No data available
+        return "I don't have enough information to answer this question. Could you provide more details or upload a medical image?"
 
     def _get_context(
         self,

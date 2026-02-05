@@ -6,8 +6,8 @@ ONE JOB: Handle conversation history in RAM
 Simple implementation without LangChain dependency.
 """
 
-from typing import Dict, List, Tuple
-from dataclasses import dataclass
+from typing import Dict, List, Tuple, Any
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -26,6 +26,7 @@ class InMemoryConversation:
 
     def __init__(self):
         self.messages: List[ChatMessage] = []
+        self.pubmed_articles: List[Any] = []  # NEW: Cache PubMed articles
 
     def add_user_message(self, content: str):
         """Add user message"""
@@ -42,6 +43,7 @@ class InMemoryConversation:
     def clear(self):
         """Clear all messages"""
         self.messages.clear()
+        self.pubmed_articles.clear()  # NEW: Also clear articles
 
 
 class MemoryManager:
@@ -132,6 +134,50 @@ class MemoryManager:
 
         return None
 
+    # ========== NEW: PubMed Article Caching ==========
+
+    def store_pubmed_articles(self, session_id: int, articles: List[Any]):
+        """
+        Store PubMed articles for this session.
+
+        Args:
+            session_id: Session identifier
+            articles: List of Article objects from PubMed search
+        """
+        if session_id not in self.active_sessions:
+            raise ValueError(f"Session {session_id} not found in memory")
+
+        self.active_sessions[session_id].pubmed_articles = articles
+        print(f"✓ Cached {len(articles)} PubMed articles for session {session_id}")
+
+    def get_pubmed_articles(self, session_id: int) -> List[Any]:
+        """
+        Get cached PubMed articles for this session.
+
+        Args:
+            session_id: Session identifier
+
+        Returns:
+            List of Article objects (empty if none cached)
+        """
+        if session_id not in self.active_sessions:
+            return []
+
+        return self.active_sessions[session_id].pubmed_articles
+
+    def clear_pubmed_articles(self, session_id: int):
+        """
+        Clear cached articles (call when user uploads new image or changes topic).
+
+        Args:
+            session_id: Session identifier
+        """
+        if session_id in self.active_sessions:
+            self.active_sessions[session_id].pubmed_articles = []
+            print(f"✓ Cleared PubMed cache for session {session_id}")
+
+    # ================================================
+
     def get_context_window(
         self,
         session_id: int,
@@ -184,6 +230,10 @@ class MemoryManager:
             "total_messages": sum(
                 len(mem.messages)
                 for mem in self.active_sessions.values()
+            ),
+            "sessions_with_articles": sum(  # NEW
+                1 for mem in self.active_sessions.values()
+                if mem.pubmed_articles
             )
         }
 
@@ -207,11 +257,27 @@ if __name__ == "__main__":
     context = manager.get_context_window(session_id=1, num_turns=1)
     print(f"Context: {context}")
 
-    # Test 4: Stats
+    # Test 4: Cache articles (NEW)
+    @dataclass
+    class MockArticle:
+        title: str
+        pmid: str
+
+    mock_articles = [
+        MockArticle(title="Article 1", pmid="123"),
+        MockArticle(title="Article 2", pmid="456")
+    ]
+    manager.store_pubmed_articles(session_id=1, articles=mock_articles)
+
+    # Test 5: Retrieve articles (NEW)
+    cached = manager.get_pubmed_articles(session_id=1)
+    print(f"Cached articles: {len(cached)}")
+
+    # Test 6: Stats
     stats = manager.get_stats()
     print(f"Stats: {stats}")
 
-    # Test 5: Restore from history
+    # Test 7: Restore from history
     history = [
         {"user": "Hello", "assistant": "Hi there!"},
         {"user": "What is diabetes?", "assistant": "Diabetes is..."}
