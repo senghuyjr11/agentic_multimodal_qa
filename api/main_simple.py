@@ -188,8 +188,24 @@ class MedicalVQAPipeline:
             if decision.response_mode == "casual_chat":
                 decision.response_mode = "medical_answer"
 
-        # Check 1: Follow-up asking for explanation of previous short answer
-        if not decision.needs_pubmed and not decision.needs_vqa:
+        # Check 1: User asking to elaborate on existing references (MOVED UP - HIGHER PRIORITY)
+        use_cached_articles = False
+        if self.router.is_asking_about_previous_references(english_question):
+            cached_articles = self.memory.get_pubmed_articles(session_id)
+
+            if cached_articles:
+                print(f"\n[REUSING ARTICLES] User asking to elaborate on previous response")
+                print(f"  Found {len(cached_articles)} cached articles")
+                print(f"  Overriding router decision - will NOT search PubMed")
+
+                # Override router's decision
+                decision.needs_pubmed = True  # We need PubMed, but using cache
+                decision.search_query = None  # Clear search query to prevent new search
+                decision.response_mode = "medical_answer"
+                use_cached_articles = True
+
+        # Check 2: Follow-up asking for explanation of previous short answer
+        elif not decision.needs_pubmed and not decision.needs_vqa:
             needs_pubmed_followup, search_query = self.router.detect_followup_needs_pubmed(
                 message=english_question,
                 memory=memory
@@ -200,16 +216,6 @@ class MedicalVQAPipeline:
                 decision.search_query = search_query
                 decision.response_mode = "medical_answer"
                 print(f"  → Follow-up detected, will search PubMed")
-
-        # Check 2: User asking to elaborate on existing references
-        use_cached_articles = False
-        if decision.needs_pubmed and self.router.is_asking_about_previous_references(english_question):
-            cached_articles = self.memory.get_pubmed_articles(session_id)
-
-            if cached_articles:
-                print(f"\n[REUSING ARTICLES] User asking to elaborate on previous response")
-                print(f"  Found {len(cached_articles)} cached articles")
-                use_cached_articles = True  # Flag to skip search in Step 4b
 
         # ==========================================
         # STEP 4: EXECUTE BASED ON DECISION
