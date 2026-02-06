@@ -322,7 +322,12 @@ Medical search terms:"""
             "those resources", "those articles", "those references",
             "from that", "based on that", "using that",
             "go deeper", "more detail", "in detail",
-            "from the", "using the", "based on the"
+            "from the", "using the", "based on the",
+            # NEW - more natural patterns:
+            "can you explain", "could you explain",
+            "tell me about", "what about",
+            "dive deeper", "break it down",
+            "give me more", "say more"
         ]
 
         return any(pattern in message_lower for pattern in patterns)

@@ -214,7 +214,7 @@ class PubMedAgent:
         try:
             # Get query embedding
             query_result = self.embedding_client.models.embed_content(
-                model="models/text-embedding-004",
+                model="models/gemini-embedding-001",  # ← CHANGED
                 contents=[query],
                 config=genai_types.EmbedContentConfig(task_type="RETRIEVAL_QUERY")
             )
@@ -223,7 +223,7 @@ class PubMedAgent:
             # Get article embeddings
             article_texts = [f"{a.title}. {a.abstract}" for a in articles]
             article_result = self.embedding_client.models.embed_content(
-                model="models/text-embedding-004",
+                model="models/gemini-embedding-001",  # ← CHANGED
                 contents=article_texts,
                 config=genai_types.EmbedContentConfig(task_type="RETRIEVAL_DOCUMENT")
             )

@@ -36,31 +36,24 @@ class ResponseGenerator:
         self.model = genai.GenerativeModel("gemma-3-4b-it")
 
     def generate(
-        self,
-        message: str,
-        response_mode: str,
-        vqa_answer: Optional[str] = None,
-        pubmed_articles: Optional[List[Article]] = None,
-        memory: Optional[InMemoryConversation] = None,
-        previous_response: Optional[str] = None,
-        has_image: bool = False
+            self,
+            message: str,
+            response_mode: str,
+            vqa_answer: Optional[str] = None,
+            pubmed_articles: Optional[List[Article]] = None,
+            memory: Optional[InMemoryConversation] = None,
+            previous_response: Optional[str] = None,
+            has_image: bool = False
     ) -> str:
-        """
-        ONE JOB: Generate response text.
+        """Generate response text"""
 
-        Args:
-            message: User's question
-            response_mode: "medical_answer" | "casual_chat" | "modify_previous"
-            vqa_answer: Answer from image agent (if any)
-            pubmed_articles: Articles from PubMed (if any)
-            memory: Conversation history
-            previous_response: Last response (for modify mode)
-            has_image: Was there an image?
+        # NEW: Check if this is a memory question first
+        if memory and response_mode == "casual_chat":
+            memory_answer = self._handle_memory_question(message, memory)
+            if memory_answer:
+                return memory_answer
 
-        Returns:
-            Final response text
-        """
-
+        # Original logic
         if response_mode == "casual_chat":
             return self._generate_casual(message, memory)
 
@@ -75,39 +68,6 @@ class ResponseGenerator:
                 memory,
                 has_image
             )
-
-    def _generate_casual(
-        self,
-        message: str,
-        memory: Optional[InMemoryConversation]
-    ) -> str:
-        """Generate casual conversational response"""
-
-        context = self._get_context(memory, num_turns=3) if memory else ""
-
-        prompt = f"""You are a friendly Medical VQA Assistant.
-
-{f"Previous conversation:{context}" if context else ""}
-
-User: {message}
-
-Respond naturally and warmly. Guidelines:
-- Brief (1-3 sentences)
-- Don't mention the user's name unless they ask "what's my name"
-- NO citations or references
-- If asked about their name, check conversation history
-- If asked why you give references, explain it's for medical accuracy
-
-Response:"""
-
-        response = self.model.generate_content(prompt)
-        text = response.text.strip()
-
-        # Clean up excessive greetings
-        import re
-        text = re.sub(r'^(Hi|Hello|Hey),?\s+\w+[,!]?\s+', '', text, flags=re.IGNORECASE)
-
-        return text
 
     def _generate_modification(
         self,
@@ -183,7 +143,7 @@ MODIFIED RESPONSE:"""
 
         # SCENARIO 2: Text question with PubMed articles
         if pubmed_articles:
-            context = self._get_context(memory, num_turns=3) if memory else ""
+            context = self._get_context(memory, num_turns=10) if memory else ""
 
             lit_lines = ["Medical Literature:"]
             for i, article in enumerate(pubmed_articles[:5], 1):
@@ -191,8 +151,13 @@ MODIFIED RESPONSE:"""
                 lit_lines.append(f"    {article.abstract[:300]}...")
             lit_section = "\n".join(lit_lines)
 
-            # Check if user is asking for elaboration
+            # Check if user wants to remove/hide references
             message_lower = message.lower()
+            hide_references = any(word in message_lower for word in
+                                  ["don't give reference", "no reference", "without reference",
+                                   "remove reference", "hide reference", "skip reference"])
+
+            # Check if user is asking for elaboration
             is_elaboration = any(word in message_lower for word in
                                  ["explain", "elaborate", "tell me more", "detail", "those resources"])
 
@@ -208,11 +173,13 @@ MODIFIED RESPONSE:"""
     MEDICAL LITERATURE:
     {lit_section}
 
-    Task: Provide a MORE DETAILED explanation using the literature. 
-    - Go deeper into the mechanisms
-    - Explain the biological/chemical basis
-    - Include specific details from the articles
-    - Cite sources [1][2][3]
+    Task:
+    1. Provide a MORE DETAILED explanation using the literature
+    2. Go deeper into the mechanisms
+    3. Explain the biological/chemical basis
+    4. Include specific details from the articles
+    5. {"Do NOT cite sources with [1][2][3] - the user doesn't want citations" if hide_references else "Cite sources [1][2][3]"}
+    6. Keep it concise and educational
 
     Detailed Response:"""
             else:
@@ -226,23 +193,24 @@ MODIFIED RESPONSE:"""
     {lit_section}
 
     Answer the question using the medical literature provided.
-    Cite sources [1][2][3]
+    {"Do NOT cite sources - the user doesn't want citations" if hide_references else "Cite sources [1][2][3]"}
 
     Response:"""
 
             response = self.model.generate_content(prompt)
             answer = response.text.strip()
 
-            # Add references
-            answer += "\n\n**References:**"
-            for i, article in enumerate(pubmed_articles[:5], 1):
-                score_text = ""
-                if hasattr(article, 'relevance_score') and article.relevance_score:
-                    score_pct = int(article.relevance_score * 100)
-                    score_text = f" (relevance: {score_pct}%)"
+            # Add references ONLY if user didn't ask to hide them
+            if not hide_references:
+                answer += "\n\n**References:**"
+                for i, article in enumerate(pubmed_articles[:5], 1):
+                    score_text = ""
+                    if hasattr(article, 'relevance_score') and article.relevance_score:
+                        score_pct = int(article.relevance_score * 100)
+                        score_text = f" (relevance: {score_pct}%)"
 
-                title = article.title[:80] + "..." if len(article.title) > 80 else article.title
-                answer += f"\n{i}. [{title}]({article.url}){score_text}"
+                    title = article.title[:80] + "..." if len(article.title) > 80 else article.title
+                    answer += f"\n{i}. [{title}]({article.url}){score_text}"
 
             return answer
 
@@ -250,9 +218,9 @@ MODIFIED RESPONSE:"""
         return "I don't have enough information to answer this question. Could you provide more details or upload a medical image?"
 
     def _get_context(
-        self,
-        memory: InMemoryConversation,
-        num_turns: int
+            self,
+            memory: InMemoryConversation,
+            num_turns: int
     ) -> str:
         """Extract recent conversation context"""
 
@@ -261,11 +229,94 @@ MODIFIED RESPONSE:"""
         context_lines = []
         for msg in messages:
             if msg.role == "user":
-                context_lines.append(f"\nUser: {msg.content}")
+                context_lines.append(f"User: {msg.content}")
             elif msg.role == "assistant":
+                # Don't truncate - LLM needs full context to remember details
                 context_lines.append(f"Assistant: {msg.content}")
 
-        return "\n".join(context_lines) if context_lines else ""
+        return "\n".join(context_lines) if context_lines else "(No previous conversation)"
+
+    def _generate_casual(
+            self,
+            message: str,
+            memory: Optional[InMemoryConversation]
+    ) -> str:
+        """Generate casual conversational response"""
+
+        # Get MORE context for casual chat (up to 10 turns)
+        context = self._get_context(memory, num_turns=10) if memory else ""
+
+        prompt = f"""You are a friendly Medical VQA Assistant.
+
+    Previous conversation:
+    {context}
+
+    User: {message}
+
+    Instructions:
+    - Answer naturally and warmly (1-3 sentences)
+    - If the user asks "what's my name", check the conversation history above
+    - If the user asks about their first question, check the conversation history above
+    - If the user asks to remember something, refer to the conversation history
+    - Be conversational and helpful
+    - NO citations or references in casual chat
+
+    Response:"""
+
+        response = self.model.generate_content(prompt)
+        text = response.text.strip()
+
+        # Clean up excessive greetings
+        import re
+        text = re.sub(r'^(Hi|Hello|Hey),?\s+\w+[,!]?\s+', '', text, flags=re.IGNORECASE)
+
+        return text
+
+    def _handle_memory_question(
+            self,
+            message: str,
+            memory: InMemoryConversation
+    ) -> Optional[str]:
+        """
+        Handle questions about conversation history.
+        Returns answer if it's a memory question, None otherwise.
+        """
+
+        message_lower = message.lower()
+
+        # Detect memory questions
+        memory_patterns = [
+            "my name", "what's my name", "do you know my name",
+            "my first question", "first question", "what did i ask",
+            "do you remember", "what was my", "recall"
+        ]
+
+        is_memory_question = any(pattern in message_lower for pattern in memory_patterns)
+
+        if not is_memory_question:
+            return None
+
+        # Get FULL conversation history
+        context = self._get_context(memory, num_turns=50)  # Get up to 50 turns
+
+        prompt = f"""You are a helpful assistant. Answer the user's question by looking at the conversation history.
+
+    FULL CONVERSATION HISTORY:
+    {context}
+
+    USER QUESTION: {message}
+
+    Instructions:
+    - If they ask about their name, look for where they introduced themselves
+    - If they ask about their first question, find the first User: message
+    - If they ask "do you remember X", check if X appears in the history
+    - Answer directly and concisely
+    - If you can't find the information, say "I don't see that in our conversation history"
+
+    Answer:"""
+
+        response = self.model.generate_content(prompt)
+        return response.text.strip()
 
 
 if __name__ == "__main__":

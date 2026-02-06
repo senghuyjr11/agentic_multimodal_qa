@@ -332,7 +332,6 @@ class MedicalVQAPipeline:
             ai_message=english_response
         )
 
-        # Save to disk
         metadata = {
             "translation": {
                 "source_language": source_lang,
