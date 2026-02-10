@@ -27,7 +27,6 @@ class ReasoningAgent:
         article_objects = article_objects or []
 
         if is_image_question:
-            # Structured format for image analysis
             prompt = f"""You are a medical expert analyzing a medical image.
 
             Question: {question}
@@ -43,55 +42,46 @@ class ReasoningAgent:
             Explanation: [Bullet points]
             Clinical Context: [Clinical significance]
 
-            References:
-            [List numbered references with PMIDs]
-
             Guidelines:
             - Keep "Answer" ≤ 2 sentences
             - Use bullet points in "Explanation" (3–5 key points max)
             - Avoid repeating the same idea
             - Be concise and clinically focused
-            - Use markdown links: [Title](URL)
-            - Cite using [1]–[5] only
-            - Location should describe the anatomical/spatial location in the image
+            - Cite using [1]–[5] inline
+            - DO NOT include a References section at the end
+            - References will be added automatically
             """
         else:
-            # Natural format for text questions
             prompt = f"""You are a medical expert answering questions based on peer-reviewed research.
 
             Question: {question}
-        
+
             Related Medical Literature:
             {pubmed_articles}
-        
+
             Provide a comprehensive, evidence-based answer with these guidelines:
-        
+
             1. Start with a direct answer (2-3 sentences)
             2. Provide detailed explanation with supporting evidence
             3. Include clinical context and practical implications
-            4. Cite sources naturally throughout your response using [1]–[5] only (no [6]+)
-            5. End with a "References" section listing all cited sources
-        
+            4. Cite sources naturally throughout using [1]–[5] only
+            5. DO NOT include a References section - it will be added automatically
+
             Style Guidelines:
             - Write naturally in prose (not structured sections)
-            - Use markdown links: [Title](URL) (PMID: XXXXX)
             - Be concise but thorough
             - Focus on answering the question directly
             - Use short paragraphs (2–4 lines)
             - Prefer bullet points for treatments or key takeaways
             - Avoid depth-for-the-sake-of-length
-        
-            References format:
-            1. [Article Title](URL) (PMID: XXXXX)
-            2. [Article Title](URL) (PMID: XXXXX)
             """
 
         # Call API
         response = self.model.generate_content(prompt)
         text_output = response.text.strip()
 
-        if "References:" in text_output or "Reference:" in text_output:
-            text_output = text_output.split("Reference")[0].strip()
+        # Use the enhanced _strip_references method
+        text_output = self._strip_references(text_output)
 
         if not article_objects:
             return text_output
@@ -142,19 +132,42 @@ STRICT RULES:
         return rewritten
 
     def _strip_references(self, text: str) -> str:
+        """Enhanced method to remove all reference sections."""
         if not text:
             return text
 
-        # Remove sections starting with "References:" or "Reference:"
-        text = re.split(r"\n\s*References?\s*:\s*\n", text, flags=re.IGNORECASE)[0].strip()
+        # Pattern 1: Remove "**References:**" or "**Reference:**" (with bold)
+        text = re.split(r"\n\s*\*{0,2}References?\*{0,2}\s*:?\s*\n", text, flags=re.IGNORECASE)[0].strip()
 
-        # Also remove common "References" header without colon
-        text = re.split(r"\n\s*References?\s*\n", text, flags=re.IGNORECASE)[0].strip()
+        # Pattern 2: Line-by-line approach to catch numbered references
+        lines = text.split('\n')
+        cleaned_lines = []
+        in_references = False
 
-        # Remove trailing numbered URL-only lines (extra safety)
-        text = re.sub(r"\n\s*\d+\.\s*https?://\S+\s*$", "", text, flags=re.MULTILINE).strip()
+        for line in lines:
+            # Check if we hit a references header
+            if re.match(r'^\s*\*{0,2}References?\*{0,2}\s*:?\s*$', line, re.IGNORECASE):
+                in_references = True
+                break  # Stop processing, everything after is references
 
-        return text
+            # Skip lines that look like numbered references with URLs
+            if re.match(r'^\s*\d+\.\s*\[.*\]\(https?://.*\)', line):
+                in_references = True
+                break
+
+            # Skip lines that are just numbered URLs
+            if re.match(r'^\s*\d+\.\s*https?://\S+', line):
+                in_references = True
+                break
+
+            cleaned_lines.append(line)
+
+        text = '\n'.join(cleaned_lines).strip()
+
+        # Pattern 3: Remove any trailing numbered list items (extra safety)
+        text = re.sub(r'\n\s*\d+\.\s+\[.*?\]\(.*?\).*?$', '', text, flags=re.MULTILINE)
+
+        return text.strip()
 
     def _score_to_badge(self, score: float | None) -> tuple[str, str]:
         """
@@ -173,5 +186,3 @@ STRICT RULES:
         else:
             label = "Weak match"
         return (f"Match: {pct}%", label)
-
-
