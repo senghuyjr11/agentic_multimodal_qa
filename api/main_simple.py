@@ -15,7 +15,7 @@ import os
 from typing import Optional
 
 # Import our simple agents
-from agents.image_agent import ModelConfig, ImageAgent, OODConfig
+from agents.image_agent import ModelConfig, ImageAgent
 from agents.memory_manager import MemoryManager
 from agents.pubmed_agent import PubMedAgent
 from agents.response_generator import ResponseGenerator
@@ -53,7 +53,6 @@ class MedicalVQAPipeline:
             pathvqa_config=pathvqa_config,
             vqa_rad_config=vqa_rad_config,
             classifier_path=classifier_path,
-            ood_config=OODConfig(enable_semantic_check=True)
         )
 
         self.pubmed_agent = PubMedAgent(
@@ -228,17 +227,18 @@ class MedicalVQAPipeline:
             print("\n[Step 4a] Image analysis...")
             vqa_result = self.image_agent.predict(image_path, english_question)
 
-            # Check if OOD rejected
             if vqa_result.get("ood", False):
                 print("  Image rejected (OOD)")
-                return {
-                    "response": self.translator.process_output(
-                        vqa_result["answer"],
-                        output_lang
-                    ),
-                    "session_id": session_id,
-                    "ood": True
-                }
+                # Don't return early — set vqa_answer to rejection message
+                # and let it fall through to Step 5, 6, 7 to save normally
+                vqa_answer = vqa_result["answer"]
+                decision.needs_pubmed = False
+                decision.search_query = None
+            else:
+                vqa_answer = vqa_result["answer"]
+                print(f"  VQA: {vqa_answer}")
+                decision.needs_pubmed = False
+                decision.search_query = None
 
             vqa_answer = vqa_result["answer"]
             print(f"  VQA: {vqa_answer}")
@@ -403,7 +403,7 @@ if __name__ == "__main__":
         google_api_key=os.getenv("GOOGLE_API_KEY"),
         pathvqa_config=pathvqa_config,
         vqa_rad_config=vqa_rad_config,
-        classifier_path="../modality_classifier"
+        classifier_path="../modality_classifier_v3"
     )
 
     # Test

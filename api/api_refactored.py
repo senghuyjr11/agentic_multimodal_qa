@@ -90,7 +90,7 @@ async def startup_event():
         google_api_key=os.getenv("GOOGLE_API_KEY"),
         pathvqa_config=pathvqa_config,
         vqa_rad_config=vqa_rad_config,
-        classifier_path="../modality_classifier"
+        classifier_path="../modality_classifier_v4"
     )
 
     # Preload VQA models
@@ -120,7 +120,6 @@ async def health_check():
             "Multi-turn Conversations",
             "Auto Language Detection",
             "Memory Persistence",
-            "Two-layer OOD Protection",
             "LLM-driven Routing"
         ],
         "agents": {
