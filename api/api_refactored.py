@@ -21,6 +21,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.staticfiles import StaticFiles
 from transformers import Qwen2VLForConditionalGeneration, Qwen3VLForConditionalGeneration
 
 from agents.image_agent import ModelConfig
@@ -51,6 +52,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/sessions", StaticFiles(directory="sessions"), name="sessions")
 
 # Include authentication router
 app.include_router(auth_router)

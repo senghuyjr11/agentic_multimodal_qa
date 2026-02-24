@@ -295,11 +295,7 @@ Medical search terms:"""
 
             # Use previous answer as search query
             # Or combine with current question
-            if len(last_ai_msg.split()) <= 3:
-                # Very short answer - combine with context
-                search_query = f"{last_ai_msg} {last_user_msg}"
-            else:
-                search_query = last_ai_msg
+            search_query = last_ai_msg
 
             return True, search_query
 

@@ -325,10 +325,10 @@ class MedicalVQAPipeline:
         # ==========================================
         print("\n[Step 7] Saving...")
 
-        # Add to memory
+        # Add to memory - use display_question so history makes sense
         self.memory.add_turn(
             session_id=session_id,
-            user_message=english_question,
+            user_message=display_question,  # ← was english_question, causes "[Image Uploaded]" to be stored correctly
             ai_message=english_response
         )
 
