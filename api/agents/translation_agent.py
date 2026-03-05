@@ -2,170 +2,196 @@
 translation_agent.py - Hybrid Translation Agent
 
 Features:
-✅ FREE language detection (pattern matching + Unicode)
-✅ HIGH-QUALITY translation (Gemma 3 12B)
+✅ FREE language detection (langdetect library + Unicode checks)
+✅ HIGH-QUALITY translation (facebook/nllb-200-distilled-1.3B on GPU)
 ✅ FAST (skips English input/output)
-✅ CONTEXT-AWARE (LLM understands medical terminology)
-
-Installation:
-pip install google-generativeai
+✅ Configurable supported languages via SUPPORTED_LANGUAGES
+✅ Coming-soon languages handled gracefully with stored chat message
 """
 
-import google.generativeai as genai
-import re
+import torch
+from langdetect import detect, LangDetectException
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 from typing import Dict
 
 
 class TranslationAgent:
     """
-    Smart translation agent using Gemma 3 12B for translation.
+    Translation agent using facebook/nllb-200-distilled-1.3B on GPU.
+    Skips translation for English input/output.
 
-    Optimization: Skips translation for English input/output!
+    To add a new language:
+      1. Add its code → NLLB Flores-200 code in NLLB_CODES
+      2. Add its code to SUPPORTED_LANGUAGES
+      3. Add its name in get_language_name()
+
+    To mark a language as coming soon (detected but not supported yet):
+      1. Keep its detection logic in detect_language()
+      2. Add its code to COMING_SOON_LANGUAGES
     """
 
-    def __init__(self, google_api_key: str):
-        genai.configure(api_key=google_api_key)
-        self.model = genai.GenerativeModel("gemini-2.5-flash-lite")
-        print("✓ Translation Agent initialized (Gemini 2.0 Flash)")
+    # ── All languages we CAN translate (NLLB Flores-200 codes) ──────────────
+    NLLB_CODES = {
+        'en':    'eng_Latn',
+        'es':    'spa_Latn',
+        'fr':    'fra_Latn',
+        'pt':    'por_Latn',
+        'de':    'deu_Latn',
+        'it':    'ita_Latn',
+        'nl':    'nld_Latn',
+        'pl':    'pol_Latn',
+        'ru':    'rus_Cyrl',
+        'ar':    'arb_Arab',
+        'hi':    'hin_Deva',
+        'bn':    'ben_Beng',
+        'vi':    'vie_Latn',
+        'id':    'ind_Latn',
+        'ms':    'zsm_Latn',
+        'ja':    'jpn_Jpan',
+        'ko':    'kor_Hang',
+        'zh-CN': 'zho_Hans',
+        'km':    'khm_Khmr',   # kept for coming-soon use
+    }
+
+    # ── Languages actively supported (add/remove to control) ────────────────
+    # Total: 18 languages
+    #   European  : English, Spanish, French, Portuguese, German, Italian, Dutch, Polish, Russian
+    #   Middle East: Arabic
+    #   South Asia : Hindi, Bengali
+    #   Southeast  : Vietnamese, Indonesian, Malay
+    #   East Asia  : Japanese, Korean, Chinese (Simplified)
+    SUPPORTED_LANGUAGES = {
+        'en', 'es', 'fr', 'pt', 'de', 'it', 'nl', 'pl',
+        'ru', 'ar', 'hi', 'bn', 'vi', 'id', 'ms',
+        'ja', 'ko', 'zh-CN',
+    }
+
+    # ── Detected but not supported yet — shows "coming soon" message ─────────
+    COMING_SOON_LANGUAGES = {
+        'km',           # Khmer — NLLB accuracy too low for medical terms
+    }
+
+    def __init__(self, google_api_key: str = None):
+        model_name = "facebook/nllb-200-distilled-1.3B"
+        print(f"Loading translation model: {model_name}...")
+
+        # Load on CPU to reserve all GPU VRAM for VQA models (Qwen2-VL-7B + Qwen3-VL-2B)
+        # Translation runs once per message so CPU speed is acceptable
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(
+            model_name,
+            torch_dtype=torch.float32,
+            device_map="cpu",
+        )
+        self.model.eval()
+
+        print("Translation model loaded on CPU (GPU reserved for VQA models)")
 
     def detect_language(self, text: str) -> str:
         """
-        Detect language using pattern matching + Unicode ranges.
-
-        Args:
-            text: Text to detect language from
-
-        Returns:
-            Language code ('en', 'es', 'fr', 'ja', 'ko', 'km', etc.)
+        Detect language using Unicode checks + langdetect library.
+        Returns language code, 'th-BLOCKED' for Thai, or code from COMING_SOON_LANGUAGES.
         """
         try:
-            text_lower = text.lower().strip()
-
-            # Common English phrases (short text)
-            common_english = [
-                'hi', 'hello', 'hey', 'thanks', 'thank you', 'ok', 'okay',
-                'yes', 'no', 'good', 'great', 'nice', 'bad', 'good job',
-                'well done', 'awesome', 'cool', 'wow', 'please', 'sorry',
-                'bye', 'goodbye', 'help', 'what', 'why', 'how', 'when',
-                'where', 'who', 'tell me', 'show me', 'explain', 'i see',
-                'got it', 'understood', 'appreciate it', 'huh'
-            ]
-
-            if text_lower in common_english:
-                print("[Translation] Short English phrase detected")
+            if len(text.strip()) < 2:
                 return 'en'
 
-            # Check for common English sentence patterns
-            english_patterns = [
-                r'^my name is ',
-                r'^i am ',
-                r"^what('s| is)",
-                r'^(do you|did you|can you|will you|are you|is there|is this)',
-                r'^(the|a|an) ',
-                r'^this is ',
-                r'^that is ',
-                r'^these are ',
-                r'^those are ',
-                r' is | are | was | were ',
-                r' have | has | had ',
-                r' can | could | should | would | will ',
-                r'^(show|tell|explain|describe|find|search)',
-            ]
-
-            if any(re.search(pattern, text_lower) for pattern in english_patterns):
-                print("[Translation] English sentence pattern detected")
-                return 'en'
-
-            # Check if text too short
-            if len(text.strip()) < 3:
-                print("[Translation] Text too short, assuming English")
-                return 'en'
-
-            # Check for Latin script with diacritics (Spanish, French, Portuguese, etc.)
-            has_diacritics = any(c in text for c in 'áéíóúñü¿¡àèìòùâêîôûäëïöüçÁÉÍÓÚÑÜÀÈÌÒÙÂÊÎÔÛÄËÏÖÜÇ')
-
-            if has_diacritics:
-                print("[Translation] Latin script with diacritics detected → needs translation")
-                if '¿' in text or '¡' in text or 'ñ' in text:
-                    return 'es'  # Spanish
-                elif any(c in text for c in 'àèéêëôûç'):
-                    return 'fr'  # French
-                elif any(c in text for c in 'ãõ'):
-                    return 'pt'  # Portuguese
-                else:
-                    return 'es'  # Default to Spanish
-
-            # Check for non-Latin scripts
-            # Khmer Unicode range: \u1780-\u17FF
+            # Step 1: Unicode checks for scripts langdetect doesn't handle well
             if any('\u1780' <= c <= '\u17FF' for c in text):
                 print("[Translation] Detected Khmer by Unicode range")
                 return 'km'
 
-            # Japanese: Hiragana, Katakana, Kanji
-            if any('\u3040' <= c <= '\u30FF' or '\u4E00' <= c <= '\u9FFF' for c in text):
-                print("[Translation] Detected Japanese by Unicode range")
-                return 'ja'
-
-            # Korean: Hangul
-            if any('\uAC00' <= c <= '\uD7AF' for c in text):
-                print("[Translation] Detected Korean by Unicode range")
-                return 'ko'
-
-            # Chinese: Simplified/Traditional
-            if any('\u4E00' <= c <= '\u9FFF' for c in text):
-                print("[Translation] Detected Chinese by Unicode range")
-                return 'zh-CN'
-
-            # Thai - BLOCKED
             if any('\u0E00' <= c <= '\u0E7F' for c in text):
                 print("[Translation] Detected Thai - BLOCKED")
                 return 'th-BLOCKED'
 
-            # Arabic
-            if any('\u0600' <= c <= '\u06FF' for c in text):
-                print("[Translation] Detected Arabic by Unicode range")
-                return 'ar'
-
-            # Vietnamese (with diacritics)
-            if any(c in text for c in 'ăâđêôơưĂÂĐÊÔƠƯ'):
-                print("[Translation] Detected Vietnamese")
-                return 'vi'
-
-            # Check if mostly basic ASCII (English alphabet only)
-            basic_ascii_ratio = sum(c.isascii() and c.isalnum() for c in text) / len(text) if text else 0
-
-            if basic_ascii_ratio > 0.9:
-                print("[Translation] Text is mostly basic ASCII → English")
+            # Step 2: Short ASCII text (≤2 words) — langdetect unreliable, treat as English
+            # e.g. "korean", "hi", "ok", "translate" — all should be English
+            words = text.strip().split()
+            if len(words) <= 2 and all(c.isascii() for c in text):
+                print("[Translation] Short ASCII text → assuming English")
                 return 'en'
 
-            # Default to English
-            print("[Translation] Could not detect language → assuming English")
-            return 'en'
+            # Step 3: Use langdetect for longer/non-ASCII text
+            lang = detect(text)
+            print(f"[Translation] langdetect detected: {lang}")
 
+            # Normalize codes
+            code_map = {'zh-cn': 'zh-CN', 'zh-tw': 'zh-CN'}
+            lang = code_map.get(lang, lang)
+
+            # Allow supported + coming-soon (both are known languages)
+            known = self.SUPPORTED_LANGUAGES | self.COMING_SOON_LANGUAGES
+            if lang not in known:
+                print(f"[Translation] Unsupported language '{lang}' → notifying user")
+                return f'unsupported:{lang}'
+
+            return lang
+
+        except LangDetectException:
+            print("[Translation] langdetect failed → assuming English")
+            return 'en'
         except Exception as e:
-            print(f"[Translation] Error in detection: {e}, assuming English")
+            print(f"[Translation] Error in detection: {e} → assuming English")
             return 'en'
 
     def get_language_name(self, lang_code: str) -> str:
         """Get full language name from code"""
         lang_map = {
-            'en': 'English',
-            'es': 'Spanish',
-            'fr': 'French',
-            'pt': 'Portuguese',
-            'km': 'Khmer',
-            'ja': 'Japanese',
-            'ko': 'Korean',
-            'zh-CN': 'Chinese',
-            'ar': 'Arabic',
-            'vi': 'Vietnamese',
-            'de': 'German',
-            'it': 'Italian',
-            'ru': 'Russian',
-            'hi': 'Hindi',
-            'th-BLOCKED': 'Thai (Blocked)'
+            'en':         'English',
+            'es':         'Spanish',
+            'fr':         'French',
+            'pt':         'Portuguese',
+            'de':         'German',
+            'it':         'Italian',
+            'nl':         'Dutch',
+            'pl':         'Polish',
+            'ru':         'Russian',
+            'ar':         'Arabic',
+            'hi':         'Hindi',
+            'bn':         'Bengali',
+            'vi':         'Vietnamese',
+            'id':         'Indonesian',
+            'ms':         'Malay',
+            'ja':         'Japanese',
+            'ko':         'Korean',
+            'zh-CN':      'Chinese',
+            'km':         'Khmer',
+            'th-BLOCKED': 'Thai (Blocked)',
         }
         return lang_map.get(lang_code, lang_code)
+
+    def _translate(self, text: str, src_lang: str, tgt_lang: str) -> str:
+        """Translate text using NLLB-200."""
+        src_nllb = self.NLLB_CODES.get(src_lang)
+        tgt_nllb = self.NLLB_CODES.get(tgt_lang)
+
+        if not src_nllb or not tgt_nllb:
+            raise ValueError(f"Unsupported language pair: {src_lang} → {tgt_lang}")
+
+        # NLLB requires src_lang set on tokenizer before encoding
+        self.tokenizer.src_lang = src_nllb
+
+        inputs = self.tokenizer(
+            text,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=512
+        )
+        inputs = {k: v.to("cpu") for k, v in inputs.items()}
+
+        target_lang_id = self.tokenizer.convert_tokens_to_ids(tgt_nllb)
+
+        with torch.no_grad():
+            output_ids = self.model.generate(
+                **inputs,
+                forced_bos_token_id=target_lang_id,
+                max_length=512,
+                num_beams=4,
+            )
+
+        return self.tokenizer.decode(output_ids[0], skip_special_tokens=True)
 
     def process_input(self, question: str) -> Dict:
         """
@@ -203,7 +229,7 @@ class TranslationAgent:
 
         # Step 2.5: Block Thai language
         if source_lang == 'th-BLOCKED':
-            print(f"  Thai language detected → BLOCKED ✗")
+            print(f"  Thai language detected → BLOCKED")
             return {
                 "english_question": "THAI_LANGUAGE_BLOCKED",
                 "source_language": "th-BLOCKED",
@@ -211,32 +237,40 @@ class TranslationAgent:
                 "needs_translation": False
             }
 
-        # Step 3: Translate to English using Gemma 3 12B
+        # Step 2.6: Unsupported language detected
+        if source_lang.startswith('unsupported:'):
+            detected_code = source_lang.split(':')[1]
+            print(f"  Unsupported language '{detected_code}' → notifying user")
+            supported_names = ', '.join(
+                sorted(self.get_language_name(c) for c in self.SUPPORTED_LANGUAGES if c != 'en')
+            )
+            return {
+                "english_question": f"UNSUPPORTED_LANGUAGE:{detected_code}",
+                "source_language": detected_code,
+                "output_language": "en",
+                "needs_translation": False,
+                "supported_languages": supported_names
+            }
+
+        # Step 2.7: Coming-soon language (e.g. Khmer)
+        if source_lang in self.COMING_SOON_LANGUAGES:
+            print(f"  {self.get_language_name(source_lang)} detected → COMING SOON")
+            return {
+                "english_question": f"COMING_SOON_LANGUAGE:{source_lang}",
+                "source_language": source_lang,
+                "output_language": "en",
+                "needs_translation": False
+            }
+
+        # Step 3: Translate to English using NLLB-200
         print(f"  Translating from {self.get_language_name(source_lang)} to English...")
 
         try:
-            prompt = f"""Translate the following text from {self.get_language_name(source_lang)} to English.
-
-IMPORTANT RULES:
-- Translate accurately while preserving medical terminology
-- Keep the meaning and tone of the original
-- If it's a medical question, keep medical terms accurate
-- Output ONLY the English translation, no explanations
-
-{self.get_language_name(source_lang)} text: {question}
-
-English translation:"""
-
-            response = self.model.generate_content(prompt)
-            english_question = response.text.strip()
-
-            # Clean up any quotes or extra formatting
-            english_question = english_question.strip('"').strip("'").strip()
-
-            print(f"  ✓ Translated: {english_question[:50]}...")
+            english_question = self._translate(question, src_lang=source_lang, tgt_lang='en')
+            print(f"  Translated: {english_question[:50]}...")
 
         except Exception as e:
-            print(f"  ✗ Translation failed: {e}")
+            print(f"  Translation failed: {e}")
             print(f"  Using original text as fallback")
             english_question = question
             source_lang = 'en'
@@ -275,36 +309,16 @@ English translation:"""
             print(f"  Thai language output → BLOCKED ✗")
             return "Sorry, this system does not support Thai language. Thai language and Thai people are banned from using this medical system. Please use English or another supported language."
 
-        # Translate to target language using Gemma 3 12B
+        # Translate to target language using NLLB-200
         print(f"  Translating from English to {self.get_language_name(output_language)}...")
 
         try:
-            prompt = f"""Translate the following English medical response to {self.get_language_name(output_language)}.
-
-IMPORTANT RULES:
-- Translate accurately while preserving medical terminology
-- Keep medical terms clear and understandable
-- Preserve any citations like [1], [2], [3] exactly as they are
-- Preserve any markdown formatting (**, *, links)
-- Keep URLs unchanged
-- Output ONLY the {self.get_language_name(output_language)} translation, no explanations
-
-English text:
-{response}
-
-{self.get_language_name(output_language)} translation:"""
-
-            result = self.model.generate_content(prompt)
-            translated = result.text.strip()
-
-            # Clean up any quotes or extra formatting
-            translated = translated.strip('"').strip("'").strip()
-
-            print(f"  ✓ Translated: {translated[:50]}...")
+            translated = self._translate(response, src_lang='en', tgt_lang=output_language)
+            print(f"  Translated: {translated[:50]}...")
             return translated
 
         except Exception as e:
-            print(f"  ✗ Translation failed: {e}")
+            print(f"  Translation failed: {e}")
             print(f"  Returning original English text")
             return response
 

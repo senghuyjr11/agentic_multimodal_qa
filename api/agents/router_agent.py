@@ -77,7 +77,9 @@ class RouterAgent:
         RULES:
         - Casual chat (hi, thanks, good) → casual_chat, no PubMed
         - Medical questions → medical_answer, use PubMed
-        - "translate", "summarize", "remove references" → modify_previous
+        - "translate", "summarize", "remove references", "make it shorter", "in English", "back to English" → modify_previous
+        - A single language name (e.g. "Korean", "Chinese", "French", "khmer?") after a series of translations → modify_previous (user wants to translate to that language)
+        - "make it back to eng/english" or "in English" after non-English responses → modify_previous
 
         OUTPUT (JSON only):
         {{
@@ -91,6 +93,8 @@ class RouterAgent:
         - "hi" → {{"needs_pubmed": false, "response_mode": "casual_chat", "search_query": null, "reasoning": "greeting"}}
         - "what is diabetes?" → {{"needs_pubmed": true, "response_mode": "medical_answer", "search_query": "diabetes", "reasoning": "medical question"}}
         - "make it shorter" → {{"needs_pubmed": false, "response_mode": "modify_previous", "search_query": null, "reasoning": "modify request"}}
+        - "Korean" (after previous translations) → {{"needs_pubmed": false, "response_mode": "modify_previous", "search_query": null, "reasoning": "user wants translation to Korean"}}
+        - "back to English" → {{"needs_pubmed": false, "response_mode": "modify_previous", "search_query": null, "reasoning": "user wants English version"}}
         """
 
 
@@ -227,9 +231,9 @@ Medical search terms:"""
 
         context_lines = []
         for msg in messages:
-            if msg.role == "user":
+            if msg.type == "human":
                 context_lines.append(f"User: {msg.content}")
-            elif msg.role == "assistant":
+            elif msg.type == "ai":
                 # Truncate long responses
                 content = msg.content[:200] + "..." if len(msg.content) > 200 else msg.content
                 context_lines.append(f"Assistant: {content}")
@@ -254,11 +258,11 @@ Medical search terms:"""
         last_user_msg = None
         last_ai_msg = None
 
-        # Find last user and AI messages
+        # Find last user and AI messages (LangChain: type == "ai" / "human")
         for msg in reversed(memory.messages):
-            if msg.role == "assistant" and last_ai_msg is None:
+            if msg.type == "ai" and last_ai_msg is None:
                 last_ai_msg = msg.content
-            elif msg.role == "user" and last_user_msg is None:
+            elif msg.type == "human" and last_user_msg is None:
                 last_user_msg = msg.content
 
             if last_user_msg and last_ai_msg:

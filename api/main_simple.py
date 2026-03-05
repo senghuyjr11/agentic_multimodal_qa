@@ -46,7 +46,7 @@ class MedicalVQAPipeline:
         self.router = RouterAgent(google_api_key)
         self.response_gen = ResponseGenerator(google_api_key)
         self.memory = MemoryManager()
-        self.translator = TranslationAgent(google_api_key=google_api_key)
+        self.translator = TranslationAgent()
         self.session_mgr = SessionManager()
 
         self.image_agent = ImageAgent(
@@ -136,35 +136,129 @@ class MedicalVQAPipeline:
         if english_question == "THAI_LANGUAGE_BLOCKED":
             print("  Thai language blocked - saving message to session")
 
-            blocked_message = (
-                "Sorry, this system does not support Thai language."
-            )
+            blocked_message = "Sorry, this system does not support Thai language."
 
-            # Save the blocked message to conversation history
             self.session_mgr.add_conversation_turn(
                 username=username,
                 session_id=session_id,
-                user_message=question,  # Original Thai question
+                user_message=question,
                 assistant_message=blocked_message,
                 image_path=image_path,
                 meta={
-                    "translation": {
-                        "source_language": "th-BLOCKED",
-                        "output_language": "en"
-                    },
+                    "translation": {"source_language": "th-BLOCKED", "output_language": "en"},
                     "blocked": True,
                     "reason": "thai_language_blocked"
                 }
             )
+
+            # Keep in-memory conversation in sync
+            if session_id in self.memory.active_sessions:
+                self.memory.add_turn(session_id, display_question, blocked_message)
 
             return {
                 "response": blocked_message,
                 "session_id": session_id,
-                "metadata": {
-                    "blocked": True,
-                    "reason": "thai_language_blocked"
-                }
+                "metadata": {"blocked": True, "reason": "thai_language_blocked"}
             }
+
+        # **CHECK COMING-SOON LANGUAGES (e.g. Khmer input)**
+        if english_question.startswith("COMING_SOON_LANGUAGE:"):
+            lang_code = english_question.split(":")[1]
+            lang_name = self.translator.get_language_name(lang_code)
+            print(f"  {lang_name} coming soon - saving message to session")
+
+            coming_soon_message = (
+                f"Thank you for using {lang_name}! "
+                f"We are currently working on adding {lang_name} language support. "
+                f"It will be available soon. Please use English or another supported language for now."
+            )
+
+            self.session_mgr.add_conversation_turn(
+                username=username,
+                session_id=session_id,
+                user_message=question,
+                assistant_message=coming_soon_message,
+                image_path=image_path,
+                meta={
+                    "translation": {"source_language": lang_code, "output_language": "en"},
+                    "coming_soon": True,
+                    "reason": f"{lang_code}_coming_soon"
+                }
+            )
+
+            # Keep in-memory conversation in sync
+            if session_id in self.memory.active_sessions:
+                self.memory.add_turn(session_id, display_question, coming_soon_message)
+
+            return {
+                "response": coming_soon_message,
+                "session_id": session_id,
+                "metadata": {"coming_soon": True, "reason": f"{lang_code}_coming_soon"}
+            }
+
+        # **CHECK UNSUPPORTED LANGUAGE**
+        if english_question.startswith("UNSUPPORTED_LANGUAGE:"):
+            detected_code = english_question.split(":")[1]
+            supported_names = translation_result.get("supported_languages", "")
+            print(f"  Unsupported language '{detected_code}' - saving message to session")
+
+            unsupported_message = (
+                f"Sorry, your language is not supported yet. "
+                f"Please use one of the following supported languages: "
+                f"English, {supported_names}."
+            )
+
+            self.session_mgr.add_conversation_turn(
+                username=username,
+                session_id=session_id,
+                user_message=question,
+                assistant_message=unsupported_message,
+                image_path=image_path,
+                meta={
+                    "translation": {"source_language": detected_code, "output_language": "en"},
+                    "unsupported": True,
+                    "reason": f"{detected_code}_not_supported"
+                }
+            )
+
+            return {
+                "response": unsupported_message,
+                "session_id": session_id,
+                "metadata": {"unsupported": True, "reason": f"{detected_code}_not_supported"}
+            }
+
+        # **CHECK IF USER ASKS IN ENGLISH TO TRANSLATE TO A COMING-SOON LANGUAGE**
+        question_lower = english_question.lower()
+        for lang_code in self.translator.COMING_SOON_LANGUAGES:
+            lang_name = self.translator.get_language_name(lang_code).lower()
+            if lang_name in question_lower and any(
+                w in question_lower for w in ['translate', 'in ' + lang_name, 'to ' + lang_name]
+            ):
+                print(f"  User requested {lang_name} translation → coming soon")
+
+                coming_soon_message = (
+                    f"We are currently working on adding {self.translator.get_language_name(lang_code)} "
+                    f"language support. It will be available soon!"
+                )
+
+                self.session_mgr.add_conversation_turn(
+                    username=username,
+                    session_id=session_id,
+                    user_message=question,
+                    assistant_message=coming_soon_message,
+                    image_path=image_path,
+                    meta={
+                        "translation": {"source_language": "en", "output_language": lang_code},
+                        "coming_soon": True,
+                        "reason": f"{lang_code}_coming_soon"
+                    }
+                )
+
+                return {
+                    "response": coming_soon_message,
+                    "session_id": session_id,
+                    "metadata": {"coming_soon": True, "reason": f"{lang_code}_coming_soon"}
+                }
 
         # Get memory for this session
         memory = self.memory.get_or_create(session_id, conversation_history)

@@ -6,45 +6,26 @@ ONE JOB: Handle conversation history in RAM
 Simple implementation without LangChain dependency.
 """
 
+from dataclasses import dataclass
 from typing import Dict, List, Tuple, Any
-from dataclasses import dataclass, field
 
-
-@dataclass
-class ChatMessage:
-    """Simple message representation"""
-    role: str  # "user" or "assistant"
-    content: str
+from langchain_community.chat_message_histories import ChatMessageHistory
 
 
 class InMemoryConversation:
-    """
-    Simple in-memory conversation history.
-
-    Replacement for LangChain's InMemoryChatMessageHistory.
-    """
-
     def __init__(self):
-        self.messages: List[ChatMessage] = []
-        self.pubmed_articles: List[Any] = []  # NEW: Cache PubMed articles
+        self.history = ChatMessageHistory()  # ← LangChain here
+        self.pubmed_articles = []
 
     def add_user_message(self, content: str):
-        """Add user message"""
-        self.messages.append(ChatMessage(role="user", content=content))
+        self.history.add_user_message(content)  # ← LangChain method
 
     def add_ai_message(self, content: str):
-        """Add AI message"""
-        self.messages.append(ChatMessage(role="assistant", content=content))
+        self.history.add_ai_message(content)  # ← LangChain method
 
-    def get_messages(self) -> List[ChatMessage]:
-        """Get all messages"""
-        return self.messages
-
-    def clear(self):
-        """Clear all messages"""
-        self.messages.clear()
-        self.pubmed_articles.clear()  # NEW: Also clear articles
-
+    @property
+    def messages(self):
+        return self.history.messages  # ← returns LangChain HumanMessage/AIMessage object
 
 class MemoryManager:
     """
@@ -127,9 +108,9 @@ class MemoryManager:
 
         memory = self.active_sessions[session_id]
 
-        # Find last AI message
+        # Find last AI message (LangChain AIMessage has type == "ai")
         for msg in reversed(memory.messages):
-            if msg.role == "assistant":
+            if msg.type == "ai":
                 return msg.content
 
         return None
