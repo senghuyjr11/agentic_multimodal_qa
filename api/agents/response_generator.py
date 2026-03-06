@@ -163,9 +163,26 @@ MODIFIED RESPONSE:"""
     ) -> str:
         """Generate medical answer with literature"""
 
-        # SCENARIO 1: Image with VQA answer - return it directly
+        # SCENARIO 1: Image with VQA answer - format and return
         if has_image and vqa_answer:
-            return vqa_answer
+            prompt = ChatPromptTemplate.from_template(
+                """You are a medical assistant. A vision model analyzed a medical image and produced the following raw answer.
+
+RAW VQA ANSWER: {vqa_answer}
+
+USER QUESTION: {message}
+
+Rewrite the answer as a clear, properly formatted medical response:
+- Use correct capitalization and punctuation
+- Write in complete sentences
+- Keep it concise but informative
+- Do not add information not present in the raw answer
+- Do not reference any literature or add citations
+
+Formatted Response:"""
+            )
+            chain = prompt | self.llm | self.parser
+            return chain.invoke({"vqa_answer": vqa_answer, "message": message})
 
         # SCENARIO 2: Text question with PubMed articles
         if pubmed_articles:

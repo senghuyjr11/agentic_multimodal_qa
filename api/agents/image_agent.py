@@ -167,7 +167,7 @@ class ImageAgent:
         with torch.no_grad():
             output_ids = model.generate(
                 **inputs,
-                max_new_tokens=128,
+                max_new_tokens=256,
                 do_sample=False,
                 eos_token_id=processor.tokenizer.eos_token_id,
                 pad_token_id=processor.tokenizer.pad_token_id,

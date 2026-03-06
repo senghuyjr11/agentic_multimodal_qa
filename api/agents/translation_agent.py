@@ -105,14 +105,22 @@ class TranslationAgent:
                 print("[Translation] Detected Thai - BLOCKED")
                 return 'th-BLOCKED'
 
-            # Step 2: Short ASCII text (≤2 words) — langdetect unreliable, treat as English
-            # e.g. "korean", "hi", "ok", "translate" — all should be English
-            words = text.strip().split()
-            if len(words) <= 2 and all(c.isascii() for c in text):
-                print("[Translation] Short ASCII text → assuming English")
+            # Step 2: Pure ASCII text → always English, no exception
+            # Every real non-English Latin-script language (French, Spanish, German,
+            # Portuguese, Italian, Dutch, Polish...) uses accented characters.
+            # A genuine non-English user WILL have é, ñ, ü, ç, etc. in their text.
+            # ASCII-only text that "looks" French/Spanish to langdetect is always wrong.
+            if all(c.isascii() for c in text):
+                print("[Translation] Pure ASCII text → English")
                 return 'en'
 
-            # Step 3: Use langdetect for longer/non-ASCII text
+            # Step 3: Distinctive character checks before langdetect
+            # ¿ and ¡ are unique to Spanish — langdetect often confuses short Spanish with French
+            if any(c in text for c in '¿¡'):
+                print("[Translation] Spanish characters detected → es")
+                return 'es'
+
+            # Step 4: Non-ASCII text → use langdetect
             lang = detect(text)
             print(f"[Translation] langdetect detected: {lang}")
 
