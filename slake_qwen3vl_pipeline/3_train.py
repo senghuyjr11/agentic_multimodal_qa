@@ -1,10 +1,10 @@
 """
 Step 3: Fine-tune Qwen3-VL-8B-Instruct on SLAKE (English)
-- Full bf16 (no quantization) — A5000
+- Full bf16 (no quantization) — H100
 - DoRA r=32, alpha=64
 - Yes/no oversampled 3x
 - 600 steps, lr=5e-5, early stopping patience=10
-- GPU: A5000
+- GPU: H100
 """
 from pathlib import Path
 import os

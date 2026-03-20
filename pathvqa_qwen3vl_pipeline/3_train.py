@@ -2,15 +2,15 @@
 Step 3: Fine-tune Qwen3-VL-8B-Instruct on PathVQA
 =========================================================
 Strategy for high accuracy:
-  - Full bf16  (no quantization — A5000 handles 8B easily)
+  - Full bf16  (no quantization — H100 handles 8B easily)
   - DoRA r=64  (higher rank → more capacity than r=16/32)
     Targets: attention (q/k/v/o) + MLP (gate/up/down)
   - Yes/No 3x oversampling to strengthen binary classification
-  - Effective batch = 4 × 8 = 32  (A5000 throughput)
+  - Effective batch = 4 × 8 = 32  (H100 throughput)
   - Cosine LR 2e-5, warmup 5%, weight decay 0.05
   - Early stopping patience = 10
   - Targets: Yes/No ≥ 90%  |  Overall Exact Match ≥ 65%
-  - GPU: A5000
+  - GPU: H100
 
 Usage:
   python 3_train.py
@@ -64,7 +64,7 @@ def main():
     CHECKPOINT_DIR   = str(PROJECT_ROOT / "checkpoints")
     ADAPTER_DIR      = str(PROJECT_ROOT / "adapters")
 
-    # A5000: batch=4, grad_accum=8 → effective batch = 32
+    # H100: batch=4, grad_accum=8 → effective batch = 32
     BATCH_SIZE = 4 if not TEST_MODE else 2
     GRAD_ACCUM = 8
 
@@ -220,7 +220,7 @@ def main():
         prediction_loss_only=True,
         report_to="none",
 
-        # A5000: full bf16, TF32, no quantization
+        # H100: full bf16, TF32, no quantization
         bf16=True,
         fp16=False,
         tf32=True,
@@ -252,7 +252,7 @@ def main():
     print(f"Learning rate    : 2e-5 (cosine, warmup 5%)")
     print(f"Epochs           : {args.num_train_epochs}")
     print(f"Eval every       : {args.eval_steps} steps")
-    print(f"GPU              : A5000 — full bf16")
+    print(f"GPU              : H100 — full bf16")
     print("=" * 60 + "\n")
 
     # ========== TRAIN ==========

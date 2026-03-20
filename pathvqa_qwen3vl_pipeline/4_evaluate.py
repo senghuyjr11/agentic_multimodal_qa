@@ -3,7 +3,7 @@ Step 4: Evaluate fine-tuned Qwen3-VL-8B-Instruct on PathVQA test set
 =========================================================
 - Yes/No   : constrained decoding — guaranteed yes/no output, then F1/accuracy
 - Open-ended: free greedy decoding → Exact Match, BLEU-1/4, METEOR, Token-F1
-- Full bf16, GPU: A5000
+- Full bf16, GPU: H100
 
 Metrics saved to:
   results/eval_results_<timestamp>.json
@@ -36,7 +36,7 @@ nltk.download("omw-1.4", quiet=True)
 
 print("=" * 70)
 print("PATH-VQA  —  STEP 4: EVALUATE")
-print("Model  : Qwen3-VL-8B-Instruct  [A5000, full bf16]")
+print("Model  : Qwen3-VL-8B-Instruct  [H100, full bf16]")
 print("Metrics: Exact Match | Yes/No Acc | BLEU-1/4 | METEOR | Token-F1")
 print("=" * 70 + "\n")
 

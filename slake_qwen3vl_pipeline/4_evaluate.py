@@ -3,7 +3,7 @@ Step 4: Evaluate fine-tuned Qwen3-VL-8B-Instruct on SLAKE test set
 - Constrained decoding for yes/no: forces only "yes"/"no" token output
 - Open questions: free generation with normalization (article removal)
 - Full bf16
-- GPU: A5000
+- GPU: H100
 """
 from pathlib import Path
 import os
@@ -24,7 +24,7 @@ from transformers import Qwen3VLProcessor as AutoProcessor
 from datetime import datetime
 
 print("=" * 70)
-print("SLAKE EVALUATION — Qwen3-VL-8B-Instruct  [A5000]")
+print("SLAKE EVALUATION — Qwen3-VL-8B-Instruct  [H100]")
 print("=" * 70 + "\n")
 
 # ========== CONFIG ==========
