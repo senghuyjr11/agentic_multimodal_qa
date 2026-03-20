@@ -1,179 +1,84 @@
-https://huggingface.co/datasets/flaviagiammarino/path-vqa
-https://huggingface.co/datasets/flaviagiammarino/vqa-rad
+# Agentic Multimodal Medical QA
 
-┌─────────────────────────────────────────────────────────────┐
-│                    USER INPUT (Any Language)                 │
-│                  question + optional image                   │
-└────────────────────────────┬────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────┐
-│                     Translation Agent                        │
-│  • Detect language (langdetect + Khmer check)               │
-│  • Translate to English if needed                           │
-│  • Returns: original_language + english_question            │
-└────────────────────────────┬────────────────────────────────┘
-                             │
-                    ┌────────┴────────┐
-                    │  Route by Input  │
-                    └────────┬────────┘
-                             │
-            ┌────────────────┼────────────────┐
-            │                                 │
-            ▼                                 ▼
-    ┌──────────────┐                  ┌──────────────┐
-    │ IMAGE INPUT  │                  │  TEXT ONLY   │
-    └──────┬───────┘                  └──────┬───────┘
-           │                                 │
-           ▼                                 ▼
-    ┌─────────────────────────┐      ┌─────────────────────┐
-    │    Image Agent          │      │  Text Only Agent    │
-    │ ┌─────────────────────┐ │      │  • Classify:        │
-    │ │  Modality Classifier│ │      │    - casual         │
-    │ │  (ViT 2-class)      │ │      │    - medical        │
-    │ │  • PathVQA (0)      │ │      └──────┬──────────────┘
-    │ │  • VQA-RAD (1)      │ │             │
-    │ │  • OOD Detection:   │ │    ┌────────┴──────────┐
-    │ │    - MSP < 0.80     │ │    │                   │
-    │ │    - Entropy > 0.55 │ │    ▼                   ▼
-    │ │    - Energy > -2.0  │ │  _casual            medical
-    │ └─────────┬───────────┘ │  response         (continue)
-    │           │             │_                        │
-    │  ┌────────┴────────┐   │                        │
-    │  │ If OOD:         │   │                        │
-    │  │ Return rejection│   │                        │
-    │  │ Skip PubMed +   │   │                        │
-    │  │ Reasoning       │   │                        │
-    │  └────────┬────────┘   │                        │
-    │           │            │                        │
-    │  ┌────────┴────────┐  │                        │
-    │  │ If In-Domain:   │  │                        │
-    │  │ Route to Model  │  │                        │
-    │  │ • PathVQA →     │  │                        │
-    │  │   Qwen2-VL-7B   │  │                        │
-    │  │ • VQA-RAD →     │  │                        │
-    │  │   Qwen3-VL-2B   │  │                        │
-    │  └────────┬────────┘  │                        │
-    └───────────┼───────────┘                        │
-                │                                     │
-                └─────────────┬───────────────────────┘
-                              │
-                     (if not OOD, not casual)
-                              ▼
-                  ┌───────────────────────┐
-                  │    PubMed Agent       │
-                  │  • Extract keywords   │
-                  │  • NCBI E-utilities    │
-                  │  • Top 3 articles     │
-                  │  • Return:            │
-                  │    - title            │
-                  │    - abstract (500ch) │
-                  │    - PMID + URL       │
-                  └───────────┬───────────┘
-                              │
-                              ▼
-                  ┌───────────────────────┐
-                  │   Reasoning Agent     │
-                  │  (Gemini Gemma-3-4B)  │
-                  │  Synthesizes:         │
-                  │  • Question           │
-                  │  • VQA answer         │
-                  │  • PubMed context     │
-                  │  Output format:       │
-                  │  - Answer (1 sent)    │
-                  │  - Explanation + [n]  │
-                  │  - Clinical context   │
-                  │  - References (auto)  │
-                  └───────────┬───────────┘
-                              │
-                              ▼
-                  ┌───────────────────────┐
-                  │  Translation Agent    │
-                  │  (Back Translation)   │
-                  │  English → Original   │
-                  └───────────┬───────────┘
-                              │
-                              ▼
-                  ┌───────────────────────┐
-                  │   Session Manager     │
-                  │  Save to:             │
-                  │  sessions/username/   │
-                  │    session_id/        │
-                  │  • session_data.json  │
-                  │  • input_image.*      │
-                  └───────────────────────┘
+A medical VQA system that demonstrates how agentic AI works with multimodal inputs. The main idea is that instead of one monolithic model, the system routes each user request through a chain of specialized agents — each handling one job — to produce a grounded, context-aware answer.
 
+---
 
+## What it does
 
-CONVERSATIONAL MEMORY SYSTEM
+Users can upload a medical image (X-ray, pathology slide) and ask questions about it in natural language. The system analyzes the image, searches PubMed for relevant literature, and returns a response with citations. It supports multi-turn conversations with memory, JWT authentication, and 18 languages.
 
-┌──────────────────────────────────────────────────────┐
-│                   User Request                        │
-│              (username + message + session_id?)       │
-└─────────────────────────┬────────────────────────────┘
-                          │
-                          ▼
-                 ┌────────────────┐
-                 │ Session Check  │
-                 └────────┬───────┘
-                          │
-            ┌─────────────┴─────────────┐
-            │                           │
-      session_id = null           session_id exists
-       (New Chat)                  (Continue Chat)
-            │                           │
-            ▼                           ▼
-    ┌───────────────┐          ┌────────────────┐
-    │ Create New    │          │ Load Session   │
-    │ session_id    │          │ Metadata       │
-    └───────┬───────┘          └────────┬───────┘
-            │                           │
-            │                           ▼
-            │                  ┌────────────────┐
-            │                  │ Memory Check   │
-            │                  └────────┬───────┘
-            │                           │
-            │              ┌────────────┴───────────┐
-            │              │                        │
-            │         In RAM Cache           Not in RAM
-            │              │                        │
-            │              ▼                        ▼
-            │      ┌──────────────┐      ┌──────────────────┐
-            │      │ Use Cached   │      │ Load from JSON   │
-            │      │ Memory       │      │ Restore to RAM   │
-            │      └──────┬───────┘      └─────────┬────────┘
-            │             │                        │
-            └─────────────┴────────────────────────┘
-                          │
-                          ▼
-              ┌───────────────────────┐
-              │ Get Conversation      │
-              │ Context (history)     │
-              └───────────┬───────────┘
-                          │
-                          ▼
-              ┌───────────────────────┐
-              │  Run VQA Pipeline     │ ◄─── Diagram 1
-              │  (with context)       │
-              └───────────┬───────────┘
-                          │
-                          ▼
-              ┌───────────────────────┐
-              │ Save New Turn         │
-              └───────────┬───────────┘
-                          │
-              ┌───────────┴───────────┐
-              │                       │
-              ▼                       ▼
-    ┌──────────────────┐    ┌──────────────────┐
-    │ LangChain Memory │    │ Session Manager  │
-    │ (RAM)            │    │ (JSON)           │
-    │                  │    │                  │
-    │ Active chats:    │    │ Persistent:      │
-    │ {1: memory,      │    │ /username/       │
-    │  2: memory,      │    │   1/data.json    │
-    │  5: memory}      │    │   2/data.json    │
-    │                  │    │                  │
-    │ Cleared on       │    │ Survives app     │
-    │ app restart      │    │ restart          │
-    └──────────────────┘    └──────────────────┘
+---
+
+## Agentic Pipeline
+
+All agents live in `api/agents/`. The orchestrator in `api/main_simple.py` runs them in sequence per request.
+
+| Agent | Job |
+|---|---|
+| `TranslationAgent` | Detects language, translates input to English, translates output back |
+| `RouterAgent` | Decides which agents to call and what mode to use (Gemma-3-4B-IT) |
+| `ImageAgent` | Classifies image modality, runs the right fine-tuned VQA model |
+| `PubMedAgent` | Searches NCBI PubMed, scores articles by relevance using embeddings |
+| `ResponseGenerator` | Synthesizes VQA answer + literature into a final response |
+| `MemoryManager` | Holds conversation history in RAM for follow-up context |
+| `SessionManager` | Persists sessions and images to disk |
+
+A typical flow: translate input → load memory → route → run VQA → search PubMed → generate response → translate output → save session.
+
+The `RouterAgent` also handles follow-up detection, so if you ask "explain that in simpler terms" after a medical answer, it skips VQA and PubMed and just rewrites the previous response.
+
+---
+
+## Models
+
+- **Pathology (PathVQA)**: Qwen2-VL-7B-Instruct + LoRA adapters (retraining with Qwen3 in progress)
+- **Radiology (VQA-RAD)**: Qwen3-VL-2B-Instruct + LoRA adapters (current, will be replaced by SLAKE)
+- **Radiology (SLAKE)**: Qwen3-VL-8B-Instruct + LoRA adapters (trained, pending integration)
+- **Routing**: Gemma-3-4B-IT via Gemini API
+- **Translation**: facebook/nllb-200-distilled-1.3B (runs on CPU)
+- **Image rejection**: ViT-based classifier to block non-medical images
+
+> Planned: swap to Qwen3-based PathVQA + SLAKE once PathVQA retraining is done.
+
+---
+
+## Dataset & Training
+
+Fine-tuned on three medical VQA datasets: PathVQA, SLAKE, and VQA-RAD. The deployed system uses only the PathVQA and SLAKE adapters. Each dataset has its own numbered pipeline (`1_download → 2_preprocess → 3_train → 4_evaluate`).
+
+---
+
+## API
+
+Runs on FastAPI at port 8000. Main endpoints:
+
+```
+POST /auth/register
+POST /auth/login
+POST /chat/new              # start session, accepts image + question
+POST /chat/{id}/message     # continue conversation
+GET  /chat/history
+```
+
+All chat endpoints require a JWT token in the `Authorization` header.
+
+---
+
+## Environment
+
+```
+GOOGLE_API_KEY=...      # Gemini (routing + generation + embeddings)
+NCBI_EMAIL=...
+NCBI_API_KEY=...
+JWT_SECRET_KEY=...
+```
+
+---
+
+## Run
+
+```bash
+cd api
+uvicorn api_refactored:app --host 0.0.0.0 --port 8000
+```
