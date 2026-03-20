@@ -9,7 +9,6 @@ from transformers import (
     BitsAndBytesConfig,
     ViTImageProcessor,
     ViTForImageClassification,
-    Qwen2VLForConditionalGeneration,
     Qwen3VLForConditionalGeneration,
 )
 
@@ -73,13 +72,13 @@ class ImageAgent:
 
     def _load_pathvqa(self):
         if self._pathvqa is None:
-            print("  Loading PathVQA (Qwen2-VL-7B)...")
+            print("  Loading PathVQA (Qwen3-VL-8B)...")
             self._pathvqa = self._load_model(self.pathvqa_config)
             print("  ✓ PathVQA loaded")
 
     def _load_vqa_rad(self):
         if self._vqa_rad is None:
-            print("  Loading VQA-RAD (Qwen3-VL-2B)...")
+            print("  Loading SLAKE (Qwen3-VL-8B)...")
             self._vqa_rad = self._load_model(self.vqa_rad_config)
             print("  ✓ VQA-RAD loaded")
 
@@ -113,7 +112,7 @@ class ImageAgent:
                 bnb_4bit_quant_type="nf4",
                 bnb_4bit_compute_dtype=torch.bfloat16,
             ),
-            device_map="auto",
+            device_map={"": 0},
         )
 
         model = PeftModel.from_pretrained(base_model, config.adapter_path)
@@ -191,14 +190,14 @@ class ImageAgent:
 
 if __name__ == "__main__":
     pathvqa_config = ModelConfig(
-        base_model_id="Qwen/Qwen2-VL-7B-Instruct",
-        adapter_path="../qwen2vl_7b_pathvqa_adapters",
-        model_class=Qwen2VLForConditionalGeneration,
+        base_model_id="Qwen/Qwen3-VL-8B-Instruct",
+        adapter_path="../pathvqa_qwen3vl_pipeline/adapters",
+        model_class=Qwen3VLForConditionalGeneration,
     )
 
     vqa_rad_config = ModelConfig(
-        base_model_id="Qwen/Qwen3-VL-2B-Instruct",
-        adapter_path="../qwen3vl_2b_vqa_rad_adapters",
+        base_model_id="Qwen/Qwen3-VL-8B-Instruct",
+        adapter_path="../slake_qwen3vl_pipeline/adapters",
         model_class=Qwen3VLForConditionalGeneration,
     )
 

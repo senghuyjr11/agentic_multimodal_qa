@@ -22,7 +22,7 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.staticfiles import StaticFiles
-from transformers import Qwen2VLForConditionalGeneration, Qwen3VLForConditionalGeneration
+from transformers import Qwen3VLForConditionalGeneration
 
 from agents.image_agent import ModelConfig
 from main_simple import MedicalVQAPipeline
@@ -75,14 +75,14 @@ async def startup_event():
 
     # Model configurations
     pathvqa_config = ModelConfig(
-        base_model_id="Qwen/Qwen2-VL-7B-Instruct",
-        adapter_path="../qwen2vl_7b_pathvqa_adapters",
-        model_class=Qwen2VLForConditionalGeneration
+        base_model_id="Qwen/Qwen3-VL-8B-Instruct",
+        adapter_path="../pathvqa_qwen3vl_pipeline/adapters",
+        model_class=Qwen3VLForConditionalGeneration
     )
 
     vqa_rad_config = ModelConfig(
-        base_model_id="Qwen/Qwen3-VL-2B-Instruct",
-        adapter_path="../qwen3vl_2b_vqa_rad_adapters",
+        base_model_id="Qwen/Qwen3-VL-8B-Instruct",
+        adapter_path="../slake_qwen3vl_pipeline/adapters",
         model_class=Qwen3VLForConditionalGeneration
     )
 

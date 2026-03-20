@@ -1,0 +1,21 @@
+{
+  "timestamp": "20260320_122736",
+  "model": "Qwen/Qwen3-VL-8B-Instruct",
+  "adapter": "/ssd3/Ali/Ali/Senghuy/qwen3vl_8b_pathvqa_pipeline/adapters",
+  "test_data": "/ssd3/Ali/Ali/Senghuy/qwen3vl_8b_pathvqa_pipeline/preprocessed/test/preprocessed_data.pt",
+  "total_samples": 6719,
+  "overall_exact_match": 0.609019199285608,
+  "exact_correct": 4092,
+  "yes_no_accuracy": 0.9241522903033909,
+  "yes_no_samples": 3362,
+  "yes_no_correct": 3107,
+  "open_exact_match": 0.29341674113792077,
+  "open_samples": 3357,
+  "open_correct": 985,
+  "open_bleu1": 0.3264917412308671,
+  "open_bleu4": 0.07749923910273038,
+  "open_meteor": 0.20460974672778307,
+  "open_token_f1": 0.34151162645972977,
+  "total_time_minutes": 121.98599529663721,
+  "samples_per_second": 0.918001554695028
+}
