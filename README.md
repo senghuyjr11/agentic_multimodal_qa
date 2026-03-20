@@ -32,14 +32,13 @@ The `RouterAgent` also handles follow-up detection, so if you ask "explain that 
 
 ## Models
 
-- **Pathology (PathVQA)**: Qwen2-VL-7B-Instruct + LoRA adapters (retraining with Qwen3 in progress)
-- **Radiology (VQA-RAD)**: Qwen3-VL-2B-Instruct + LoRA adapters (current, will be replaced by SLAKE)
-- **Radiology (SLAKE)**: Qwen3-VL-8B-Instruct + LoRA adapters (trained, pending integration)
+- **Pathology (PathVQA)**: Qwen3-VL-8B-Instruct + DoRA adapters (r=64, attention + MLP)
+- **Radiology (SLAKE)**: Qwen3-VL-8B-Instruct + DoRA adapters (r=32, attention only)
 - **Routing**: Gemma-3-4B-IT via Gemini API
 - **Translation**: facebook/nllb-200-distilled-1.3B (runs on CPU)
-- **Image rejection**: ViT-based classifier to block non-medical images
+- **Image classifier**: ViT (google/vit-base-patch16-224), trained on PathVQA + SLAKE + ImageNet-Mini reject class
 
-> Planned: swap to Qwen3-based PathVQA + SLAKE once PathVQA retraining is done.
+Both VQA models share the same base model loaded once at startup. Adapters are swapped on demand via PEFT named adapters — no model reload between requests.
 
 ---
 
