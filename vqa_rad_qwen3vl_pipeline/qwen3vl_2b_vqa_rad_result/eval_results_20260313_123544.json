@@ -1,0 +1,17 @@
+{
+  "timestamp": "20260313_123544",
+  "model": "Qwen/Qwen3-VL-2B-Instruct",
+  "adapter": "qwen3vl_2b_vqa_rad_adapters",
+  "test_data": "preprocessed_vqa_rad_qwen3_2b/test/preprocessed_data.pt",
+  "total_samples": 451,
+  "exact_match": 0.5277161862527716,
+  "exact_match_count": 238,
+  "yes_no_accuracy": 0.7132352941176471,
+  "yes_no_samples": 272,
+  "yes_no_correct": 194,
+  "open_accuracy": 0.24581005586592178,
+  "open_samples": 179,
+  "open_correct": 44,
+  "total_time_minutes": 50.988758353392285,
+  "samples_per_second": 0.14741811547106604
+}

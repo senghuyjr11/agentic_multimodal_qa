@@ -11,7 +11,7 @@ from PIL import Image
 
 # ================= CONFIGURATION =================
 MODEL_ID = "Qwen/Qwen3-VL-2B-Instruct"
-ADAPTER_PATH = "qwen3vl_2b_vqa_rad_adapters"
+ADAPTER_PATH = "../qwen3vl_2b_vqa_rad_adapters"
 
 # Input file settings
 IMAGE_PATH = "dataset_vqa_rad/test/images/test_00003.jpg"

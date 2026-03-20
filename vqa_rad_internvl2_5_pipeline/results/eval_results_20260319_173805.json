@@ -1,0 +1,18 @@
+{
+  "timestamp": "20260319_173805",
+  "model": "OpenGVLab/InternVL2_5-8B",
+  "adapter": "/ssd3/Ali/Ali/Senghuy/internvl2_5_pipeline/adapters",
+  "test_data": "/ssd3/Ali/Ali/Senghuy/internvl2_5_pipeline/preprocessed/test/preprocessed_data.pt",
+  "total_samples": 451,
+  "exact_match": 0.5365853658536586,
+  "exact_match_count": 242,
+  "yes_no_accuracy": 0.7370517928286853,
+  "yes_no_samples": 251,
+  "yes_no_correct": 185,
+  "open_accuracy": 0.285,
+  "open_samples": 200,
+  "open_correct": 57,
+  "open_token_f1": 0.3857460317460318,
+  "total_time_minutes": 1.0170298178990682,
+  "samples_per_second": 7.390802643519576
+}

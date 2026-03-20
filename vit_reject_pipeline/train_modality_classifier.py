@@ -93,7 +93,7 @@ def train():
     VQARAD_TRAIN_CSV  = "dataset_vqa_rad/train/train.csv"
     VQARAD_VAL_CSV    = "dataset_vqa_rad/validation/validation.csv"
     REJECT_IMAGES     = "dataset_reject/images"
-    OUTPUT_DIR        = "modality_classifier_v4"
+    OUTPUT_DIR        = "../modality_classifier_v4"
     EPOCHS            = 5
     BATCH_SIZE        = 32
     LR                = 2e-5

@@ -213,7 +213,7 @@ def main():
 
     # ========== TRAINING ARGUMENTS ==========
     training_args = TrainingArguments(
-        output_dir="./qwen3vl_2b_vqa_rad",
+        output_dir="../qwen3vl_2b_vqa_rad",
 
         per_device_train_batch_size=4,
         per_device_eval_batch_size=2,

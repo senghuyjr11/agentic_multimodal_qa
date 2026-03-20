@@ -1,0 +1,272 @@
+"""
+Step 4: Evaluate fine-tuned InternVL2.5-8B on VQA-RAD test set
+- Yes/No questions: free generation, take first word (yes/no)
+- Open questions: free generation, normalize and compare
+- Full bf16, GPU: H100
+"""
+from pathlib import Path
+import os
+
+PROJECT_ROOT = Path(__file__).parent.resolve()
+CACHE_DIR = (PROJECT_ROOT / ".hf_cache").resolve()
+os.environ["HF_HOME"] = str(CACHE_DIR)
+
+import json
+import re
+import string
+import time
+import torch
+from peft import PeftModel
+from tqdm import tqdm
+from transformers import AutoModel, AutoTokenizer
+from datetime import datetime
+
+print("=" * 70)
+print("VQA-RAD EVALUATION — InternVL2.5-8B  [H100]")
+print("=" * 70 + "\n")
+
+# ========== CONFIG ==========
+MODEL_ID       = "OpenGVLab/InternVL2_5-8B"
+ADAPTER_PATH   = str(PROJECT_ROOT / "adapters")
+TEST_DATA_PATH = PROJECT_ROOT / "preprocessed" / "test" / "preprocessed_data.pt"
+RESULTS_DIR    = PROJECT_ROOT / "results"
+
+RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
+
+# ========== LOAD MODEL ==========
+print("Loading model (full bf16)...")
+
+model = AutoModel.from_pretrained(
+    MODEL_ID,
+    torch_dtype=torch.bfloat16,
+    low_cpu_mem_usage=False,
+    trust_remote_code=True,
+    cache_dir=str(CACHE_DIR),
+)
+model = model.cuda()
+model.language_model = PeftModel.from_pretrained(model.language_model, ADAPTER_PATH)
+model = model.to(torch.bfloat16)
+model.eval()
+
+tokenizer = AutoTokenizer.from_pretrained(
+    MODEL_ID, trust_remote_code=True, use_fast=False, cache_dir=str(CACHE_DIR)
+)
+EOS_ID = tokenizer.eos_token_id
+PAD_ID = tokenizer.pad_token_id or tokenizer.eos_token_id
+
+# Must be set explicitly — InternVL uses this to locate image token positions
+IMG_CONTEXT_TOKEN = "<IMG_CONTEXT>"
+model.img_context_token_id = tokenizer.convert_tokens_to_ids(IMG_CONTEXT_TOKEN)
+print(f"img_context_token_id: {model.img_context_token_id}")
+print(f"EOS: {EOS_ID} | PAD: {PAD_ID}")
+print("Model loaded\n")
+
+# ========== LOAD DATA ==========
+print("Loading test data...")
+data = torch.load(TEST_DATA_PATH, weights_only=False)
+print(f"Loaded {len(data)} samples\n")
+
+
+# ========== HELPERS ==========
+_ARTICLES = re.compile(r"\b(a|an|the)\b")
+_PUNCT    = str.maketrans("", "", string.punctuation)
+
+def normalize(text: str) -> str:
+    """VQA-RAD standard normalization: lower, remove articles + punctuation, collapse spaces."""
+    text = text.strip().lower()
+    text = _ARTICLES.sub(" ", text)
+    text = text.translate(_PUNCT)
+    text = " ".join(text.split())
+    return text
+
+
+def is_yn_answer(gt: str) -> bool:
+    return gt in ("yes", "no")
+
+
+def extract_yn(raw: str) -> str:
+    """Extract yes/no from anywhere in the response (priority: first match)."""
+    raw = raw.strip().lower()
+    # Search left-to-right for standalone yes/no word
+    m = re.search(r"\b(yes|no)\b", raw)
+    if m:
+        return m.group(1)
+    return "no"  # conservative default
+
+
+def token_f1(pred: str, gt: str) -> float:
+    pred_tokens = pred.lower().split()
+    gt_tokens   = gt.lower().split()
+    if not pred_tokens or not gt_tokens:
+        return float(pred_tokens == gt_tokens)
+    common    = set(pred_tokens) & set(gt_tokens)
+    if not common:
+        return 0.0
+    precision = len(common) / len(pred_tokens)
+    recall    = len(common) / len(gt_tokens)
+    return 2 * precision * recall / (precision + recall)
+
+
+# ========== EVALUATE ==========
+predictions    = []
+ground_truths  = []
+question_types = []
+start_time     = time.time()
+
+for idx in tqdm(range(len(data)), desc="Evaluating"):
+    pred_text = ""
+    gt_text   = ""
+    q_type    = "unknown"
+
+    try:
+        sample         = data[idx]
+        labels         = sample["labels"]
+        answer_mask    = labels != -100
+        answer_indices = answer_mask.nonzero(as_tuple=False)
+
+        if len(answer_indices) == 0:
+            predictions.append(pred_text)
+            ground_truths.append(gt_text)
+            question_types.append(q_type)
+            continue
+
+        answer_start = answer_indices[0].item()
+
+        input_ids      = sample["input_ids"][:answer_start].unsqueeze(0).to(model.device)
+        attention_mask = sample["attention_mask"][:answer_start].unsqueeze(0).to(model.device)
+        pixel_values   = sample["pixel_values"].to(model.device, dtype=torch.bfloat16)   # (num_tiles, 3, 448, 448)
+        image_flags    = sample["image_flags"].to(model.device)    # (num_tiles, 1)
+
+        gt_tokens = labels[answer_mask]
+        gt_text   = normalize(tokenizer.decode(gt_tokens, skip_special_tokens=True))
+
+        closed = is_yn_answer(gt_text)
+        q_type = "yes_no" if closed else "open"
+
+        prompt_length = input_ids.shape[1]
+
+        with torch.no_grad():
+            max_new = 5 if closed else 50
+
+            output_ids = model.generate(
+                pixel_values=pixel_values,
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                max_new_tokens=max_new,
+                min_new_tokens=1,
+                do_sample=False,
+                num_beams=1,
+                eos_token_id=EOS_ID,
+                pad_token_id=PAD_ID,
+            )
+
+        # InternVL generate returns only new tokens when using pixel_values
+        # Handle both cases (full sequence or new tokens only)
+        if output_ids.shape[1] > prompt_length:
+            new_tokens = output_ids[0, prompt_length:]
+        else:
+            new_tokens = output_ids[0]
+
+        raw_pred = normalize(tokenizer.decode(new_tokens, skip_special_tokens=True))
+
+        if closed:
+            pred_text = extract_yn(raw_pred)
+        else:
+            pred_text = raw_pred
+
+        if idx % 200 == 0 and idx > 0:
+            torch.cuda.empty_cache()
+
+    except Exception as e:
+        print(f"\nError on sample {idx}: {e}")
+
+    predictions.append(pred_text)
+    ground_truths.append(gt_text)
+    question_types.append(q_type)
+
+# ========== METRICS ==========
+total_time = time.time() - start_time
+
+exact_matches    = sum(p == g for p, g in zip(predictions, ground_truths))
+exact_match_rate = exact_matches / len(predictions)
+
+yes_no_pairs   = [(p, g) for p, g, t in zip(predictions, ground_truths, question_types) if t == "yes_no"]
+yes_no_correct = sum(p == g for p, g in yes_no_pairs)
+yes_no_acc     = yes_no_correct / len(yes_no_pairs) if yes_no_pairs else 0
+
+open_pairs   = [(p, g) for p, g, t in zip(predictions, ground_truths, question_types) if t == "open"]
+open_correct = sum(p == g for p, g in open_pairs)
+open_acc     = open_correct / len(open_pairs) if open_pairs else 0
+open_f1_scores = [token_f1(p, g) for p, g in open_pairs]
+open_f1        = sum(open_f1_scores) / len(open_f1_scores) if open_f1_scores else 0
+
+# ========== SAVE ==========
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+results = {
+    "timestamp":          timestamp,
+    "model":              MODEL_ID,
+    "adapter":            ADAPTER_PATH,
+    "test_data":          str(TEST_DATA_PATH),
+    "total_samples":      len(predictions),
+    "exact_match":        exact_match_rate,
+    "exact_match_count":  exact_matches,
+    "yes_no_accuracy":    yes_no_acc,
+    "yes_no_samples":     len(yes_no_pairs),
+    "yes_no_correct":     yes_no_correct,
+    "open_accuracy":      open_acc,
+    "open_samples":       len(open_pairs),
+    "open_correct":       open_correct,
+    "open_token_f1":      open_f1,
+    "total_time_minutes": total_time / 60,
+    "samples_per_second": len(predictions) / total_time,
+}
+
+results_file = RESULTS_DIR / f"eval_results_{timestamp}.json"
+with open(results_file, "w") as f:
+    json.dump(results, f, indent=2)
+
+predictions_data = [
+    {
+        "idx":           i,
+        "question":      data[i].get("question", ""),
+        "prediction":    p,
+        "ground_truth":  g,
+        "question_type": t,
+        "correct":       p == g,
+        "token_f1":      token_f1(p, g) if t == "open" else None,
+    }
+    for i, (p, g, t) in enumerate(zip(predictions, ground_truths, question_types))
+]
+predictions_file = RESULTS_DIR / f"eval_predictions_{timestamp}.json"
+with open(predictions_file, "w") as f:
+    json.dump(predictions_data, f, indent=2)
+
+# ========== PRINT ==========
+print("\n" + "=" * 70)
+print("FINAL RESULTS — InternVL2.5-8B")
+print("=" * 70)
+print(f"Total samples:     {len(predictions)}")
+print(f"Overall Exact:     {exact_match_rate*100:.2f}%  ({exact_matches}/{len(predictions)})")
+print(f"Yes/No Accuracy:   {yes_no_acc*100:.2f}%  ({yes_no_correct}/{len(yes_no_pairs)})")
+print(f"Open Accuracy:     {open_acc*100:.2f}%  ({open_correct}/{len(open_pairs)})")
+print(f"Open Token F1:     {open_f1*100:.2f}%")
+print(f"\nTarget check:")
+print(f"  Yes/No >= 90%:   {'PASS' if yes_no_acc >= 0.90 else 'FAIL'} ({yes_no_acc*100:.2f}%)")
+print(f"  Exact  >= 60%:   {'PASS' if exact_match_rate >= 0.60 else 'FAIL'} ({exact_match_rate*100:.2f}%)")
+print(f"\n--- vs MedFuseT (classification baseline) ---")
+print(f"MedFuseT Overall:  83.91%")
+print(f"Ours Overall:      {exact_match_rate*100:.2f}%")
+print(f"MedFuseT Yes/No:   85.06%")
+print(f"Ours Yes/No:       {yes_no_acc*100:.2f}%")
+print(f"\nTime: {total_time/60:.1f} min  ({len(predictions)/total_time:.2f} samples/sec)")
+print("=" * 70)
+print(f"\nSaved:")
+print(f"  {results_file}")
+print(f"  {predictions_file}")
+print("=" * 70)
+
+torch.cuda.empty_cache()

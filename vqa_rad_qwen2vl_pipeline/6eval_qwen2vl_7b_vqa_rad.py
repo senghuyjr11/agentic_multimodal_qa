@@ -17,7 +17,7 @@ print("="*70 + "\n")
 
 # ========== CONFIG ==========
 MODEL_ID = "Qwen/Qwen2-VL-7B-Instruct"
-ADAPTER_PATH = "qwen2vl_7b_vqa_rad_adapters"
+ADAPTER_PATH = "../qwen2vl_7b_vqa_rad_adapters"
 TEST_DATA_PATH = "preprocessed_vqa_rad/test/preprocessed_data.pt"
 
 # ========== LOAD MODEL ==========

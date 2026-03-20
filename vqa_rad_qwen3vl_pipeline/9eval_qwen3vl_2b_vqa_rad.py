@@ -8,7 +8,7 @@ import time
 import torch
 from peft import PeftModel
 from tqdm import tqdm
-from transformers import Qwen2VLForConditionalGeneration, Qwen2VLProcessor, BitsAndBytesConfig
+from transformers import Qwen3VLForConditionalGeneration, AutoProcessor, BitsAndBytesConfig
 from datetime import datetime
 
 print("="*70)
@@ -16,9 +16,9 @@ print("PATHVQA EVALUATION - v2 DATA")
 print("="*70 + "\n")
 
 # ========== CONFIG ==========
-MODEL_ID = "Qwen/Qwen2-VL-7B-Instruct"
-ADAPTER_PATH = "qwen2vl_7b_pathvqa_adapters"
-TEST_DATA_PATH = "preprocessed_data_v2/test/preprocessed_data.pt"
+MODEL_ID = "Qwen/Qwen3-VL-2B-Instruct"
+ADAPTER_PATH = "../qwen3vl_2b_vqa_rad_adapters"
+TEST_DATA_PATH = "preprocessed_vqa_rad_qwen3/test/preprocessed_data.pt"
 
 # ========== LOAD MODEL ==========
 print("Loading model...")
@@ -28,7 +28,7 @@ bnb_config = BitsAndBytesConfig(
     bnb_4bit_compute_dtype=torch.bfloat16,
 )
 
-model = Qwen2VLForConditionalGeneration.from_pretrained(
+model = Qwen3VLForConditionalGeneration.from_pretrained(
     MODEL_ID,
     quantization_config=bnb_config,
     device_map="auto",
@@ -37,7 +37,7 @@ model = Qwen2VLForConditionalGeneration.from_pretrained(
 model = PeftModel.from_pretrained(model, ADAPTER_PATH)
 model.eval()
 
-processor = Qwen2VLProcessor.from_pretrained(MODEL_ID)
+processor = AutoProcessor.from_pretrained(MODEL_ID)
 print("✓ Model loaded\n")
 
 # ========== LOAD DATA ==========
@@ -146,7 +146,7 @@ results = {
     "samples_per_second": len(predictions) / total_time,
 }
 
-results_file = f"eval_results_{timestamp}.json"
+results_file = f"qwen3vl_2b_vqa_rad_result/eval_results_{timestamp}.json"
 with open(results_file, "w") as f:
     json.dump(results, f, indent=2)
 print(f"\n✓ Metrics saved to: {results_file}")
@@ -157,7 +157,7 @@ predictions_data = [
     for i, (p, g) in enumerate(zip(predictions, ground_truths))
 ]
 
-predictions_file = f"eval_predictions_{timestamp}.json"
+predictions_file = f"qwen3vl_2b_vqa_rad_result/eval_predictions_{timestamp}.json"
 with open(predictions_file, "w") as f:
     json.dump(predictions_data, f, indent=2)
 print(f"✓ Predictions saved to: {predictions_file}")
