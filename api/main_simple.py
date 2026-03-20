@@ -497,7 +497,7 @@ if __name__ == "__main__":
         google_api_key=os.getenv("GOOGLE_API_KEY"),
         pathvqa_config=pathvqa_config,
         vqa_rad_config=vqa_rad_config,
-        classifier_path="../modality_classifier_v3"
+        classifier_path="../modality_classifier_pipeline/model"
     )
 
     # Test

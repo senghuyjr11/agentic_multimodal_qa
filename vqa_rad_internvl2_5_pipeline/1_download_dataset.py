@@ -1,5 +1,5 @@
 """
-Step 1: Download VQA-RAD dataset from HuggingFace
+Step 1: Download VQA-RAD dataset_slake from HuggingFace
 Saves images + CSV files for train / val / test splits
 """
 from pathlib import Path
@@ -15,7 +15,7 @@ from tqdm import tqdm
 
 # ========== CONFIG ==========
 DATASET_ID = "flaviagiammarino/vqa-rad"
-OUTPUT_DIR = PROJECT_ROOT / "dataset"
+OUTPUT_DIR = PROJECT_ROOT / "dataset_slake"
 VAL_RATIO  = 0.1
 SEED       = 42
 
@@ -27,7 +27,7 @@ print(f"Output dir: {OUTPUT_DIR}")
 print(f"Val split:  {VAL_RATIO * 100:.0f}% of train")
 print("=" * 60 + "\n")
 
-print("Downloading dataset...")
+print("Downloading dataset_slake...")
 dataset = load_dataset(DATASET_ID, cache_dir=str(CACHE_DIR))
 print(f"Available splits: {list(dataset.keys())}")
 

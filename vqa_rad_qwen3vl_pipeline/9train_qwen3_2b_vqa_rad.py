@@ -13,7 +13,7 @@ def main():
         print("="*70)
         print("🧪 TEST MODE ENABLED")
         print("="*70)
-        print("Running quick sanity check on small dataset")
+        print("Running quick sanity check on small dataset_slake")
         print("This will take ~5-10 minutes")
         print("If everything works, set TEST_MODE=False and rerun")
         print("="*70 + "\n")
@@ -21,7 +21,7 @@ def main():
         print("="*70)
         print("🚀 FULL TRAINING MODE")
         print("="*70)
-        print("Running complete training on full dataset")
+        print("Running complete training on full dataset_slake")
         print("This will take ~12 hours")
         print("="*70 + "\n")
 
@@ -237,7 +237,7 @@ def main():
         save_total_limit=3,
 
         # Performance
-        remove_unused_columns=False,  # REQUIRED - custom dataset has non-standard columns
+        remove_unused_columns=False,  # REQUIRED - custom dataset_slake has non-standard columns
         report_to="none",  # unless you want wandb/tensorboard logging
         fp16=True,
         optim="paged_adamw_8bit",

@@ -93,12 +93,12 @@ async def startup_event():
         google_api_key=os.getenv("GOOGLE_API_KEY"),
         pathvqa_config=pathvqa_config,
         vqa_rad_config=vqa_rad_config,
-        classifier_path="../modality_classifier_v4"
+        classifier_path="../modality_classifier_pipeline/model"
     )
 
     # Preload VQA models
     print("\n" + "=" * 70)
-    print("PRE-LOADING VQA MODELS (This takes ~20-30 seconds)")
+    print("PRE-LOADING VQA MODELS...")
     print("=" * 70)
 
     pipeline.image_agent.preload_models()

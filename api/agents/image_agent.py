@@ -1,3 +1,4 @@
+import gc
 import torch
 from enum import Enum
 from dataclasses import dataclass
@@ -48,44 +49,81 @@ class ImageAgent:
         self,
         pathvqa_config: ModelConfig,
         vqa_rad_config: ModelConfig,
-        classifier_path: str = "modality_classifier_v4",
+        classifier_path: str = "../modality_classifier_pipeline/model",
     ):
         self.pathvqa_config = pathvqa_config
         self.vqa_rad_config = vqa_rad_config
 
-        print("Loading modality classifier...")
+        # ViT runs on CPU — keeps full VRAM free for Qwen
+        print("Loading modality classifier (CPU)...")
         self._clf_processor = ViTImageProcessor.from_pretrained(classifier_path)
         self._clf_model = ViTForImageClassification.from_pretrained(classifier_path)
         self._clf_model.eval()
-        if torch.cuda.is_available():
-            self._clf_model.cuda()
-        print("✓ Classifier loaded")
+        print("✓ Classifier loaded (CPU)")
 
-        self._pathvqa = None
-        self._vqa_rad = None
+        self._processor = None
+        self._model     = None
 
     def preload_models(self):
-        print("\nPre-loading VQA models...")
-        self._load_pathvqa()
-        self._load_vqa_rad()
-        print("✓ All VQA models pre-loaded\n")
+        print("\nLoading base model (Qwen3-VL-8B) once...")
+        base_model_id = self.pathvqa_config.base_model_id
 
-    def _load_pathvqa(self):
-        if self._pathvqa is None:
-            print("  Loading PathVQA (Qwen3-VL-8B)...")
-            self._pathvqa = self._load_model(self.pathvqa_config)
-            print("  ✓ PathVQA loaded")
+        self._processor = AutoProcessor.from_pretrained(base_model_id)
 
-    def _load_vqa_rad(self):
-        if self._vqa_rad is None:
-            print("  Loading SLAKE (Qwen3-VL-8B)...")
-            self._vqa_rad = self._load_model(self.vqa_rad_config)
-            print("  ✓ VQA-RAD loaded")
+        base_model = Qwen3VLForConditionalGeneration.from_pretrained(
+            base_model_id,
+            quantization_config=BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=torch.bfloat16,
+            ),
+            device_map={"": 0},
+        )
+
+        print("  Loading PathVQA adapter...")
+        self._model = PeftModel.from_pretrained(
+            base_model,
+            self.pathvqa_config.adapter_path,
+            adapter_name="pathvqa",
+        )
+
+        print("  Loading SLAKE adapter...")
+        self._model.load_adapter(
+            self.vqa_rad_config.adapter_path,
+            adapter_name="slake",
+        )
+
+        self._model.eval()
+        gc.collect()
+        torch.cuda.empty_cache()
+        print("✓ Base model + both adapters loaded")
+
+        self._warmup()
+        print("✓ GPU warmed up — ready\n")
+
+    def _warmup(self):
+        print("  Warming up GPU (compiling CUDA kernels)...")
+        dummy_image = Image.new("RGB", (384, 384), color=(128, 128, 128))
+        dummy_text  = self._processor.apply_chat_template(
+            [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": "test"}]}],
+            add_generation_prompt=True,
+        )
+        inputs = self._processor(
+            text=[dummy_text],
+            images=[dummy_image],
+            return_tensors="pt",
+        ).to(self._model.device)
+
+        for adapter in ("pathvqa", "slake"):
+            self._model.set_adapter(adapter)
+            with torch.no_grad():
+                self._model.generate(**inputs, max_new_tokens=5, do_sample=False)
+
+        torch.cuda.empty_cache()
 
     def route(self, image: Image.Image) -> Tuple[ModelType, float]:
         inputs = self._clf_processor(image, return_tensors="pt")
-        if torch.cuda.is_available():
-            inputs = {k: v.cuda() for k, v in inputs.items()}
+        # ViT stays on CPU intentionally
 
         with torch.no_grad():
             logits = self._clf_model(**inputs).logits
@@ -102,25 +140,6 @@ class ImageAgent:
         else:
             return ModelType.REJECT, conf
 
-    def _load_model(self, config: ModelConfig):
-        processor = AutoProcessor.from_pretrained(config.base_model_id)
-
-        base_model = config.model_class.from_pretrained(
-            config.base_model_id,
-            quantization_config=BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_quant_type="nf4",
-                bnb_4bit_compute_dtype=torch.bfloat16,
-            ),
-            device_map={"": 0},
-        )
-
-        model = PeftModel.from_pretrained(base_model, config.adapter_path)
-        model.eval()
-        print(f"  ✓ Loaded adapter: {config.adapter_path}")
-
-        return processor, model
-
     def predict(self, image_path: str, question: Optional[str] = None) -> dict:
         image = Image.open(image_path).convert("RGB")
         image_resized = image.resize((384, 384), Image.Resampling.BILINEAR)
@@ -132,7 +151,7 @@ class ImageAgent:
         print(f"{'='*60}")
 
         if model_type == ModelType.REJECT:
-            print(f"[REJECT] Non-medical image detected")
+            print("[REJECT] Non-medical image detected")
             return {
                 "question": question or "N/A",
                 "answer": self.REJECTION_MESSAGE,
@@ -141,38 +160,36 @@ class ImageAgent:
                 "ood": True,
             }
 
-        if model_type == ModelType.PATHVQA:
-            if self._pathvqa is None:
-                self._load_pathvqa()
-            processor, model = self._pathvqa
-        else:
-            if self._vqa_rad is None:
-                self._load_vqa_rad()
-            processor, model = self._vqa_rad
+        # Switch adapter — no model reload needed
+        adapter_name = "pathvqa" if model_type == ModelType.PATHVQA else "slake"
+        self._model.set_adapter(adapter_name)
+        print(f"[ADAPTER] Switched to {adapter_name}")
+
+        torch.cuda.empty_cache()
 
         final_question = question.strip() if question else self.DEFAULT_QUESTIONS[model_type]
         messages = [
             {"role": "user", "content": [{"type": "image"}, {"type": "text", "text": final_question}]}
         ]
-        text_prompt = processor.apply_chat_template(messages, add_generation_prompt=True)
+        text_prompt = self._processor.apply_chat_template(messages, add_generation_prompt=True)
 
-        inputs = processor(
+        inputs = self._processor(
             text=[text_prompt],
             images=[image_resized],
             padding=True,
             return_tensors="pt",
-        ).to(model.device)
+        ).to(self._model.device)
 
         with torch.no_grad():
-            output_ids = model.generate(
+            output_ids = self._model.generate(
                 **inputs,
                 max_new_tokens=256,
                 do_sample=False,
-                eos_token_id=processor.tokenizer.eos_token_id,
-                pad_token_id=processor.tokenizer.pad_token_id,
+                eos_token_id=self._processor.tokenizer.eos_token_id,
+                pad_token_id=self._processor.tokenizer.pad_token_id,
             )
 
-        answer = processor.decode(
+        answer = self._processor.decode(
             output_ids[0][len(inputs.input_ids[0]):],
             skip_special_tokens=True
         ).strip()
@@ -204,8 +221,9 @@ if __name__ == "__main__":
     agent = ImageAgent(
         pathvqa_config=pathvqa_config,
         vqa_rad_config=vqa_rad_config,
-        classifier_path="../modality_classifier_v4",
+        classifier_path="../modality_classifier_pipeline/model",
     )
+    agent.preload_models()
 
     result = agent.predict(
         "dataset_pathvqa/test/images/test_00001.jpg",

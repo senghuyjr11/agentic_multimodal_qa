@@ -40,7 +40,7 @@ SYSTEM_PROMPT = (
     "For other questions, give a brief and accurate answer."
 )
 
-DATASET_DIR = PROJECT_ROOT.parent / "dataset"
+DATASET_DIR = PROJECT_ROOT.parent / "dataset_slake"
 OUTPUT_DIR  = PROJECT_ROOT / "preprocessed"
 
 print("=" * 60)

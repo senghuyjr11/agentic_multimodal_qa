@@ -5,7 +5,7 @@ from pathlib import Path
 from PIL import Image
 import pandas as pd
 
-# Load dataset
+# Load dataset_slake
 ds = load_dataset("flaviagiammarino/vqa-rad")
 
 # Export folder

@@ -32,7 +32,7 @@ from transformers import Qwen3VLProcessor
 MODEL_ID   = "Qwen/Qwen3-VL-8B-Instruct"
 IMAGE_SIZE = (448, 448)      # 448 → better features; consistent patch count for collator
 
-DATASET_DIR = PROJECT_ROOT / "dataset"
+DATASET_DIR = PROJECT_ROOT / "dataset_slake"
 OUTPUT_DIR  = PROJECT_ROOT / "preprocessed"
 
 # Medical QA system prompt — keeps yes/no answers clean and open answers brief

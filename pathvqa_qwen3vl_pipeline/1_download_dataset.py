@@ -1,5 +1,5 @@
 """
-Step 1: Download PathVQA dataset from HuggingFace
+Step 1: Download PathVQA dataset_slake from HuggingFace
 =========================================================
 Dataset : flaviagiammarino/path-vqa
 Splits  : train (19,654) | validation (6,259) | test (6,719)
@@ -8,7 +8,7 @@ Content : ~50% yes/no questions, ~50% open-ended
           Pathology microscopy images (H&E, IHC, etc.)
 
 Output layout:
-  dataset/
+  dataset_slake/
     train/
       train.csv          (image_path, question, answer)
       images/
@@ -32,7 +32,7 @@ from tqdm import tqdm
 
 # ========== CONFIG ==========
 DATASET_ID = "flaviagiammarino/path-vqa"
-OUTPUT_DIR = PROJECT_ROOT / "dataset"
+OUTPUT_DIR = PROJECT_ROOT / "dataset_slake"
 
 print("=" * 60)
 print("PATH-VQA  —  STEP 1: DOWNLOAD")

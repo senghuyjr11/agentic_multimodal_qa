@@ -1,0 +1,42 @@
+{
+  "overall_accuracy": 0.9956584659913169,
+  "correct": 8256,
+  "total": 8292,
+  "per_class": {
+    "Pathology": {
+      "accuracy": 0.9949397231730912,
+      "correct": 6685,
+      "total": 6719,
+      "avg_confidence": 0.9204168882792613
+    },
+    "Radiology": {
+      "accuracy": 1.0,
+      "correct": 1061,
+      "total": 1061,
+      "avg_confidence": 0.9289354418494812
+    },
+    "Reject": {
+      "accuracy": 0.99609375,
+      "correct": 510,
+      "total": 512,
+      "avg_confidence": 0.9124044780619442
+    }
+  },
+  "confusion_matrix": [
+    [
+      6685,
+      0,
+      34
+    ],
+    [
+      0,
+      1061,
+      0
+    ],
+    [
+      2,
+      0,
+      510
+    ]
+  ]
+}

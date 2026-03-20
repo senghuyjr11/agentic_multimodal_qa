@@ -120,7 +120,7 @@ def preprocess_sample(row, processor, target_size=(384, 384)):
 
 
 def preprocess_dataset(csv_path, output_dir, processor):
-    """Preprocess entire dataset"""
+    """Preprocess entire dataset_slake"""
     print(f"\n{'='*60}")
     print(f"Processing: {csv_path}")
     print(f"{'='*60}")
