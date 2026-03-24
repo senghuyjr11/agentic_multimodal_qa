@@ -64,6 +64,14 @@ All chat endpoints require a JWT token in the `Authorization` header.
 
 ---
 
+## Frontend
+
+The frontend for this project is available here:
+
+[medical-vqa-frontend](https://github.com/senghuyjr11/medical-vqa-frontend.git)
+
+---
+
 ## Environment
 
 ```
