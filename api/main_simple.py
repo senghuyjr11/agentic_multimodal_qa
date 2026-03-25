@@ -14,6 +14,15 @@ Each agent does ONE thing well.
 import os
 from typing import Optional
 
+from runtime_config import (
+    CLASSIFIER_MODEL_DIR,
+    PATHVQA_ADAPTER_DIR,
+    SLAKE_ADAPTER_DIR,
+    configure_runtime_environment,
+)
+
+configure_runtime_environment()
+
 # Import our simple agents
 from agents.image_agent import ModelConfig, ImageAgent
 from agents.conversation_summarizer import ConversationSummarizer
@@ -511,13 +520,13 @@ if __name__ == "__main__":
 
     pathvqa_config = ModelConfig(
         base_model_id="Qwen/Qwen3-VL-8B-Instruct",
-        adapter_path="../pathvqa_qwen3vl_pipeline/adapters",
+        adapter_path=str(PATHVQA_ADAPTER_DIR),
         model_class=Qwen3VLForConditionalGeneration,
     )
 
     vqa_rad_config = ModelConfig(
         base_model_id="Qwen/Qwen3-VL-8B-Instruct",
-        adapter_path="../slake_qwen3vl_pipeline/adapters",
+        adapter_path=str(SLAKE_ADAPTER_DIR),
         model_class=Qwen3VLForConditionalGeneration,
     )
 
@@ -527,7 +536,7 @@ if __name__ == "__main__":
         google_api_key=os.getenv("GOOGLE_API_KEY"),
         pathvqa_config=pathvqa_config,
         vqa_rad_config=vqa_rad_config,
-        classifier_path="../modality_classifier_pipeline/model"
+        classifier_path=str(CLASSIFIER_MODEL_DIR)
     )
 
     # Test

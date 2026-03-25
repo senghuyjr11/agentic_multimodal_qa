@@ -19,6 +19,8 @@ from jose import jwt
 from pydantic import BaseModel
 from passlib.context import CryptContext
 
+from runtime_config import USERS_FILE
+
 # Configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
 ALGORITHM = "HS256"
@@ -32,10 +34,6 @@ security = HTTPBearer()
 
 # Router
 router = APIRouter(prefix="/auth", tags=["authentication"])
-
-# Users file
-USERS_FILE = "users.json"
-
 
 # ===== Models =====
 

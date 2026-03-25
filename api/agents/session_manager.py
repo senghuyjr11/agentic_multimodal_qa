@@ -7,13 +7,15 @@ import shutil
 from datetime import datetime
 from dataclasses import asdict, is_dataclass
 
+from runtime_config import SESSIONS_DIR
+
 
 class SessionManager:
     """Creates and manages session folders per user."""
 
-    def __init__(self, base_dir: str = "sessions"):
-        self.base_dir = base_dir
-        os.makedirs(base_dir, exist_ok=True)
+    def __init__(self, base_dir: str = None):
+        self.base_dir = str(SESSIONS_DIR if base_dir is None else base_dir)
+        os.makedirs(self.base_dir, exist_ok=True)
 
     def _now_iso(self) -> str:
         return datetime.now().isoformat()

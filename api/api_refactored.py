@@ -12,9 +12,9 @@ Features:
 
 import os
 import shutil
-import tempfile
 from pathlib import Path
 from typing import Optional
+from uuid import uuid4
 
 import uvicorn
 from dotenv import load_dotenv
@@ -22,6 +22,18 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.staticfiles import StaticFiles
+
+from runtime_config import (
+    CLASSIFIER_MODEL_DIR,
+    PATHVQA_ADAPTER_DIR,
+    SLAKE_ADAPTER_DIR,
+    SESSIONS_DIR,
+    TEMP_UPLOADS_DIR,
+    configure_runtime_environment,
+)
+
+configure_runtime_environment()
+
 from transformers import Qwen3VLForConditionalGeneration
 
 from agents.image_agent import ModelConfig
@@ -53,7 +65,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/sessions", StaticFiles(directory="sessions"), name="sessions")
+app.mount("/sessions", StaticFiles(directory=str(SESSIONS_DIR)), name="sessions")
 
 # Include authentication router
 app.include_router(auth_router)
@@ -76,13 +88,13 @@ async def startup_event():
     # Model configurations
     pathvqa_config = ModelConfig(
         base_model_id="Qwen/Qwen3-VL-8B-Instruct",
-        adapter_path="../pathvqa_qwen3vl_pipeline/adapters",
+        adapter_path=str(PATHVQA_ADAPTER_DIR),
         model_class=Qwen3VLForConditionalGeneration
     )
 
     vqa_rad_config = ModelConfig(
         base_model_id="Qwen/Qwen3-VL-8B-Instruct",
-        adapter_path="../slake_qwen3vl_pipeline/adapters",
+        adapter_path=str(SLAKE_ADAPTER_DIR),
         model_class=Qwen3VLForConditionalGeneration
     )
 
@@ -93,7 +105,7 @@ async def startup_event():
         google_api_key=os.getenv("GOOGLE_API_KEY"),
         pathvqa_config=pathvqa_config,
         vqa_rad_config=vqa_rad_config,
-        classifier_path="../modality_classifier_pipeline/model"
+        classifier_path=str(CLASSIFIER_MODEL_DIR)
     )
 
     # Preload VQA models
@@ -164,10 +176,11 @@ async def start_new_chat(
         # Handle image upload
         if image:
             suffix = os.path.splitext(image.filename)[1] or ".jpg"
-            with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as f:
-                content = await image.read()
-                f.write(content)
-                image_path = f.name
+            TEMP_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+            image_path = TEMP_UPLOADS_DIR / f"{uuid4().hex}{suffix}"
+            content = await image.read()
+            image_path.write_bytes(content)
+            image_path = str(image_path)
 
         # Run pipeline
         result = pipeline.run(
@@ -229,10 +242,11 @@ async def send_message(
         # Handle image upload
         if image:
             suffix = os.path.splitext(image.filename)[1] or ".jpg"
-            with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as f:
-                content = await image.read()
-                f.write(content)
-                image_path = f.name
+            TEMP_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+            image_path = TEMP_UPLOADS_DIR / f"{uuid4().hex}{suffix}"
+            content = await image.read()
+            image_path.write_bytes(content)
+            image_path = str(image_path)
 
         # Run pipeline
         result = pipeline.run(
@@ -342,7 +356,7 @@ async def delete_chat_session(
         raise HTTPException(status_code=404, detail="Session not found")
 
     # Delete from disk
-    session_dir = os.path.join("sessions", current_user, str(session_id))
+    session_dir = SESSIONS_DIR / current_user / str(session_id)
     if os.path.exists(session_dir):
         shutil.rmtree(session_dir)
 
@@ -522,7 +536,7 @@ async def chat_legacy(
     try:
         # Handle image upload
         if image:
-            temp_dir = Path("temp_uploads")
+            temp_dir = TEMP_UPLOADS_DIR
             temp_dir.mkdir(exist_ok=True)
             image_path = temp_dir / image.filename
 

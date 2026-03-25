@@ -30,12 +30,16 @@ class ModelConfig:
 class ImageAgent:
     DEFAULT_QUESTIONS = {
         ModelType.PATHVQA: (
-            "What pathological findings do you observe? "
-            "Describe the specific location and characteristics."
+            "Analyze this pathology image carefully. Identify the most likely pathological "
+            "abnormality or disease pattern visible in the tissue. If the finding is uncertain "
+            "or no clear abnormality is visible, say so clearly. Describe the key microscopic "
+            "features and tissue region that support your conclusion."
         ),
         ModelType.VQA_RAD: (
-            "What abnormalities are visible in this scan? "
-            "Specify the anatomical location and extent."
+            "Analyze this medical scan carefully. Identify the most likely abnormality or disease "
+            "visible in the image. If the scan appears normal or the finding is uncertain, state "
+            "that clearly. Describe the main imaging findings and the anatomical location that "
+            "support your conclusion."
         ),
     }
 
