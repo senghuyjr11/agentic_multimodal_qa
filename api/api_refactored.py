@@ -368,6 +368,80 @@ async def get_memory_stats():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/chat/{session_id}/memory-status")
+async def get_session_memory_status(
+    session_id: int,
+    current_user: str = Depends(get_current_user)
+):
+    """Return estimated prompt-context usage for a session."""
+    if pipeline is None:
+        raise HTTPException(status_code=503, detail="Pipeline not initialized")
+
+    if not pipeline.session_mgr.session_exists(current_user, session_id):
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    history = pipeline.session_mgr.get_conversation_history(current_user, session_id)
+    memory_state = pipeline.session_mgr.get_memory_state(current_user, session_id)
+    pipeline.memory.get_or_create(session_id, history, memory_state)
+
+    return pipeline.memory.get_context_status(session_id)
+
+
+@app.get("/chat/{session_id}/summary")
+async def get_session_summary(
+    session_id: int,
+    current_user: str = Depends(get_current_user)
+):
+    """Return the rolling summary and related compaction metadata."""
+    if pipeline is None:
+        raise HTTPException(status_code=503, detail="Pipeline not initialized")
+
+    if not pipeline.session_mgr.session_exists(current_user, session_id):
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    history = pipeline.session_mgr.get_conversation_history(current_user, session_id)
+    memory_state = pipeline.session_mgr.get_memory_state(current_user, session_id)
+    pipeline.memory.get_or_create(session_id, history, memory_state)
+
+    return {
+        "session_id": session_id,
+        **pipeline.memory.get_summary(session_id),
+        "status": pipeline.memory.get_context_status(session_id)
+    }
+
+
+@app.post("/chat/{session_id}/summarize")
+async def summarize_session_memory(
+    session_id: int,
+    current_user: str = Depends(get_current_user)
+):
+    """Force summarization of older turns for this session."""
+    if pipeline is None:
+        raise HTTPException(status_code=503, detail="Pipeline not initialized")
+
+    if not pipeline.session_mgr.session_exists(current_user, session_id):
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    history = pipeline.session_mgr.get_conversation_history(current_user, session_id)
+    memory_state = pipeline.session_mgr.get_memory_state(current_user, session_id)
+    pipeline.memory.get_or_create(session_id, history, memory_state)
+
+    result = pipeline.memory.force_compact(
+        session_id=session_id,
+        summarizer=pipeline.summarizer,
+        full_conversation_history=history,
+        persist_callback=lambda state: pipeline.session_mgr.update_memory_state(
+            current_user, session_id, state
+        )
+    )
+
+    return {
+        "session_id": session_id,
+        **result,
+        "summary": pipeline.memory.get_summary(session_id)
+    }
+
+
 @app.get("/debug/memory_check/{session_id}")
 async def memory_check(
     session_id: int,

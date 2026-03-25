@@ -66,6 +66,13 @@ class SessionManager:
             "session_id": session_id,
             "created_at": self._now_iso(),
             "updated_at": self._now_iso(),
+            "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": None,
+                "estimated_tokens": 0
+            },
             "input": {
                 "image_path": saved_image_path,
                 "question": question,
@@ -167,3 +174,16 @@ class SessionManager:
         """Get all conversation turns from a session."""
         session_data = self.load(username, session_id)
         return session_data.get("conversation_history", [])
+
+    def get_memory_state(self, username: str, session_id: int) -> dict:
+        """Get persisted rolling-summary state for a session."""
+        session_data = self.load(username, session_id)
+        return session_data.get("memory_state", {})
+
+    def update_memory_state(self, username: str, session_id: int, memory_state: dict):
+        """Persist rolling-summary state without changing transcript history."""
+        session_data = self.load(username, session_id)
+        session_data["memory_state"] = self._normalize(memory_state or {})
+        session_data["updated_at"] = self._now_iso()
+        self._save(username, session_id, session_data)
+        print(f"✓ Updated memory state for {username}/{session_id}")

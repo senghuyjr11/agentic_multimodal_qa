@@ -16,6 +16,7 @@ from typing import Optional
 
 # Import our simple agents
 from agents.image_agent import ModelConfig, ImageAgent
+from agents.conversation_summarizer import ConversationSummarizer
 from agents.memory_manager import MemoryManager
 from agents.pubmed_agent import PubMedAgent
 from agents.response_generator import ResponseGenerator
@@ -45,6 +46,7 @@ class MedicalVQAPipeline:
         # Initialize all agents (each does ONE job)
         self.router = RouterAgent(google_api_key)
         self.response_gen = ResponseGenerator(google_api_key)
+        self.summarizer = ConversationSummarizer(google_api_key)
         self.memory = MemoryManager()
         self.translator = TranslationAgent()
         self.session_mgr = SessionManager()
@@ -124,12 +126,14 @@ class MedicalVQAPipeline:
                 image_path=image_path
             )
             conversation_history = []
+            memory_state = self.session_mgr.get_memory_state(username, session_id)
             print(f"  Created new session: {session_id}")
         else:
             # Continuing session
             conversation_history = self.session_mgr.get_conversation_history(
                 username, session_id
             )
+            memory_state = self.session_mgr.get_memory_state(username, session_id)
             print(f"  Continuing session: {session_id}")
 
         # **CHECK THAI BLOCKING AFTER SESSION EXISTS**
@@ -261,7 +265,23 @@ class MedicalVQAPipeline:
                 }
 
         # Get memory for this session
-        memory = self.memory.get_or_create(session_id, conversation_history)
+        memory = self.memory.get_or_create(session_id, conversation_history, memory_state)
+
+        compaction_result = self.memory.compact_if_needed(
+            session_id=session_id,
+            summarizer=self.summarizer,
+            full_conversation_history=conversation_history,
+            persist_callback=lambda state: self.session_mgr.update_memory_state(
+                username, session_id, state
+            )
+        )
+
+        if compaction_result.get("compacted"):
+            memory = self.memory.get_or_create(
+                session_id,
+                conversation_history,
+                self.session_mgr.get_memory_state(username, session_id)
+            )
 
         # ==========================================
         # STEP 3: ROUTER DECIDES
@@ -439,6 +459,10 @@ class MedicalVQAPipeline:
             },
             "vqa_answer": vqa_answer,
             "num_articles": len(pubmed_articles),
+            "memory": {
+                **self.memory.get_context_status(session_id),
+                "summary_updated": compaction_result.get("compacted", False)
+            },
             "articles": [
                 {
                     "title": a.title,
@@ -457,6 +481,12 @@ class MedicalVQAPipeline:
             assistant_message=final_response,
             image_path=image_path,
             meta=metadata
+        )
+
+        self.session_mgr.update_memory_state(
+            username=username,
+            session_id=session_id,
+            memory_state=self.memory.active_sessions[session_id].memory_state()
         )
 
         print("✓ Saved to disk")

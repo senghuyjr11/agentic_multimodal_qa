@@ -6,8 +6,9 @@ ONE JOB: Handle conversation history in RAM
 Simple implementation without LangChain dependency.
 """
 
+from datetime import datetime
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Any
+from typing import Callable, Dict, List, Tuple, Any, Optional
 
 from langchain_community.chat_message_histories import ChatMessageHistory
 
@@ -16,6 +17,10 @@ class InMemoryConversation:
     def __init__(self):
         self.history = ChatMessageHistory()  # ← LangChain here
         self.pubmed_articles = []
+        self.rolling_summary = ""
+        self.summarized_turn_count = 0
+        self.compression_count = 0
+        self.last_compaction_at = None
 
     def add_user_message(self, content: str):
         self.history.add_user_message(content)  # ← LangChain method
@@ -27,6 +32,20 @@ class InMemoryConversation:
     def messages(self):
         return self.history.messages  # ← returns LangChain HumanMessage/AIMessage object
 
+    def approximate_tokens(self) -> int:
+        total_chars = len(self.rolling_summary or "")
+        total_chars += sum(len(getattr(msg, "content", "")) for msg in self.messages)
+        return max(1, total_chars // 4)
+
+    def memory_state(self) -> dict:
+        return {
+            "rolling_summary": self.rolling_summary,
+            "summarized_turn_count": self.summarized_turn_count,
+            "compression_count": self.compression_count,
+            "last_compaction_at": self.last_compaction_at,
+            "estimated_tokens": self.approximate_tokens(),
+        }
+
 class MemoryManager:
     """
     Manages conversation memory in RAM.
@@ -37,11 +56,15 @@ class MemoryManager:
     def __init__(self):
         # Active conversations: {session_id: memory}
         self.active_sessions: Dict[int, InMemoryConversation] = {}
+        self.max_context_tokens = 12000
+        self.compact_trigger_ratio = 0.8
+        self.keep_recent_turns = 6
 
     def get_or_create(
         self,
         session_id: int,
-        conversation_history: List[dict] = None
+        conversation_history: List[dict] = None,
+        memory_state: Optional[dict] = None
     ) -> InMemoryConversation:
         """
         ONE JOB: Get memory for a session (create if new).
@@ -62,12 +85,23 @@ class MemoryManager:
         # Create new memory
         memory = InMemoryConversation()
 
+        if memory_state:
+            memory.rolling_summary = memory_state.get("rolling_summary", "") or ""
+            memory.summarized_turn_count = int(memory_state.get("summarized_turn_count", 0) or 0)
+            memory.compression_count = int(memory_state.get("compression_count", 0) or 0)
+            memory.last_compaction_at = memory_state.get("last_compaction_at")
+
         # Restore from history if provided
         if conversation_history:
-            for turn in conversation_history:
+            turns_to_restore = conversation_history[memory.summarized_turn_count:]
+
+            for turn in turns_to_restore:
                 memory.add_user_message(turn["user"])
                 memory.add_ai_message(turn["assistant"])
-            print(f"✓ Restored {len(conversation_history)} turns for session {session_id}")
+            print(
+                f"✓ Restored {len(turns_to_restore)} active turns for session {session_id}"
+                f" ({memory.summarized_turn_count} summarized)"
+            )
         else:
             print(f"✓ Created new memory for session {session_id}")
 
@@ -215,7 +249,160 @@ class MemoryManager:
             "sessions_with_articles": sum(  # NEW
                 1 for mem in self.active_sessions.values()
                 if mem.pubmed_articles
+            ),
+            "sessions_with_summary": sum(
+                1 for mem in self.active_sessions.values()
+                if mem.rolling_summary
             )
+        }
+
+    def get_summary(self, session_id: int) -> dict:
+        if session_id not in self.active_sessions:
+            return {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": None
+            }
+
+        memory = self.active_sessions[session_id]
+        return {
+            "rolling_summary": memory.rolling_summary,
+            "summarized_turn_count": memory.summarized_turn_count,
+            "compression_count": memory.compression_count,
+            "last_compaction_at": memory.last_compaction_at
+        }
+
+    def get_context_status(self, session_id: int) -> dict:
+        if session_id not in self.active_sessions:
+            return {
+                "session_id": session_id,
+                "estimated_tokens": 0,
+                "max_context_tokens": self.max_context_tokens,
+                "usage_ratio": 0.0,
+                "percent_used": 0,
+                "percent_left": 100,
+                "active_context_tokens": 0,
+                "active_context_usage_ratio": 0.0,
+                "active_context_percent_used": 0,
+                "active_context_percent_left": 100,
+                "message_count": 0,
+                "active_turns": 0,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": False,
+                "should_compact": False,
+            }
+
+        memory = self.active_sessions[session_id]
+        estimated_tokens = memory.approximate_tokens()
+        usage_ratio = min(estimated_tokens / self.max_context_tokens, 1.0)
+        active_context_tokens = max(
+            1,
+            sum(len(getattr(msg, "content", "")) for msg in memory.messages) // 4
+        )
+        active_context_usage_ratio = min(
+            active_context_tokens / self.max_context_tokens,
+            1.0
+        )
+
+        return {
+            "session_id": session_id,
+            "estimated_tokens": estimated_tokens,
+            "max_context_tokens": self.max_context_tokens,
+            "usage_ratio": round(usage_ratio, 4),
+            "percent_used": int(round(usage_ratio * 100)),
+            "percent_left": max(0, 100 - int(round(usage_ratio * 100))),
+            "active_context_tokens": active_context_tokens,
+            "active_context_usage_ratio": round(active_context_usage_ratio, 4),
+            "active_context_percent_used": int(round(active_context_usage_ratio * 100)),
+            "active_context_percent_left": max(0, 100 - int(round(active_context_usage_ratio * 100))),
+            "message_count": len(memory.messages),
+            "active_turns": len(memory.messages) // 2,
+            "summarized_turn_count": memory.summarized_turn_count,
+            "compression_count": memory.compression_count,
+            "has_summary": bool(memory.rolling_summary),
+            "last_compaction_at": memory.last_compaction_at,
+            "should_compact": usage_ratio >= self.compact_trigger_ratio,
+        }
+
+    def compact_if_needed(
+        self,
+        session_id: int,
+        summarizer,
+        full_conversation_history: List[dict],
+        persist_callback: Optional[Callable[[dict], None]] = None
+    ) -> dict:
+        status = self.get_context_status(session_id)
+        if not status["should_compact"]:
+            return {
+                "compacted": False,
+                "reason": "below_threshold",
+                "status": status
+            }
+
+        return self.force_compact(
+            session_id=session_id,
+            summarizer=summarizer,
+            full_conversation_history=full_conversation_history,
+            persist_callback=persist_callback
+        )
+
+    def force_compact(
+        self,
+        session_id: int,
+        summarizer,
+        full_conversation_history: List[dict],
+        persist_callback: Optional[Callable[[dict], None]] = None
+    ) -> dict:
+        if session_id not in self.active_sessions:
+            raise ValueError(f"Session {session_id} not found in memory")
+
+        memory = self.active_sessions[session_id]
+        unsummarized_history = full_conversation_history[memory.summarized_turn_count:]
+
+        if len(unsummarized_history) <= self.keep_recent_turns:
+            return {
+                "compacted": False,
+                "reason": "not_enough_turns",
+                "status": self.get_context_status(session_id)
+            }
+
+        turns_to_compact = unsummarized_history[:-self.keep_recent_turns]
+        recent_turns = unsummarized_history[-self.keep_recent_turns:]
+
+        updated_summary = summarizer.summarize(
+            existing_summary=memory.rolling_summary,
+            turns=turns_to_compact
+        )
+
+        replacement_memory = InMemoryConversation()
+        replacement_memory.rolling_summary = updated_summary
+        replacement_memory.summarized_turn_count = memory.summarized_turn_count + len(turns_to_compact)
+        replacement_memory.compression_count = memory.compression_count + 1
+        replacement_memory.last_compaction_at = datetime.now().isoformat()
+        replacement_memory.pubmed_articles = memory.pubmed_articles
+
+        for turn in recent_turns:
+            replacement_memory.add_user_message(turn["user"])
+            replacement_memory.add_ai_message(turn["assistant"])
+
+        self.active_sessions[session_id] = replacement_memory
+
+        if persist_callback:
+            persist_callback(replacement_memory.memory_state())
+
+        print(
+            f"✓ Compacted session {session_id}: "
+            f"{len(turns_to_compact)} older turns summarized, "
+            f"{len(recent_turns)} recent turns kept"
+        )
+
+        return {
+            "compacted": True,
+            "summarized_turns_added": len(turns_to_compact),
+            "status": self.get_context_status(session_id),
+            "summary_preview": updated_summary[:240]
         }
 
 

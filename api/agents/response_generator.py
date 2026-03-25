@@ -293,6 +293,11 @@ Response:"""
         messages = memory.messages[-(num_turns * 2):] if memory.messages else []
 
         context_lines = []
+        if memory.rolling_summary:
+            context_lines.append("Earlier conversation summary:")
+            context_lines.append(memory.rolling_summary)
+            context_lines.append("")
+
         for msg in messages:
             if msg.type == "human":
                 context_lines.append(f"User: {msg.content}")
@@ -315,6 +320,11 @@ Response:"""
         messages = memory.messages[-(num_turns * 2):] if memory.messages else []
 
         context_lines = []
+        if memory.rolling_summary:
+            context_lines.append("Earlier conversation summary:")
+            context_lines.append(memory.rolling_summary[:1000])
+            context_lines.append("")
+
         for msg in messages:
             if msg.type == "human":
                 context_lines.append(f"User: {msg.content}")
