@@ -1,12 +1,8 @@
 # Agentic Multimodal Medical QA
 
-A medical VQA system that demonstrates how agentic AI works with multimodal inputs. The main idea is that instead of one monolithic model, the system routes each user request through a chain of specialized agents — each handling one job — to produce a grounded, context-aware answer.
-
----
-
 ## What it does
 
-Users can upload a medical image (X-ray, pathology slide) and ask questions about it in natural language. The system analyzes the image, searches PubMed for relevant literature, and returns a response with citations. It supports multi-turn conversations with memory, JWT authentication, and 18 languages.
+Users can upload a medical image (X-ray, pathology slide) and ask questions about it in natural language. The system analyzes the image, searches PubMed for relevant literature, and returns a response with citations.
 
 ---
 
@@ -21,12 +17,11 @@ All agents live in `api/agents/`. The orchestrator in `api/main_simple.py` runs 
 | `ImageAgent` | Classifies image modality, runs the right fine-tuned VQA model |
 | `PubMedAgent` | Searches NCBI PubMed, scores articles by relevance using embeddings |
 | `ResponseGenerator` | Synthesizes VQA answer + literature into a final response |
-| `MemoryManager` | Holds conversation history in RAM for follow-up context |
+| `ConversationSummarizer` | Compresses older turns into a rolling summary when memory grows too large |
+| `MemoryManager` | Holds active conversation history in RAM and tracks summary state |
 | `SessionManager` | Persists sessions and images to disk |
 
 A typical flow: translate input → load memory → route → run VQA → search PubMed → generate response → translate output → save session.
-
-The `RouterAgent` also handles follow-up detection, so if you ask "explain that in simpler terms" after a medical answer, it skips VQA and PubMed and just rewrites the previous response.
 
 ---
 
@@ -44,7 +39,7 @@ Both VQA models share the same base model loaded once at startup. Adapters are s
 
 ## Dataset & Training
 
-Fine-tuned on three medical VQA datasets: PathVQA, SLAKE, and VQA-RAD. The deployed system uses only the PathVQA and SLAKE adapters. Each dataset has its own numbered pipeline (`1_download → 2_preprocess → 3_train → 4_evaluate`).
+Fine-tuned on three medical VQA datasets: PathVQA, and SLAKE. The deployed system uses only the PathVQA and SLAKE adapters. Each dataset has its own numbered pipeline (`1_download → 2_preprocess → 3_train → 4_evaluate`).
 
 ---
 
@@ -58,9 +53,14 @@ POST /auth/login
 POST /chat/new              # start session, accepts image + question
 POST /chat/{id}/message     # continue conversation
 GET  /chat/history
+GET  /chat/{id}/memory-status
+GET  /chat/{id}/summary
+POST /chat/{id}/summarize
 ```
 
 All chat endpoints require a JWT token in the `Authorization` header.
+
+The `/memory-status` and `/summary` endpoints expose the rolling-summary state for long sessions. `/summarize` can be used to force manual compaction for testing or debugging, while normal chat requests can also trigger compaction automatically.
 
 ---
 
@@ -75,10 +75,11 @@ The frontend for this project is available here:
 ## Environment
 
 ```
-GOOGLE_API_KEY=...      # Gemini (routing + generation + embeddings)
+GOOGLE_API_KEY=...      # Gemma (routing + generation + embeddings)
 NCBI_EMAIL=...
 NCBI_API_KEY=...
 JWT_SECRET_KEY=...
+APP_ENV=dev             # use 'prod' on server
 ```
 
 ---
