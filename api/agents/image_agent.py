@@ -91,10 +91,10 @@ class ImageAgent:
             adapter_name="pathvqa",
         )
 
-        print("  Loading SLAKE adapter...")
+        print("  Loading VQA-RAD adapter...")
         self._model.load_adapter(
             self.vqa_rad_config.adapter_path,
-            adapter_name="slake",
+            adapter_name="vqa_rad",
         )
 
         self._model.eval()
@@ -118,7 +118,7 @@ class ImageAgent:
             return_tensors="pt",
         ).to(self._model.device)
 
-        for adapter in ("pathvqa", "slake"):
+        for adapter in ("pathvqa", "vqa_rad"):
             self._model.set_adapter(adapter)
             with torch.no_grad():
                 self._model.generate(**inputs, max_new_tokens=5, do_sample=False)
@@ -165,13 +165,22 @@ class ImageAgent:
             }
 
         # Switch adapter — no model reload needed
-        adapter_name = "pathvqa" if model_type == ModelType.PATHVQA else "slake"
+        adapter_name = "pathvqa" if model_type == ModelType.PATHVQA else "vqa_rad"
         self._model.set_adapter(adapter_name)
         print(f"[ADAPTER] Switched to {adapter_name}")
 
         torch.cuda.empty_cache()
 
-        final_question = question.strip() if question else self.DEFAULT_QUESTIONS[model_type]
+        if question and question.strip():
+            final_question = question.strip()
+            prompt_source = "user_question"
+        else:
+            final_question = self.DEFAULT_QUESTIONS[model_type]
+            prompt_source = f"default_{model_type.value}"
+
+        print(f"[PROMPT] Source: {prompt_source}")
+        print(f"[PROMPT] Text: {final_question}")
+
         messages = [
             {"role": "user", "content": [{"type": "image"}, {"type": "text", "text": final_question}]}
         ]
@@ -218,7 +227,7 @@ if __name__ == "__main__":
 
     vqa_rad_config = ModelConfig(
         base_model_id="Qwen/Qwen3-VL-8B-Instruct",
-        adapter_path="../slake_qwen3vl_pipeline/adapters",
+        adapter_path="../vqa_rad_qwen3vl_pipeline/adapters",
         model_class=Qwen3VLForConditionalGeneration,
     )
 

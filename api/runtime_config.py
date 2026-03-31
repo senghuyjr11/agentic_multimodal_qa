@@ -32,9 +32,9 @@ PATHVQA_ADAPTER_DIR = _resolve_path(
     "APP_PATHVQA_ADAPTER_DIR",
     PROJECT_ROOT / "pathvqa_qwen3vl_pipeline" / "adapters"
 )
-SLAKE_ADAPTER_DIR = _resolve_path(
-    "APP_SLAKE_ADAPTER_DIR",
-    PROJECT_ROOT / "slake_qwen3vl_pipeline" / "adapters"
+VQA_RAD_ADAPTER_DIR = _resolve_path(
+    "APP_VQA_RAD_ADAPTER_DIR",
+    PROJECT_ROOT / "vqa_rad_qwen3vl_pipeline" / "adapters"
 )
 CLASSIFIER_MODEL_DIR = _resolve_path(
     "APP_CLASSIFIER_DIR",

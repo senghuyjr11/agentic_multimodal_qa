@@ -26,7 +26,7 @@ from starlette.staticfiles import StaticFiles
 from runtime_config import (
     CLASSIFIER_MODEL_DIR,
     PATHVQA_ADAPTER_DIR,
-    SLAKE_ADAPTER_DIR,
+    VQA_RAD_ADAPTER_DIR,
     SESSIONS_DIR,
     TEMP_UPLOADS_DIR,
     configure_runtime_environment,
@@ -94,7 +94,7 @@ async def startup_event():
 
     vqa_rad_config = ModelConfig(
         base_model_id="Qwen/Qwen3-VL-8B-Instruct",
-        adapter_path=str(SLAKE_ADAPTER_DIR),
+        adapter_path=str(VQA_RAD_ADAPTER_DIR),
         model_class=Qwen3VLForConditionalGeneration
     )
 
@@ -185,7 +185,7 @@ async def start_new_chat(
         # Run pipeline
         result = pipeline.run(
             username=current_user,
-            question=question or "What do you see in this image?",
+            question=question,
             image_path=image_path,
             session_id=None  # New conversation
         )
@@ -251,7 +251,7 @@ async def send_message(
         # Run pipeline
         result = pipeline.run(
             username=current_user,
-            question=question or "What do you see in this image?",
+            question=question,
             image_path=image_path,
             session_id=session_id
         )

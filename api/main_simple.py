@@ -17,7 +17,7 @@ from typing import Optional
 from runtime_config import (
     CLASSIFIER_MODEL_DIR,
     PATHVQA_ADAPTER_DIR,
-    SLAKE_ADAPTER_DIR,
+    VQA_RAD_ADAPTER_DIR,
     configure_runtime_environment,
 )
 
@@ -77,7 +77,7 @@ class MedicalVQAPipeline:
     def run(
         self,
         username: str,
-        question: str,
+        question: Optional[str],
         image_path: Optional[str] = None,
         session_id: Optional[int] = None
     ) -> dict:
@@ -106,20 +106,32 @@ class MedicalVQAPipeline:
         print(f"{'='*60}")
 
         # Track if this was an image-only upload (no user question)
-        is_image_only = (question == "What do you see in this image?" and image_path is not None)
-        display_question = "[Image Uploaded]" if is_image_only else question
+        is_image_only = (not question or not question.strip()) and image_path is not None
+        effective_question = question.strip() if question and question.strip() else None
+        display_question = "[Image Uploaded]" if is_image_only else (effective_question or "")
 
         # ==========================================
         # STEP 1: TRANSLATE INPUT
         # ==========================================
         print("\n[Step 1] Translation...")
-        translation_result = self.translator.process_input(question)
-        english_question = translation_result["english_question"]
-        source_lang = translation_result["source_language"]
-        output_lang = translation_result["output_language"]
+        if effective_question is None:
+            translation_result = {
+                "english_question": None,
+                "source_language": "en",
+                "output_language": "en",
+            }
+            english_question = None
+            source_lang = "en"
+            output_lang = "en"
+            print("  Image-only upload → skipping text translation")
+        else:
+            translation_result = self.translator.process_input(effective_question)
+            english_question = translation_result["english_question"]
+            source_lang = translation_result["source_language"]
+            output_lang = translation_result["output_language"]
 
         print(f"  Source: {source_lang}")
-        print(f"  English: {english_question}")
+        print(f"  English: {english_question if english_question is not None else '[Image-only]'}")
         print(f"  Display: {display_question}")
 
         # ==========================================
@@ -154,7 +166,7 @@ class MedicalVQAPipeline:
             self.session_mgr.add_conversation_turn(
                 username=username,
                 session_id=session_id,
-                user_message=question,
+                user_message=effective_question or display_question,
                 assistant_message=blocked_message,
                 image_path=image_path,
                 meta={
@@ -175,7 +187,7 @@ class MedicalVQAPipeline:
             }
 
         # **CHECK COMING-SOON LANGUAGES (e.g. Khmer input)**
-        if english_question.startswith("COMING_SOON_LANGUAGE:"):
+        if english_question and english_question.startswith("COMING_SOON_LANGUAGE:"):
             lang_code = english_question.split(":")[1]
             lang_name = self.translator.get_language_name(lang_code)
             print(f"  {lang_name} coming soon - saving message to session")
@@ -189,7 +201,7 @@ class MedicalVQAPipeline:
             self.session_mgr.add_conversation_turn(
                 username=username,
                 session_id=session_id,
-                user_message=question,
+                user_message=effective_question or display_question,
                 assistant_message=coming_soon_message,
                 image_path=image_path,
                 meta={
@@ -210,7 +222,7 @@ class MedicalVQAPipeline:
             }
 
         # **CHECK UNSUPPORTED LANGUAGE**
-        if english_question.startswith("UNSUPPORTED_LANGUAGE:"):
+        if english_question and english_question.startswith("UNSUPPORTED_LANGUAGE:"):
             detected_code = english_question.split(":")[1]
             supported_names = translation_result.get("supported_languages", "")
             print(f"  Unsupported language '{detected_code}' - saving message to session")
@@ -224,7 +236,7 @@ class MedicalVQAPipeline:
             self.session_mgr.add_conversation_turn(
                 username=username,
                 session_id=session_id,
-                user_message=question,
+                user_message=effective_question or display_question,
                 assistant_message=unsupported_message,
                 image_path=image_path,
                 meta={
@@ -241,37 +253,38 @@ class MedicalVQAPipeline:
             }
 
         # **CHECK IF USER ASKS IN ENGLISH TO TRANSLATE TO A COMING-SOON LANGUAGE**
-        question_lower = english_question.lower()
-        for lang_code in self.translator.COMING_SOON_LANGUAGES:
-            lang_name = self.translator.get_language_name(lang_code).lower()
-            if lang_name in question_lower and any(
-                w in question_lower for w in ['translate', 'in ' + lang_name, 'to ' + lang_name]
-            ):
-                print(f"  User requested {lang_name} translation → coming soon")
+        if english_question:
+            question_lower = english_question.lower()
+            for lang_code in self.translator.COMING_SOON_LANGUAGES:
+                lang_name = self.translator.get_language_name(lang_code).lower()
+                if lang_name in question_lower and any(
+                    w in question_lower for w in ['translate', 'in ' + lang_name, 'to ' + lang_name]
+                ):
+                    print(f"  User requested {lang_name} translation → coming soon")
 
-                coming_soon_message = (
-                    f"We are currently working on adding {self.translator.get_language_name(lang_code)} "
-                    f"language support. It will be available soon!"
-                )
+                    coming_soon_message = (
+                        f"We are currently working on adding {self.translator.get_language_name(lang_code)} "
+                        f"language support. It will be available soon!"
+                    )
 
-                self.session_mgr.add_conversation_turn(
-                    username=username,
-                    session_id=session_id,
-                    user_message=question,
-                    assistant_message=coming_soon_message,
-                    image_path=image_path,
-                    meta={
-                        "translation": {"source_language": "en", "output_language": lang_code},
-                        "coming_soon": True,
-                        "reason": f"{lang_code}_coming_soon"
+                    self.session_mgr.add_conversation_turn(
+                        username=username,
+                        session_id=session_id,
+                        user_message=effective_question or display_question,
+                        assistant_message=coming_soon_message,
+                        image_path=image_path,
+                        meta={
+                            "translation": {"source_language": "en", "output_language": lang_code},
+                            "coming_soon": True,
+                            "reason": f"{lang_code}_coming_soon"
+                        }
+                    )
+
+                    return {
+                        "response": coming_soon_message,
+                        "session_id": session_id,
+                        "metadata": {"coming_soon": True, "reason": f"{lang_code}_coming_soon"}
                     }
-                )
-
-                return {
-                    "response": coming_soon_message,
-                    "session_id": session_id,
-                    "metadata": {"coming_soon": True, "reason": f"{lang_code}_coming_soon"}
-                }
 
         # Get memory for this session
         memory = self.memory.get_or_create(session_id, conversation_history, memory_state)
@@ -298,7 +311,7 @@ class MedicalVQAPipeline:
         print("\n[Step 3] Router deciding...")
 
         decision = self.router.decide(
-            message=english_question,
+            message=english_question or "[Image Uploaded]",
             has_image=bool(image_path),
             memory=memory
         )
@@ -312,7 +325,7 @@ class MedicalVQAPipeline:
 
         # Check 1: User asking to elaborate on existing references (MOVED UP - HIGHER PRIORITY)
         use_cached_articles = False
-        if self.router.is_asking_about_previous_references(english_question):
+        if english_question and self.router.is_asking_about_previous_references(english_question):
             cached_articles = self.memory.get_pubmed_articles(session_id)
 
             if cached_articles:
@@ -329,7 +342,7 @@ class MedicalVQAPipeline:
         # Check 2: Follow-up asking for explanation of previous short answer
         elif not decision.needs_pubmed and not decision.needs_vqa:
             needs_pubmed_followup, search_query = self.router.detect_followup_needs_pubmed(
-                message=english_question,
+                message=english_question or "",
                 memory=memory
             )
 
@@ -390,9 +403,9 @@ class MedicalVQAPipeline:
 
                 if articles:
                     pubmed_articles = self.pubmed_agent.score_articles(
-                        query=english_question,
-                        articles=articles
-                    )
+                    query=english_question or "medical image finding",
+                    articles=articles
+                )
                     print(f"  Found {len(pubmed_articles)} articles")
 
                     # Store articles in memory for future reference
@@ -418,7 +431,7 @@ class MedicalVQAPipeline:
 
         # Generate response
         english_response = self.response_gen.generate(
-            message=english_question,
+            message=english_question or "[Image Uploaded]",
             response_mode=decision.response_mode,
             vqa_answer=vqa_answer,
             pubmed_articles=pubmed_articles,
@@ -526,7 +539,7 @@ if __name__ == "__main__":
 
     vqa_rad_config = ModelConfig(
         base_model_id="Qwen/Qwen3-VL-8B-Instruct",
-        adapter_path=str(SLAKE_ADAPTER_DIR),
+        adapter_path=str(VQA_RAD_ADAPTER_DIR),
         model_class=Qwen3VLForConditionalGeneration,
     )
 
