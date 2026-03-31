@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment and local secrets
+.env
+.env.*
+
+# IDE/editor
+.idea/
+.vscode/
+
+# Local assistant/tooling
+.claude/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Runtime/session artifacts
+api/sessions/
+api/temp_uploads/
+api/users.json
+
+# Model caches
+.hf_cache/
+**/.hf_cache/
+
+# Training outputs
+**/checkpoints/
+**/results/
+**/adapters/
+
+# Downloaded datasets / generated data
+**/dataset/
+**/dataset_*/
+**/preprocessed/
+**/preprocessed_*/
+
+# Modality classifier local training assets
+modality_classifier_pipeline/model/
+modality_classifier_pipeline/dataset_pathvqa/
+modality_classifier_pipeline/dataset_reject/
+modality_classifier_pipeline/dataset_slake/
+
+# Old local adapter exports
+qwen2vl_7b_pathvqa_adapters/
+qwen2vl_7b_vqa_rad_adapters/
+qwen3vl_2b_vqa_rad_adapters/
+
+# Notebook / misc outputs
+*.ipynb_checkpoints
