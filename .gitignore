@@ -39,10 +39,7 @@ api/users.json
 
 # Training outputs
 **/checkpoints/
-**/results/
 **/adapters/
-!vqa_rad_qwen3vl_pipeline/results/
-!vqa_rad_qwen3vl_pipeline/results/**
 
 # Downloaded datasets / generated data
 **/dataset/
