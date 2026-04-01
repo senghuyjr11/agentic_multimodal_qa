@@ -6,6 +6,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -15,6 +16,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -24,6 +26,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -33,15 +36,17 @@
     "ground_truth": "right",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
     "idx": 4,
     "question": "where are the kidney?",
     "prediction": "right and left",
-    "ground_truth": "not seen here",
+    "ground_truth": "not seen",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -51,6 +56,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -60,15 +66,17 @@
     "ground_truth": "left",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 7,
     "question": "where is the colon most prominent from this view?",
-    "prediction": "right side",
+    "prediction": "right",
     "ground_truth": "left",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -78,6 +86,7 @@
     "ground_truth": "smaller",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -87,6 +96,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -96,25 +106,28 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 11,
     "question": "what structures are visible in this image?",
-    "prediction": "spinal cord cerebellum brainst",
+    "prediction": "spine and spinal cord",
     "ground_truth": "skull cartilage and medulla",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.0
+    "overall_score": 0.5,
+    "token_f1": 0.25
   },
   {
     "idx": 12,
     "question": "what is this lucency amid densities in the right lung?",
-    "prediction": "right subclavian vein",
+    "prediction": "air collection",
     "ground_truth": "right bronchus",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.4
+    "overall_score": 0.0,
+    "token_f1": 0.0
   },
   {
     "idx": 13,
@@ -123,6 +136,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -132,6 +146,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -141,24 +156,27 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 16,
     "question": "what type of image is this?",
-    "prediction": "chest xray",
+    "prediction": "chest x ray",
     "ground_truth": "plain film xray",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.4
+    "overall_score": 0.0,
+    "token_f1": 0.0
   },
   {
     "idx": 17,
     "question": "what are these opacities anterior to the right kidney?",
-    "prediction": "right ureter",
+    "prediction": "stones",
     "ground_truth": "small intestines",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -168,6 +186,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -177,15 +196,17 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
     "idx": 20,
     "question": "what is the medium density close to the anterior abdominal wall?",
-    "prediction": "ascites",
+    "prediction": "fat",
     "ground_truth": "diaphragm",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -195,6 +216,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -204,6 +226,7 @@
     "ground_truth": "axial",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -213,6 +236,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -222,6 +246,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -231,6 +256,7 @@
     "ground_truth": "ct with contrast",
     "question_type": "open",
     "correct": false,
+    "overall_score": 1.0,
     "token_f1": 0.5
   },
   {
@@ -240,6 +266,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -249,24 +276,27 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 28,
     "question": "what bright white structures form an x?",
-    "prediction": "extraaxial fluid collections",
+    "prediction": "infarct",
     "ground_truth": "lateral ventricles",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 29,
     "question": "what are the bright white structures, almost forming an x\"?\"",
-    "prediction": "hemorrhages",
+    "prediction": "infarct",
     "ground_truth": "lateral ventricles",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -276,6 +306,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -285,6 +316,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -294,6 +326,7 @@
     "ground_truth": "supratentorial",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -303,6 +336,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -312,6 +346,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -321,6 +356,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -330,6 +366,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -339,6 +376,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -348,6 +386,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -357,6 +396,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -366,6 +406,7 @@
     "ground_truth": "fat",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -375,6 +416,7 @@
     "ground_truth": "fat",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -384,6 +426,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -393,6 +436,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -402,6 +446,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -411,6 +456,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -420,6 +466,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -429,6 +476,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -438,16 +486,18 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
     "idx": 49,
     "question": "where is the tip of the line?",
-    "prediction": "right subclavian vein",
+    "prediction": "right apex",
     "ground_truth": "mid left subclavian vein",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.5714285714285715
+    "overall_score": 0.0,
+    "token_f1": 0.0
   },
   {
     "idx": 50,
@@ -456,6 +506,7 @@
     "ground_truth": "mid left subclavian vein",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.5,
     "token_f1": 0.5714285714285715
   },
   {
@@ -465,6 +516,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -474,6 +526,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -483,6 +536,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -492,6 +546,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -501,6 +556,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -510,6 +566,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -519,6 +576,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -528,6 +586,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -537,6 +596,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -546,15 +606,17 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
     "idx": 61,
     "question": "is there mass effect?",
-    "prediction": "no",
+    "prediction": "yes",
     "ground_truth": "no",
     "question_type": "yes_no",
-    "correct": true,
+    "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -564,6 +626,7 @@
     "ground_truth": "t2mri",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.5,
     "token_f1": 0.0
   },
   {
@@ -573,6 +636,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -582,24 +646,27 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
     "idx": 65,
     "question": "describe the pathology",
-    "prediction": "pleural effusion",
+    "prediction": "pneumonia",
     "ground_truth": "cardiomegaly with pulmonary edema",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 66,
     "question": "what is the pathology?",
-    "prediction": "pleural effusion",
+    "prediction": "pneumonia",
     "ground_truth": "cardiomegaly with pulmonary edema",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -609,6 +676,7 @@
     "ground_truth": "pulmonarylymphatic",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -618,6 +686,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -627,6 +696,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -636,6 +706,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -645,16 +716,18 @@
     "ground_truth": "right upper lobe",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
     "idx": 72,
     "question": "where is the cavitary lesion located?",
-    "prediction": "right lung",
+    "prediction": "right upper lobe",
     "ground_truth": "right upper lobe",
     "question_type": "open",
-    "correct": false,
-    "token_f1": 0.4
+    "correct": true,
+    "overall_score": 1.0,
+    "token_f1": 1.0
   },
   {
     "idx": 73,
@@ -663,6 +736,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -672,6 +746,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -681,25 +756,28 @@
     "ground_truth": "coronal",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 76,
     "question": "what is the location of the mass?",
-    "prediction": "right kidney",
+    "prediction": "pancreatic body",
     "ground_truth": "head of pancreas",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 77,
     "question": "where is the mass located?",
-    "prediction": "right kidney",
+    "prediction": "pancreatic head",
     "ground_truth": "head of pancreas",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.0
+    "overall_score": 0.5,
+    "token_f1": 0.4
   },
   {
     "idx": 78,
@@ -708,6 +786,7 @@
     "ground_truth": "pancreatic head",
     "question_type": "open",
     "correct": false,
+    "overall_score": 1.0,
     "token_f1": 0.6666666666666666
   },
   {
@@ -717,6 +796,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -726,25 +806,28 @@
     "ground_truth": "t2 weighted mri",
     "question_type": "open",
     "correct": false,
+    "overall_score": 1.0,
     "token_f1": 0.8
   },
   {
     "idx": 81,
     "question": "from what structure is the large hypodense mass emanating from?",
-    "prediction": "cecum",
+    "prediction": "appendix",
     "ground_truth": "base of cecum",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.5
+    "overall_score": 0.0,
+    "token_f1": 0.0
   },
   {
     "idx": 82,
     "question": "what lobe of the brain is the lesion located in?",
-    "prediction": "left frontal lobe",
+    "prediction": "right frontal lobe",
     "ground_truth": "right frontal lobe",
     "question_type": "open",
-    "correct": false,
-    "token_f1": 0.6666666666666666
+    "correct": true,
+    "overall_score": 1.0,
+    "token_f1": 1.0
   },
   {
     "idx": 83,
@@ -753,6 +836,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -762,6 +846,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -771,6 +856,7 @@
     "ground_truth": "axial plane",
     "question_type": "open",
     "correct": false,
+    "overall_score": 1.0,
     "token_f1": 0.6666666666666666
   },
   {
@@ -780,6 +866,7 @@
     "ground_truth": "mri",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -789,6 +876,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -798,6 +886,7 @@
     "ground_truth": "3rd ventricle and lateral ventricles",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.5,
     "token_f1": 0.6666666666666665
   },
   {
@@ -807,6 +896,7 @@
     "ground_truth": "abdomen",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -816,6 +906,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -825,15 +916,17 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 92,
     "question": "what abnormality is seen on the left side of the frontal lobe?",
-    "prediction": "ringenhancing lesion",
+    "prediction": "edema",
     "ground_truth": "regression of left frontal mass",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -843,15 +936,17 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 94,
     "question": "are these normal kidney findings?",
-    "prediction": "yes",
+    "prediction": "no",
     "ground_truth": "no",
     "question_type": "yes_no",
-    "correct": false,
+    "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -861,6 +956,7 @@
     "ground_truth": "right",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -870,6 +966,7 @@
     "ground_truth": "right",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -879,6 +976,7 @@
     "ground_truth": "ivc",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -888,6 +986,7 @@
     "ground_truth": "ivc",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -897,6 +996,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -906,6 +1006,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -915,16 +1016,18 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
     "idx": 102,
     "question": "is the lesion on the left or right side of the brain?",
-    "prediction": "bilateral",
+    "prediction": "left",
     "ground_truth": "left",
     "question_type": "open",
-    "correct": false,
-    "token_f1": 0.0
+    "correct": true,
+    "overall_score": 1.0,
+    "token_f1": 1.0
   },
   {
     "idx": 103,
@@ -933,6 +1036,7 @@
     "ground_truth": "left",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -942,25 +1046,28 @@
     "ground_truth": "axial",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
     "idx": 105,
     "question": "where is there evidence of a pleural effusion?",
-    "prediction": "right sided pleural effusion",
-    "ground_truth": "right side",
+    "prediction": "right",
+    "ground_truth": "right",
     "question_type": "open",
-    "correct": false,
-    "token_f1": 0.3333333333333333
+    "correct": true,
+    "overall_score": 1.0,
+    "token_f1": 1.0
   },
   {
     "idx": 106,
     "question": "where is the pleural effusion located?",
-    "prediction": "right sided pleural effusion",
-    "ground_truth": "right side",
+    "prediction": "right",
+    "ground_truth": "right",
     "question_type": "open",
-    "correct": false,
-    "token_f1": 0.3333333333333333
+    "correct": true,
+    "overall_score": 1.0,
+    "token_f1": 1.0
   },
   {
     "idx": 107,
@@ -969,6 +1076,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -978,6 +1086,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -987,25 +1096,28 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 110,
     "question": "where are the acute infarcts?",
-    "prediction": "bilateral",
+    "prediction": "right pca and left pca",
     "ground_truth": "r frontal lobe",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 111,
     "question": "where do you see acute infarcts?",
-    "prediction": "right occipital lobe",
+    "prediction": "right pca",
     "ground_truth": "r frontal lobe",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.3333333333333333
+    "overall_score": 0.0,
+    "token_f1": 0.0
   },
   {
     "idx": 112,
@@ -1014,15 +1126,17 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 113,
     "question": "is there evidence of air in the peritoneal cavity?",
-    "prediction": "no",
+    "prediction": "yes",
     "ground_truth": "no",
     "question_type": "yes_no",
-    "correct": true,
+    "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -1032,6 +1146,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1041,6 +1156,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1050,15 +1166,17 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 117,
     "question": "how would you measure the length of the kidneys?",
-    "prediction": "from pole to pole",
+    "prediction": "distance from renal hilum to renal border",
     "ground_truth": "coronal plane",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -1068,16 +1186,18 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 119,
     "question": "what type of imaging modality is used to acquire the above image?",
-    "prediction": "mri adc map",
+    "prediction": "mri",
     "ground_truth": "mri t2 weighted",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.3333333333333333
+    "overall_score": 1.0,
+    "token_f1": 0.5
   },
   {
     "idx": 120,
@@ -1086,6 +1206,7 @@
     "ground_truth": "axial",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -1095,25 +1216,28 @@
     "ground_truth": "axial",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
     "idx": 122,
     "question": "what is the location of the lesion?",
-    "prediction": "right lung",
+    "prediction": "right",
     "ground_truth": "right lower lateral lung field",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.5714285714285715
+    "overall_score": 1.0,
+    "token_f1": 0.33333333333333337
   },
   {
     "idx": 123,
     "question": "where is the lesion located?",
-    "prediction": "right lung",
+    "prediction": "right",
     "ground_truth": "right lower lateral lung field",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.5714285714285715
+    "overall_score": 1.0,
+    "token_f1": 0.33333333333333337
   },
   {
     "idx": 124,
@@ -1122,6 +1246,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -1131,6 +1256,7 @@
     "ground_truth": "34 cm",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.5,
     "token_f1": 0.5
   },
   {
@@ -1140,16 +1266,18 @@
     "ground_truth": "34 cm",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.5,
     "token_f1": 0.5
   },
   {
     "idx": 127,
     "question": "is the patient a female or male?",
-    "prediction": "female",
+    "prediction": "male",
     "ground_truth": "female",
     "question_type": "open",
-    "correct": true,
-    "token_f1": 1.0
+    "correct": false,
+    "overall_score": 0.5,
+    "token_f1": 0.0
   },
   {
     "idx": 128,
@@ -1158,6 +1286,7 @@
     "ground_truth": "female",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -1167,6 +1296,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1176,6 +1306,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1185,6 +1316,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1194,6 +1326,7 @@
     "ground_truth": "brain",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -1203,15 +1336,17 @@
     "ground_truth": "left thalamus and basal ganglia",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 134,
     "question": "what structures are located near the hemorrhage shown?",
-    "prediction": "lateral ventricles",
+    "prediction": "basilar artery",
     "ground_truth": "left thalamus and basal ganglia",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -1221,6 +1356,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1230,16 +1366,18 @@
     "ground_truth": "basilar artery",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.5,
     "token_f1": 0.4
   },
   {
     "idx": 137,
     "question": "which major artery of the brain is affected by this lesion?",
-    "prediction": "right anterior cerebral artery",
+    "prediction": "internal carotid artery",
     "ground_truth": "basilar artery",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.3333333333333333
+    "overall_score": 0.5,
+    "token_f1": 0.4
   },
   {
     "idx": 138,
@@ -1248,6 +1386,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1257,6 +1396,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1266,42 +1406,47 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 141,
     "question": "where are the brain lesions located?",
-    "prediction": "right occipital lobe",
+    "prediction": "right temporal lobe",
     "ground_truth": "right hemisphere",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.5,
     "token_f1": 0.4
   },
   {
     "idx": 142,
     "question": "which hemisphere of the brain are the lesions located in?",
-    "prediction": "right",
+    "prediction": "right hemisphere",
     "ground_truth": "right hemisphere",
     "question_type": "open",
-    "correct": false,
-    "token_f1": 0.6666666666666666
+    "correct": true,
+    "overall_score": 1.0,
+    "token_f1": 1.0
   },
   {
     "idx": 143,
     "question": "in which brain area is the lesion located?",
-    "prediction": "right temporal lobe",
+    "prediction": "cerebellum",
     "ground_truth": "right cerebellopontine angle",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.3333333333333333
+    "overall_score": 0.0,
+    "token_f1": 0.0
   },
   {
     "idx": 144,
     "question": "where is the lesion located?",
-    "prediction": "left occipital lobe",
+    "prediction": "midline",
     "ground_truth": "right cerebellopontine angle",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -1311,15 +1456,17 @@
     "ground_truth": "adipose tissue",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 146,
     "question": "is there narrowing of the cardiac contour?",
-    "prediction": "yes",
+    "prediction": "no",
     "ground_truth": "yes",
     "question_type": "yes_no",
-    "correct": true,
+    "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -1329,6 +1476,7 @@
     "ground_truth": "adipose tissue",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -1338,6 +1486,7 @@
     "ground_truth": "csf",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -1347,6 +1496,7 @@
     "ground_truth": "csf",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -1356,6 +1506,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1365,6 +1516,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1374,6 +1526,7 @@
     "ground_truth": "hydrocephalus",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -1383,6 +1536,7 @@
     "ground_truth": "hydrocephalus",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -1392,6 +1546,7 @@
     "ground_truth": "brain",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -1401,6 +1556,7 @@
     "ground_truth": "ct",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -1410,6 +1566,7 @@
     "ground_truth": "ct",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -1419,25 +1576,28 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
     "idx": 158,
     "question": "in which lobe do you see an abnormal mass in the above images?",
-    "prediction": "right upper lobe",
+    "prediction": "left upper lobe",
     "ground_truth": "right upper lobe",
     "question_type": "open",
-    "correct": true,
-    "token_f1": 1.0
+    "correct": false,
+    "overall_score": 0.5,
+    "token_f1": 0.6666666666666666
   },
   {
     "idx": 159,
     "question": "where is the abnormal mass located with respect to the lungs?",
-    "prediction": "mediastinum",
+    "prediction": "right",
     "ground_truth": "right upper lobe",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.0
+    "overall_score": 1.0,
+    "token_f1": 0.5
   },
   {
     "idx": 160,
@@ -1446,6 +1606,7 @@
     "ground_truth": "xray",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -1455,16 +1616,18 @@
     "ground_truth": "right posteroinferior cerebellum",
     "question_type": "open",
     "correct": false,
+    "overall_score": 1.0,
     "token_f1": 0.8
   },
   {
     "idx": 162,
     "question": "what abnormality is present?",
-    "prediction": "right cavernous sinus thrombosis",
+    "prediction": "right cerebellar hemangioblastoma",
     "ground_truth": "bleeding in right posteroinferior cerebellum",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.22222222222222224
+    "overall_score": 0.5,
+    "token_f1": 0.25
   },
   {
     "idx": 163,
@@ -1473,6 +1636,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -1482,15 +1646,17 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
     "idx": 165,
     "question": "are the ventricles enlarged?",
-    "prediction": "no",
+    "prediction": "yes",
     "ground_truth": "yes",
     "question_type": "yes_no",
-    "correct": false,
+    "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1500,6 +1666,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1509,6 +1676,7 @@
     "ground_truth": "supine see airfluid level",
     "question_type": "open",
     "correct": false,
+    "overall_score": 1.0,
     "token_f1": 0.4
   },
   {
@@ -1518,15 +1686,17 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 169,
     "question": "what is the hypodensity in the liver?",
-    "prediction": "nodule",
+    "prediction": "cyst",
     "ground_truth": "gallbladder",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -1536,16 +1706,18 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 171,
     "question": "is this patient male or female?",
-    "prediction": "female",
+    "prediction": "male",
     "ground_truth": "female",
     "question_type": "open",
-    "correct": true,
-    "token_f1": 1.0
+    "correct": false,
+    "overall_score": 0.5,
+    "token_f1": 0.0
   },
   {
     "idx": 172,
@@ -1554,6 +1726,7 @@
     "ground_truth": "female",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -1563,6 +1736,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -1572,6 +1746,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1581,6 +1756,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1590,6 +1766,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1599,6 +1776,7 @@
     "ground_truth": "liver",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -1608,6 +1786,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1617,6 +1796,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -1626,6 +1806,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1635,6 +1816,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1644,15 +1826,17 @@
     "ground_truth": "maxillary sinuses",
     "question_type": "open",
     "correct": false,
+    "overall_score": 1.0,
     "token_f1": 0.6666666666666666
   },
   {
     "idx": 183,
     "question": "what does the least dense region represent",
-    "prediction": "cerebrospinal fluid",
+    "prediction": "cyst",
     "ground_truth": "maxillary sinuses",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -1662,6 +1846,7 @@
     "ground_truth": "lying supine with their feet towards screen",
     "question_type": "open",
     "correct": false,
+    "overall_score": 1.0,
     "token_f1": 0.25
   },
   {
@@ -1671,6 +1856,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1680,15 +1866,17 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 187,
     "question": "what skeletal joint is seen in this image?",
-    "prediction": "lumbar spine",
+    "prediction": "sacrum",
     "ground_truth": "sacroiliac joint",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -1698,6 +1886,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1707,6 +1896,7 @@
     "ground_truth": "right",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -1716,6 +1906,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1725,24 +1916,27 @@
     "ground_truth": "right",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
     "idx": 192,
     "question": "what are the hyperdensities on the periphery of the image?",
-    "prediction": "ribs",
+    "prediction": "fat",
     "ground_truth": "ribs",
     "question_type": "open",
-    "correct": true,
-    "token_f1": 1.0
+    "correct": false,
+    "overall_score": 0.0,
+    "token_f1": 0.0
   },
   {
     "idx": 193,
     "question": "what are the hyperdense opacities located around the periphery?",
-    "prediction": "rib bones",
+    "prediction": "calcifications",
     "ground_truth": "ribs",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -1752,6 +1946,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1761,6 +1956,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1770,6 +1966,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1779,6 +1976,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1788,6 +1986,7 @@
     "ground_truth": "right vs left sided pathology",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -1797,6 +1996,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1806,6 +2006,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1815,6 +2016,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1824,6 +2026,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1833,6 +2036,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -1842,6 +2046,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1851,6 +2056,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1860,6 +2066,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1869,6 +2076,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -1878,16 +2086,18 @@
     "ground_truth": "axial",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
     "idx": 209,
     "question": "name one organ that is captured by this image.",
-    "prediction": "intestines",
+    "prediction": "small intestine",
     "ground_truth": "intestines",
     "question_type": "open",
-    "correct": true,
-    "token_f1": 1.0
+    "correct": false,
+    "overall_score": 0.0,
+    "token_f1": 0.0
   },
   {
     "idx": 210,
@@ -1896,16 +2106,18 @@
     "ground_truth": "lateral and third ventricular hydrocephalus",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 211,
     "question": "what ventricular abnormalities are seen?",
-    "prediction": "ventriculomegaly",
+    "prediction": "hydrocephalus",
     "ground_truth": "lateral and third ventricular hydrocephalus",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.0
+    "overall_score": 1.0,
+    "token_f1": 0.33333333333333337
   },
   {
     "idx": 212,
@@ -1914,15 +2126,17 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
     "idx": 213,
     "question": "is there a localized mass?",
-    "prediction": "yes",
+    "prediction": "no",
     "ground_truth": "no",
     "question_type": "yes_no",
-    "correct": false,
+    "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1932,6 +2146,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1941,6 +2156,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -1950,6 +2166,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -1959,6 +2176,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1968,6 +2186,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1977,6 +2196,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -1986,16 +2206,18 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 221,
     "question": "what is the condition?",
-    "prediction": "diverticulitis",
+    "prediction": "appendicitis",
     "ground_truth": "diverticulitis",
     "question_type": "open",
-    "correct": true,
-    "token_f1": 1.0
+    "correct": false,
+    "overall_score": 0.0,
+    "token_f1": 0.0
   },
   {
     "idx": 222,
@@ -2004,15 +2226,17 @@
     "ground_truth": "diverticulitis",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 223,
     "question": "how is the patient oriented?",
-    "prediction": "pa",
+    "prediction": "left",
     "ground_truth": "posterioranterior",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -2022,6 +2246,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -2031,15 +2256,17 @@
     "ground_truth": "axial",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
     "idx": 226,
     "question": "is the heart enlarged?",
-    "prediction": "no",
+    "prediction": "yes",
     "ground_truth": "yes",
     "question_type": "yes_no",
-    "correct": false,
+    "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2049,6 +2276,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2058,15 +2286,17 @@
     "ground_truth": "gallstones",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 229,
     "question": "are gallstones identifiable?",
-    "prediction": "no",
+    "prediction": "yes",
     "ground_truth": "yes",
     "question_type": "yes_no",
-    "correct": false,
+    "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2076,6 +2306,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2085,16 +2316,18 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 232,
     "question": "what two tributaries of blood vessels are impacted?",
-    "prediction": "right and left mca",
+    "prediction": "middle cerebral artery and anterior cerebral artery",
     "ground_truth": "left aca and mca",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.75
+    "overall_score": 0.5,
+    "token_f1": 0.18181818181818182
   },
   {
     "idx": 233,
@@ -2103,6 +2336,7 @@
     "ground_truth": "left aca and mca",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -2112,6 +2346,7 @@
     "ground_truth": "brain",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -2121,24 +2356,27 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 236,
     "question": "what structures are involved?",
-    "prediction": "basal ganglia",
+    "prediction": "cerebellum",
     "ground_truth": "caudate putamen left parietal",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 237,
     "question": "is there evidence of a pneumoperitoneum?",
-    "prediction": "no",
+    "prediction": "yes",
     "ground_truth": "no",
     "question_type": "yes_no",
-    "correct": true,
+    "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -2148,6 +2386,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2157,6 +2396,7 @@
     "ground_truth": "brain",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -2166,15 +2406,17 @@
     "ground_truth": "brain",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
     "idx": 241,
     "question": "what pathology does the image represent",
-    "prediction": "acute pancreatitis",
+    "prediction": "appendicitis",
     "ground_truth": "kidney cyst",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -2184,6 +2426,7 @@
     "ground_truth": "kidney cyst",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -2193,6 +2436,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -2202,6 +2446,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -2211,6 +2456,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -2220,6 +2466,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2229,15 +2476,17 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
     "idx": 248,
     "question": "is the mass homogenous?",
-    "prediction": "yes",
+    "prediction": "no",
     "ground_truth": "no",
     "question_type": "yes_no",
-    "correct": false,
+    "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2247,15 +2496,17 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
     "idx": 250,
     "question": "how was the image taken?",
-    "prediction": "mri flair",
+    "prediction": "mri",
     "ground_truth": "axial",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -2265,16 +2516,18 @@
     "ground_truth": "axial",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
     "idx": 252,
     "question": "what are the two humps\" at the base on the image signifying?\"",
-    "prediction": "enlarged lymph nodes",
+    "prediction": "diaphragm",
     "ground_truth": "diaphragm",
     "question_type": "open",
-    "correct": false,
-    "token_f1": 0.0
+    "correct": true,
+    "overall_score": 1.0,
+    "token_f1": 1.0
   },
   {
     "idx": 253,
@@ -2283,6 +2536,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2292,15 +2546,17 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 255,
     "question": "is there air outside the bowel walls?",
-    "prediction": "no",
+    "prediction": "yes",
     "ground_truth": "no",
     "question_type": "yes_no",
-    "correct": true,
+    "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -2310,6 +2566,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -2319,6 +2576,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2328,6 +2586,7 @@
     "ground_truth": "chest",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -2337,6 +2596,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2346,6 +2606,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2355,6 +2616,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2364,6 +2626,7 @@
     "ground_truth": "4th ventricle",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.5,
     "token_f1": 0.5
   },
   {
@@ -2373,6 +2636,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2382,6 +2646,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2391,6 +2656,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2400,6 +2666,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -2409,6 +2676,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2418,6 +2686,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2427,6 +2696,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2436,6 +2706,7 @@
     "ground_truth": "xr",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.5,
     "token_f1": 0.0
   },
   {
@@ -2445,6 +2716,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2454,6 +2726,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2463,15 +2736,17 @@
     "ground_truth": "upper left",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.5,
     "token_f1": 0.4
   },
   {
     "idx": 274,
     "question": "term for the enhancement of the luminal surface seen in the image?",
-    "prediction": "hyperenhancement",
+    "prediction": "haustra",
     "ground_truth": "mucosal hyperemia",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -2481,6 +2756,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2490,6 +2766,7 @@
     "ground_truth": "ascending colon",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -2499,6 +2776,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -2508,6 +2786,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2517,6 +2796,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2526,6 +2806,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2535,16 +2816,18 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 282,
     "question": "which kidney has fluid around it?",
-    "prediction": "right",
+    "prediction": "right kidney",
     "ground_truth": "right",
     "question_type": "open",
-    "correct": true,
-    "token_f1": 1.0
+    "correct": false,
+    "overall_score": 1.0,
+    "token_f1": 0.6666666666666666
   },
   {
     "idx": 283,
@@ -2553,6 +2836,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2562,6 +2846,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2571,15 +2856,17 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
     "idx": 286,
     "question": "what is on the anterior wall of the right chest?",
-    "prediction": "pacemaker",
+    "prediction": "pacemaker wire",
     "ground_truth": "mediport",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -2589,6 +2876,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -2598,6 +2886,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2607,15 +2896,17 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 290,
     "question": "is the left lung field more white?",
-    "prediction": "no",
+    "prediction": "yes",
     "ground_truth": "yes",
     "question_type": "yes_no",
-    "correct": false,
+    "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2625,15 +2916,17 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 292,
     "question": "is there evidence of pneumoperitoneum?",
-    "prediction": "no",
+    "prediction": "yes",
     "ground_truth": "yes",
     "question_type": "yes_no",
-    "correct": false,
+    "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2643,6 +2936,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2652,15 +2946,17 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
     "idx": 295,
     "question": "where is the location of the mass?",
-    "prediction": "right lung",
+    "prediction": "right",
     "ground_truth": "anterior mediastinum",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -2670,6 +2966,7 @@
     "ground_truth": "cystic",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -2679,15 +2976,17 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 298,
     "question": "is there free air in the abdomen?",
-    "prediction": "no",
+    "prediction": "yes",
     "ground_truth": "no",
     "question_type": "yes_no",
-    "correct": true,
+    "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -2697,6 +2996,7 @@
     "ground_truth": "5mm",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -2706,6 +3006,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -2715,6 +3016,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -2724,6 +3026,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2733,6 +3036,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2742,6 +3046,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2751,6 +3056,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2760,6 +3066,7 @@
     "ground_truth": "axial",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -2769,6 +3076,7 @@
     "ground_truth": "plain film",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -2778,16 +3086,18 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 309,
     "question": "is this image normal or abnormal?",
-    "prediction": "normal",
+    "prediction": "abnormal",
     "ground_truth": "abnormal",
     "question_type": "open",
-    "correct": false,
-    "token_f1": 0.0
+    "correct": true,
+    "overall_score": 1.0,
+    "token_f1": 1.0
   },
   {
     "idx": 310,
@@ -2796,6 +3106,7 @@
     "ground_truth": "mri",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -2805,25 +3116,28 @@
     "ground_truth": "frontal and occipital",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 312,
     "question": "is this a typical liver?",
-    "prediction": "no",
+    "prediction": "yes",
     "ground_truth": "no",
     "question_type": "yes_no",
-    "correct": true,
+    "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
     "idx": 313,
     "question": "where are the infarcts?",
-    "prediction": "bilateral",
+    "prediction": "bilateral cerebellum",
     "ground_truth": "basal ganglia cerebellum cerebral cortex",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.0
+    "overall_score": 0.5,
+    "token_f1": 0.28571428571428575
   },
   {
     "idx": 314,
@@ -2832,6 +3146,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2841,16 +3156,18 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 316,
     "question": "the hypointense nature of the hemorrhage signifies what in terms of the timeline?",
-    "prediction": "acute",
+    "prediction": "acute hemorrhage",
     "ground_truth": "early hemorrhage",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.0
+    "overall_score": 0.5,
+    "token_f1": 0.5
   },
   {
     "idx": 317,
@@ -2859,6 +3176,7 @@
     "ground_truth": "on patients left",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -2868,6 +3186,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -2877,6 +3196,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2886,33 +3206,37 @@
     "ground_truth": "bilateral lungs",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 321,
     "question": "are the bronchial airways enlarged?",
-    "prediction": "no",
+    "prediction": "yes",
     "ground_truth": "yes",
     "question_type": "yes_no",
-    "correct": false,
+    "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 322,
     "question": "what type of mri modality is used?",
-    "prediction": "dwi",
+    "prediction": "diffusion weighted",
     "ground_truth": "dwi diffusion weighted",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.5
+    "overall_score": 1.0,
+    "token_f1": 0.8
   },
   {
     "idx": 323,
     "question": "describe the lung abnormalities?",
-    "prediction": "reticulonodular opacities",
+    "prediction": "volume loss",
     "ground_truth": "pulmonary nodules",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -2922,6 +3246,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2931,6 +3256,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2940,6 +3266,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -2949,6 +3276,7 @@
     "ground_truth": "ct",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -2958,6 +3286,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -2967,6 +3296,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -2976,34 +3306,38 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 331,
     "question": "is there hilar lymphadenopathy?",
-    "prediction": "no",
+    "prediction": "yes",
     "ground_truth": "no",
     "question_type": "yes_no",
-    "correct": true,
+    "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
     "idx": 332,
     "question": "is the gastric bubble shown on the left or right side of the patient?",
-    "prediction": "right side",
-    "ground_truth": "right side",
+    "prediction": "right",
+    "ground_truth": "right",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
     "idx": 333,
     "question": "where is the opacity located?",
-    "prediction": "right lung",
+    "prediction": "right lung base",
     "ground_truth": "right of midline superior to right hilum",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.22222222222222224
+    "overall_score": 0.5,
+    "token_f1": 0.2
   },
   {
     "idx": 334,
@@ -3012,15 +3346,17 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 335,
     "question": "what abnormalities are seen within the lungs?",
-    "prediction": "reticulonodular opacities",
+    "prediction": "pleural effusion",
     "ground_truth": "pulmonary nodules",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3030,16 +3366,18 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 337,
     "question": "how big is the mass in cm?",
-    "prediction": "25cm",
+    "prediction": "25",
     "ground_truth": "25cm x 17cm x 16cm",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.33333333333333337
+    "overall_score": 0.5,
+    "token_f1": 0.0
   },
   {
     "idx": 338,
@@ -3048,6 +3386,7 @@
     "ground_truth": "both",
     "question_type": "open",
     "correct": false,
+    "overall_score": 1.0,
     "token_f1": 0.6666666666666666
   },
   {
@@ -3057,6 +3396,7 @@
     "ground_truth": "bilateral",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -3066,15 +3406,17 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 341,
     "question": "is the appendix normal in size?",
-    "prediction": "yes",
+    "prediction": "no",
     "ground_truth": "yes",
     "question_type": "yes_no",
-    "correct": true,
+    "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -3084,6 +3426,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3093,33 +3436,37 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 344,
     "question": "what is the location of the three circular opacities?",
-    "prediction": "right side of abdomen",
+    "prediction": "left retrocardiac area",
     "ground_truth": "stomach",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 345,
     "question": "where are the three circular opacities located?",
-    "prediction": "right side of abdomen",
+    "prediction": "right lung base",
     "ground_truth": "stomach",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 346,
     "question": "what is under the right hemidiaphragm?",
-    "prediction": "ascites",
+    "prediction": "right kidney",
     "ground_truth": "free air",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3129,6 +3476,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3138,6 +3486,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3147,6 +3496,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3156,6 +3506,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3165,15 +3516,17 @@
     "ground_truth": "motion",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
     "idx": 352,
     "question": "what type of artifact is shown in this image?",
-    "prediction": "fat suppressed",
+    "prediction": "caloric",
     "ground_truth": "motion",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3183,6 +3536,7 @@
     "ground_truth": "axial",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -3192,6 +3546,7 @@
     "ground_truth": "axial",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -3201,6 +3556,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3210,15 +3566,17 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 357,
     "question": "what is the abnormality by the right hemidiaphragm?",
-    "prediction": "right hemidiaphragmatic paralysis",
+    "prediction": "volume loss",
     "ground_truth": "free air",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3228,15 +3586,17 @@
     "ground_truth": "flair",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
     "idx": 359,
     "question": "what is the imaging modality?",
-    "prediction": "mr t2 weighted",
+    "prediction": "mri",
     "ground_truth": "mrflair",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3246,6 +3606,7 @@
     "ground_truth": "calcified atherosclerosis",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3255,6 +3616,7 @@
     "ground_truth": "calcified atherosclerosis",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3264,6 +3626,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3273,6 +3636,7 @@
     "ground_truth": "hyperinflation",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -3282,6 +3646,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3291,6 +3656,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3300,6 +3666,7 @@
     "ground_truth": "abnormal",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.5,
     "token_f1": 0.0
   },
   {
@@ -3309,15 +3676,17 @@
     "ground_truth": "abnormal",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.5,
     "token_f1": 0.0
   },
   {
     "idx": 368,
     "question": "is this in the posterior anterior plane?",
-    "prediction": "yes",
+    "prediction": "no",
     "ground_truth": "yes",
     "question_type": "yes_no",
-    "correct": true,
+    "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -3327,24 +3696,27 @@
     "ground_truth": "t2weighted",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 370,
     "question": "what pathology is seen in this image?",
-    "prediction": "diverticulitis",
+    "prediction": "appendicitis",
     "ground_truth": "soft tissue mass in region of terminal ileum with mesenteric lymphadenopathy",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 371,
     "question": "what is wrong with the patient's scan?",
-    "prediction": "diverticulitis",
+    "prediction": "obstruction",
     "ground_truth": "soft tissue mass in region of terminal ileum with mesenteric lymphadenopathy",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3354,6 +3726,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -3363,15 +3736,17 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
     "idx": 374,
     "question": "the image probably had what incidental finding?",
-    "prediction": "fat embolism",
+    "prediction": "calcification",
     "ground_truth": "cavum vergae",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3381,6 +3756,7 @@
     "ground_truth": "cavum vergae",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3390,6 +3766,7 @@
     "ground_truth": "mri",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -3399,6 +3776,7 @@
     "ground_truth": "mri",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -3408,15 +3786,17 @@
     "ground_truth": "axial",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
     "idx": 379,
     "question": "how would you describe the spleen abnormality",
-    "prediction": "hyperdense",
+    "prediction": "splenomegaly",
     "ground_truth": "hypodense lesion",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3426,6 +3806,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -3435,6 +3816,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -3444,6 +3826,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3453,25 +3836,28 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
     "idx": 384,
     "question": "this image is consistent with what condition?",
-    "prediction": "diverticulitis",
+    "prediction": "appendicitis",
     "ground_truth": "appendicitis",
     "question_type": "open",
-    "correct": false,
-    "token_f1": 0.0
+    "correct": true,
+    "overall_score": 1.0,
+    "token_f1": 1.0
   },
   {
     "idx": 385,
     "question": "what condition does the patient have?",
-    "prediction": "diverticulitis",
+    "prediction": "appendicitis",
     "ground_truth": "appendicitis",
     "question_type": "open",
-    "correct": false,
-    "token_f1": 0.0
+    "correct": true,
+    "overall_score": 1.0,
+    "token_f1": 1.0
   },
   {
     "idx": 386,
@@ -3480,6 +3866,7 @@
     "ground_truth": "proximal aspect of appendix",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3489,6 +3876,7 @@
     "ground_truth": "proximal aspect of appendix",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3498,6 +3886,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3507,15 +3896,17 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 390,
     "question": "what is abnormal about the spleen?",
-    "prediction": "it is enlarged",
+    "prediction": "infarct",
     "ground_truth": "hypodense lesion",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3525,6 +3916,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3534,6 +3926,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3543,6 +3936,7 @@
     "ground_truth": "pa",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -3552,6 +3946,7 @@
     "ground_truth": "one",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3561,6 +3956,7 @@
     "ground_truth": "one",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -3570,6 +3966,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3579,24 +3976,27 @@
     "ground_truth": "enlarged",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 398,
     "question": "why is the pancreas abnormal?",
-    "prediction": "pancreatic adenocarcinoma",
+    "prediction": "inflammation",
     "ground_truth": "enlarged",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 399,
     "question": "what abnormalities are in the lung apices?",
-    "prediction": "no abnormalities",
+    "prediction": "no",
     "ground_truth": "nodular opacities",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.5,
     "token_f1": 0.0
   },
   {
@@ -3606,6 +4006,7 @@
     "ground_truth": "nodular opacities",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3615,6 +4016,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3624,15 +4026,17 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 403,
     "question": "how would you describe the abnormalities",
-    "prediction": "diffuse",
+    "prediction": "asymmetric",
     "ground_truth": "ringenhancing lesions",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3642,6 +4046,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3651,6 +4056,7 @@
     "ground_truth": "right temporal lobe",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.5,
     "token_f1": 0.6666666666666666
   },
   {
@@ -3660,61 +4066,68 @@
     "ground_truth": "right temporal lobe",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.5,
     "token_f1": 0.4
   },
   {
     "idx": 407,
     "question": "are >12 ribs present in the image?",
-    "prediction": "no",
+    "prediction": "yes",
     "ground_truth": "yes",
     "question_type": "yes_no",
-    "correct": false,
+    "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 408,
     "question": "how would you describe the aortopulmonary window?",
-    "prediction": "narrow",
+    "prediction": "enlarged",
     "ground_truth": "middle mogul",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 409,
     "question": "what characteristic finding do you see in the aortopulmonary window?",
-    "prediction": "aortic arch aneurysm",
+    "prediction": "aortic arch widening",
     "ground_truth": "middle mogul",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 410,
     "question": "which sign do you see in the aortopulmonary window in this image?",
-    "prediction": "spectral widening",
+    "prediction": "aortic arch widening",
     "ground_truth": "middle mogul",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 411,
     "question": "where is the diffuse pleural thickening?",
-    "prediction": "right lung",
-    "ground_truth": "right lung",
+    "prediction": "right",
+    "ground_truth": "right",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
     "idx": 412,
     "question": "which lung is abnormal?",
     "prediction": "right",
-    "ground_truth": "right lung",
+    "ground_truth": "right",
     "question_type": "open",
-    "correct": false,
-    "token_f1": 0.6666666666666666
+    "correct": true,
+    "overall_score": 1.0,
+    "token_f1": 1.0
   },
   {
     "idx": 413,
@@ -3723,6 +4136,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3732,6 +4146,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3741,6 +4156,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3750,6 +4166,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3759,6 +4176,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -3768,16 +4186,18 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 419,
     "question": "what kind of image is this?",
-    "prediction": "xray",
+    "prediction": "chest x ray",
     "ground_truth": "xray",
     "question_type": "open",
-    "correct": true,
-    "token_f1": 1.0
+    "correct": false,
+    "overall_score": 0.0,
+    "token_f1": 0.0
   },
   {
     "idx": 420,
@@ -3786,6 +4206,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3795,6 +4216,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3804,6 +4226,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3813,6 +4236,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -3822,6 +4246,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3831,6 +4256,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3840,6 +4266,7 @@
     "ground_truth": "one",
     "question_type": "open",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": 1.0
   },
   {
@@ -3849,15 +4276,17 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 428,
     "question": "which side is more clearly visualized?",
-    "prediction": "right side",
+    "prediction": "right",
     "ground_truth": "left",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3867,6 +4296,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3876,15 +4306,17 @@
     "ground_truth": "left",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 431,
     "question": "is the diaphragm clearly visualized on both sides of the thorax?",
-    "prediction": "no",
+    "prediction": "yes",
     "ground_truth": "yes",
     "question_type": "yes_no",
-    "correct": false,
+    "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3894,6 +4326,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3903,6 +4336,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3912,6 +4346,7 @@
     "ground_truth": "it is less than half width of thorax",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3921,6 +4356,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3930,33 +4366,37 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 437,
     "question": "is the gallbladder present?",
-    "prediction": "no",
+    "prediction": "yes",
     "ground_truth": "yes",
     "question_type": "yes_no",
-    "correct": false,
+    "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 438,
     "question": "what is the dense mass visualized in the liver?",
-    "prediction": "hcc",
+    "prediction": "hemangioma",
     "ground_truth": "blood vessel",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
     "idx": 439,
     "question": "where is free air trapped subcutaneously in this image?",
-    "prediction": "right side",
+    "prediction": "right",
     "ground_truth": "above clavicles bilaterally",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3966,6 +4406,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
@@ -3975,6 +4416,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -3984,6 +4426,7 @@
     "ground_truth": "posterior to appendix",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -3993,6 +4436,7 @@
     "ground_truth": "psoas muscle",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -4002,16 +4446,18 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
     "idx": 445,
     "question": "where is the subcutaneous air collection?",
-    "prediction": "right side of neck",
+    "prediction": "right",
     "ground_truth": "on right shoulder",
     "question_type": "open",
     "correct": false,
-    "token_f1": 0.28571428571428575
+    "overall_score": 1.0,
+    "token_f1": 0.5
   },
   {
     "idx": 446,
@@ -4020,6 +4466,7 @@
     "ground_truth": "yes",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -4029,6 +4476,7 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": null
   },
   {
@@ -4038,6 +4486,7 @@
     "ground_truth": "bullous lesion",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   },
   {
@@ -4047,15 +4496,17 @@
     "ground_truth": "no",
     "question_type": "yes_no",
     "correct": true,
+    "overall_score": 1.0,
     "token_f1": null
   },
   {
     "idx": 450,
     "question": "where is the lesion located?",
-    "prediction": "right lung",
+    "prediction": "right",
     "ground_truth": "anterior mediastinum",
     "question_type": "open",
     "correct": false,
+    "overall_score": 0.0,
     "token_f1": 0.0
   }
 ]

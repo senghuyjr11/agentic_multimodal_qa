@@ -54,8 +54,8 @@ modality_classifier_pipeline/dataset_reject/
 modality_classifier_pipeline/dataset_slake/
 
 # Old local adapter exports
-qwen2vl_7b_pathvqa_adapters/
-qwen2vl_7b_vqa_rad_adapters/
+pathvqa_qwen2vl_pipeline/adapters/
+vqa_rad_qwen2vl_pipeline/adapters/
 qwen3vl_2b_vqa_rad_adapters/
 
 # Notebook / misc outputs

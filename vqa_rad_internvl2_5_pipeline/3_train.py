@@ -77,12 +77,13 @@ def main():
 
     model = AutoModel.from_pretrained(
         MODEL_ID,
-        torch_dtype=torch.bfloat16,
-        low_cpu_mem_usage=False,
+        dtype=torch.bfloat16,
+        low_cpu_mem_usage=True,
+        device_map="cuda",
+        use_flash_attn=True,
         trust_remote_code=True,
         cache_dir=str(CACHE_DIR),
     )
-    model = model.cuda()
 
     tokenizer = AutoTokenizer.from_pretrained(
         MODEL_ID, trust_remote_code=True, use_fast=False, cache_dir=str(CACHE_DIR)

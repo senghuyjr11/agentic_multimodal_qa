@@ -1,0 +1,23 @@
+{
+  "timestamp": "20260401_113340",
+  "model": "google/medgemma-4b-it",
+  "adapter": "/ssd3/Ali/Ali/Senghuy/vqa_rad_medgemma_pipeline/adapters",
+  "test_data": "/ssd3/Ali/Ali/Senghuy/vqa_rad_medgemma_pipeline/preprocessed/test/preprocessed_data.pt",
+  "total_samples": 451,
+  "strict_exact_match": 0.5609756097560976,
+  "exact_match_count": 253,
+  "overall_accuracy": 0.6219512195121951,
+  "overall_score_sum": 280.5,
+  "overall_full_credit_count": 275,
+  "overall_half_credit_count": 11,
+  "yes_no_accuracy": 0.7051792828685259,
+  "yes_no_samples": 251,
+  "yes_no_correct": 177,
+  "open_strict_exact_match": 0.38,
+  "open_overall_accuracy": 0.5175,
+  "open_samples": 200,
+  "open_correct": 76,
+  "open_token_f1": 0.44839285714285715,
+  "total_time_minutes": 1.928340701262156,
+  "samples_per_second": 3.8979972064826436
+}
