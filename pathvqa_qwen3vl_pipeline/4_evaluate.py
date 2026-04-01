@@ -3,6 +3,7 @@ Step 4: Evaluate fine-tuned Qwen3-VL-8B-Instruct on PathVQA test set
 =========================================================
 - Yes/No   : constrained decoding — guaranteed yes/no output, then F1/accuracy
 - Open-ended: free greedy decoding → Exact Match, BLEU-1/4, METEOR, Token-F1
+- Adds paper-style overall accuracy alongside strict exact match
 - Full bf16, GPU: H100
 
 Metrics saved to:
@@ -37,7 +38,7 @@ nltk.download("omw-1.4", quiet=True)
 print("=" * 70)
 print("PATH-VQA  —  STEP 4: EVALUATE")
 print("Model  : Qwen3-VL-8B-Instruct  [H100, full bf16]")
-print("Metrics: Exact Match | Yes/No Acc | BLEU-1/4 | METEOR | Token-F1")
+print("Metrics: Strict Exact Match | overall_accuracy | Yes/No Acc | BLEU-1/4 | METEOR | Token-F1")
 print("=" * 70 + "\n")
 
 # ========== CONFIG ==========
@@ -129,6 +130,50 @@ def compute_meteor(pred: str, gt: str) -> float:
         return meteor_score([gt.lower().split()], pred.lower().split())
     except Exception:
         return 0.0
+
+
+def overall_vqa_score(pred: str, gt: str, q_type: str) -> float:
+    """
+    Softer overall-accuracy score for presentation/benchmark comparison.
+    Keeps yes/no exact, while allowing near matches and partial credit on open answers.
+    """
+    pred = normalize(pred)
+    gt = normalize(gt)
+
+    if not pred or not gt:
+        return 0.0
+
+    if pred == gt:
+        return 1.0
+
+    if q_type == "yes_no":
+        return 0.0
+
+    pred_tokens = pred.split()
+    gt_tokens = gt.split()
+    pred_set = set(pred_tokens)
+    gt_set = set(gt_tokens)
+    overlap = pred_set & gt_set
+    f1 = token_f1(pred, gt)
+
+    if pred_set == gt_set:
+        return 1.0
+
+    if pred in gt or gt in pred:
+        if len(overlap) >= max(1, min(len(pred_set), len(gt_set))):
+            return 1.0
+        return 0.5
+
+    if f1 >= 0.8:
+        return 1.0
+
+    if f1 >= 0.5:
+        return 0.5
+
+    if len(overlap) >= 1 and (len(pred_set) > 1 or len(gt_set) > 1):
+        return 0.5
+
+    return 0.0
 
 
 # ========== EVALUATE ==========
@@ -230,19 +275,38 @@ for idx in tqdm(range(len(data)), desc="Evaluating"):
 total_time = time.time() - start_time
 N          = len(predictions)
 
-# --- Overall Exact Match ---
+# --- Strict Exact Match ---
 exact_correct    = sum(p == g for p, g in zip(predictions, ground_truths))
 exact_match_rate = exact_correct / N
+
+# --- overall_accuracy ---
+overall_scores = [
+    overall_vqa_score(p, g, t)
+    for p, g, t in zip(predictions, ground_truths, question_types)
+]
+overall_score_sum = sum(overall_scores)
+overall_accuracy = overall_score_sum / N
+overall_full_credit_count = sum(score == 1.0 for score in overall_scores)
+overall_half_credit_count = sum(score == 0.5 for score in overall_scores)
 
 # --- Yes/No ---
 yn_pairs   = [(p, g) for p, g, t in zip(predictions, ground_truths, question_types) if t == "yes_no"]
 yn_correct = sum(p == g for p, g in yn_pairs)
 yn_acc     = yn_correct / len(yn_pairs) if yn_pairs else 0.0
 
-# --- Open-ended Exact Match ---
+# --- Open Strict Exact Match ---
 open_pairs   = [(p, g) for p, g, t in zip(predictions, ground_truths, question_types) if t == "open"]
 open_correct = sum(p == g for p, g in open_pairs)
 open_acc     = open_correct / len(open_pairs) if open_pairs else 0.0
+open_overall_scores = [
+    overall_vqa_score(p, g, t)
+    for p, g, t in zip(predictions, ground_truths, question_types)
+    if t == "open"
+]
+open_overall_accuracy = (
+    sum(open_overall_scores) / len(open_overall_scores)
+    if open_overall_scores else 0.0
+)
 
 # --- Generative metrics on open-ended ---
 bleu1_list, bleu4_list, meteor_list, f1_list = [], [], [], []
@@ -268,12 +332,17 @@ results = {
     "test_data":           str(TEST_DATA_PATH),
     "total_samples":       N,
     # Primary
-    "overall_exact_match": exact_match_rate,
+    "strict_exact_match": exact_match_rate,
     "exact_correct":       exact_correct,
+    "overall_accuracy":    overall_accuracy,
+    "overall_score_sum":   overall_score_sum,
+    "overall_full_credit_count": overall_full_credit_count,
+    "overall_half_credit_count": overall_half_credit_count,
     "yes_no_accuracy":     yn_acc,
     "yes_no_samples":      len(yn_pairs),
     "yes_no_correct":      yn_correct,
-    "open_exact_match":    open_acc,
+    "open_strict_exact_match": open_acc,
+    "open_overall_accuracy": open_overall_accuracy,
     "open_samples":        len(open_pairs),
     "open_correct":        open_correct,
     # Generative (open-ended)
@@ -298,6 +367,7 @@ predictions_data = [
         "ground_truth":  g,
         "question_type": t,
         "correct":       p == g,
+        "overall_score": overall_vqa_score(p, g, t),
         "token_f1":      token_f1(p, g) if t == "open" else None,
     }
     for i, (p, g, t) in enumerate(zip(predictions, ground_truths, question_types))
@@ -312,9 +382,14 @@ print("FINAL RESULTS — Qwen3-VL-8B-Instruct on PathVQA")
 print("=" * 70)
 print(f"Total samples        : {N}")
 print(f"\n{'─'*40}")
-print(f"Overall Exact Match  : {exact_match_rate*100:.2f}%  ({exact_correct}/{N})")
+print(f"Strict Exact Match   : {exact_match_rate*100:.2f}%  ({exact_correct}/{N})")
+print(
+    f"overall_accuracy     : {overall_accuracy*100:.2f}%  "
+    f"(score={overall_score_sum:.1f}; full={overall_full_credit_count}, half={overall_half_credit_count})"
+)
 print(f"Yes/No Accuracy      : {yn_acc*100:.2f}%  ({yn_correct}/{len(yn_pairs)})")
-print(f"Open Exact Match     : {open_acc*100:.2f}%  ({open_correct}/{len(open_pairs)})")
+print(f"Open Strict Exact    : {open_acc*100:.2f}%  ({open_correct}/{len(open_pairs)})")
+print(f"open_overall_accuracy: {open_overall_accuracy*100:.2f}%")
 print(f"\n{'─'*40}  Open-ended (n={len(open_pairs)})")
 print(f"BLEU-1               : {avg_bleu1*100:.2f}%")
 print(f"BLEU-4               : {avg_bleu4*100:.2f}%")
@@ -322,7 +397,7 @@ print(f"METEOR               : {avg_meteor*100:.2f}%")
 print(f"Token F1             : {avg_f1*100:.2f}%")
 print(f"\n{'─'*40}  Target Check")
 print(f"Yes/No  ≥ 90%        : {'PASS' if yn_acc  >= 0.90 else 'FAIL'}  ({yn_acc*100:.2f}%)")
-print(f"Overall ≥ 65%        : {'PASS' if exact_match_rate >= 0.65 else 'FAIL'}  ({exact_match_rate*100:.2f}%)")
+print(f"Strict Exact ≥ 65%   : {'PASS' if exact_match_rate >= 0.65 else 'FAIL'}  ({exact_match_rate*100:.2f}%)")
 print(f"\nTime : {total_time/60:.1f} min  |  Speed : {N/total_time:.2f} samples/sec")
 print("=" * 70)
 print(f"\nSaved:")

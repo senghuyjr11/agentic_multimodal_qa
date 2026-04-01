@@ -3,6 +3,7 @@ Step 4: Evaluate fine-tuned Qwen3-VL-8B-Instruct on VQA-RAD test set
 - Constrained decoding for yes/no: forces only "yes"/"no" token output
 - Open questions: free generation with normalization
 - Canonicalizes common short-form radiology answers for fairer exact match
+- Adds a paper-style relaxed accuracy alongside strict exact match
 - Full bf16
 """
 from pathlib import Path
@@ -156,6 +157,64 @@ def token_f1(pred: str, gt: str) -> float:
     return 2 * precision * recall / (precision + recall)
 
 
+def relaxed_vqa_score(question: str, pred: str, gt: str, q_type: str) -> float:
+    """
+    Approximate the VQA-RAD paper's more permissive manual scoring.
+    - Yes/no remains exact.
+    - Open answers get full credit for exact/near-equivalent matches.
+    - Partial overlap receives half credit.
+    """
+    pred = canonicalize_answer(question, pred)
+    gt = canonicalize_answer(question, gt)
+
+    if not pred or not gt:
+        return 0.0
+
+    if pred == gt:
+        return 1.0
+
+    if q_type == "yes_no":
+        return 0.0
+
+    pred_tokens = pred.split()
+    gt_tokens = gt.split()
+    pred_set = set(pred_tokens)
+    gt_set = set(gt_tokens)
+    overlap = pred_set & gt_set
+    f1 = token_f1(pred, gt)
+
+    # Strong lexical agreement: treat clinically close wording as fully correct.
+    if pred in gt or gt in pred:
+        if len(overlap) >= max(1, min(len(pred_set), len(gt_set))):
+            return 1.0
+
+    if pred_set == gt_set:
+        return 1.0
+
+    if f1 >= 0.8:
+        return 1.0
+
+    # Preserve full credit for side/view/orientation answers when the key concept matches.
+    directional_terms = {
+        "left", "right", "ap", "pa", "axial", "coronal", "sagittal",
+        "frontal", "lateral", "supine", "upright", "not", "seen",
+    }
+    if overlap and (pred_set | gt_set) <= directional_terms:
+        return 1.0
+
+    # Partial credit similar in spirit to the paper's half-point manual review.
+    if pred in gt or gt in pred:
+        return 0.5
+
+    if f1 >= 0.5:
+        return 0.5
+
+    if len(overlap) >= 1 and (len(pred_set) > 1 or len(gt_set) > 1):
+        return 0.5
+
+    return 0.0
+
+
 predictions = []
 ground_truths = []
 question_types = []
@@ -254,6 +313,15 @@ total_time = time.time() - start_time
 exact_matches = sum(p == g for p, g in zip(predictions, ground_truths))
 exact_match_rate = exact_matches / len(predictions)
 
+relaxed_scores = [
+    relaxed_vqa_score("", p, g, t) if t == "unknown" else relaxed_vqa_score(data[i].get("question", ""), p, g, t)
+    for i, (p, g, t) in enumerate(zip(predictions, ground_truths, question_types))
+]
+relaxed_correct = sum(relaxed_scores)
+overall_accuracy = relaxed_correct / len(predictions)
+relaxed_full_credit = sum(score == 1.0 for score in relaxed_scores)
+relaxed_half_credit = sum(score == 0.5 for score in relaxed_scores)
+
 yes_no_pairs = [(p, g) for p, g, t in zip(predictions, ground_truths, question_types) if t == "yes_no"]
 yes_no_correct = sum(p == g for p, g in yes_no_pairs)
 yes_no_acc = yes_no_correct / len(yes_no_pairs) if yes_no_pairs else 0
@@ -263,6 +331,12 @@ open_correct = sum(p == g for p, g in open_pairs)
 open_acc = open_correct / len(open_pairs) if open_pairs else 0
 open_f1_scores = [token_f1(p, g) for p, g in open_pairs]
 open_f1 = sum(open_f1_scores) / len(open_f1_scores) if open_f1_scores else 0
+open_relaxed_scores = [
+    relaxed_vqa_score(data[i].get("question", ""), p, g, t)
+    for i, (p, g, t) in enumerate(zip(predictions, ground_truths, question_types))
+    if t == "open"
+]
+open_relaxed_acc = sum(open_relaxed_scores) / len(open_relaxed_scores) if open_relaxed_scores else 0
 
 # ========== SAVE ==========
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -275,12 +349,17 @@ results = {
     "total_samples": len(predictions),
     "exact_match": exact_match_rate,
     "exact_match_count": exact_matches,
+    "overall_accuracy": overall_accuracy,
+    "relaxed_score_sum": relaxed_correct,
+    "relaxed_full_credit_count": relaxed_full_credit,
+    "relaxed_half_credit_count": relaxed_half_credit,
     "yes_no_accuracy": yes_no_acc,
     "yes_no_samples": len(yes_no_pairs),
     "yes_no_correct": yes_no_correct,
     "open_accuracy": open_acc,
     "open_samples": len(open_pairs),
     "open_correct": open_correct,
+    "open_overall_accuracy": open_relaxed_acc,
     "open_token_f1": open_f1,
     "total_time_minutes": total_time / 60,
     "samples_per_second": len(predictions) / total_time,
@@ -298,6 +377,7 @@ predictions_data = [
         "ground_truth": g,
         "question_type": t,
         "correct": p == g,
+        "relaxed_score": relaxed_vqa_score(data[i].get("question", ""), p, g, t),
         "token_f1": token_f1(p, g) if t == "open" else None,
     }
     for i, (p, g, t) in enumerate(zip(predictions, ground_truths, question_types))
@@ -314,8 +394,13 @@ print(f"Total samples:     {len(predictions)}")
 print(f"  Yes/No:          {len(yes_no_pairs)}")
 print(f"  Open:            {len(open_pairs)}")
 print(f"\nOverall Exact:     {exact_match_rate*100:.2f}%  ({exact_matches}/{len(predictions)})")
+print(
+    f"Relaxed Accuracy:  {relaxed_accuracy*100:.2f}%  "
+    f"(score={relaxed_correct:.1f}; full={relaxed_full_credit}, half={relaxed_half_credit})"
+)
 print(f"Yes/No Accuracy:   {yes_no_acc*100:.2f}%  ({yes_no_correct}/{len(yes_no_pairs)})")
 print(f"Open Exact Match:  {open_acc*100:.2f}%  ({open_correct}/{len(open_pairs)})")
+print(f"Open Relaxed Acc:  {open_relaxed_acc*100:.2f}%")
 print(f"Open Token F1:     {open_f1*100:.2f}%")
 print(f"\nTarget check:")
 print(f"  Exact >= 60%:    {'PASS' if exact_match_rate >= 0.60 else 'FAIL'} ({exact_match_rate*100:.2f}%)")

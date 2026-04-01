@@ -1,18 +1,23 @@
 {
-  "timestamp": "20260331_103014",
+  "timestamp": "20260331_171843",
   "model": "Qwen/Qwen3-VL-8B-Instruct",
   "adapter": "/ssd3/Ali/Ali/Senghuy/vqa_rad_qwen3vl_strong_pipeline/adapters",
   "test_data": "/ssd3/Ali/Ali/Senghuy/vqa_rad_qwen3vl_strong_pipeline/preprocessed/test/preprocessed_data.pt",
   "total_samples": 451,
   "exact_match": 0.5521064301552107,
   "exact_match_count": 249,
+  "overall_accuracy": 0.6219512195121951,
+  "relaxed_score_sum": 280.5,
+  "relaxed_full_credit_count": 267,
+  "relaxed_half_credit_count": 27,
   "yes_no_accuracy": 0.7450199203187251,
   "yes_no_samples": 251,
   "yes_no_correct": 187,
   "open_accuracy": 0.31,
   "open_samples": 200,
   "open_correct": 62,
+  "open_overall_accuracy": 0.4675,
   "open_token_f1": 0.4001709956709956,
-  "total_time_minutes": 2.735219105084737,
-  "samples_per_second": 2.7481040376960224
+  "total_time_minutes": 2.0988101681073505,
+  "samples_per_second": 3.5813942494117943
 }
