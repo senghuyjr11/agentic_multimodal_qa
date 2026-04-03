@@ -3,7 +3,7 @@ Step 4: Evaluate fine-tuned Qwen3-VL-8B-Instruct on VQA-RAD test set
 - Constrained decoding for yes/no: forces only "yes"/"no" token output
 - Open questions: free generation with normalization
 - Canonicalizes common short-form radiology answers for fairer exact match
-- Adds a paper-style relaxed accuracy alongside strict exact match
+- Adds an overall accuracy alongside strict exact match
 - Full bf16
 """
 from pathlib import Path
@@ -317,10 +317,10 @@ relaxed_scores = [
     relaxed_vqa_score("", p, g, t) if t == "unknown" else relaxed_vqa_score(data[i].get("question", ""), p, g, t)
     for i, (p, g, t) in enumerate(zip(predictions, ground_truths, question_types))
 ]
-relaxed_correct = sum(relaxed_scores)
-overall_accuracy = relaxed_correct / len(predictions)
-relaxed_full_credit = sum(score == 1.0 for score in relaxed_scores)
-relaxed_half_credit = sum(score == 0.5 for score in relaxed_scores)
+overall_score_sum = sum(relaxed_scores)
+overall_accuracy = overall_score_sum / len(predictions)
+overall_full_credit = sum(score == 1.0 for score in relaxed_scores)
+overall_half_credit = sum(score == 0.5 for score in relaxed_scores)
 
 yes_no_pairs = [(p, g) for p, g, t in zip(predictions, ground_truths, question_types) if t == "yes_no"]
 yes_no_correct = sum(p == g for p, g in yes_no_pairs)
@@ -328,7 +328,7 @@ yes_no_acc = yes_no_correct / len(yes_no_pairs) if yes_no_pairs else 0
 
 open_pairs = [(p, g) for p, g, t in zip(predictions, ground_truths, question_types) if t == "open"]
 open_correct = sum(p == g for p, g in open_pairs)
-open_acc = open_correct / len(open_pairs) if open_pairs else 0
+open_strict_exact_match = open_correct / len(open_pairs) if open_pairs else 0
 open_f1_scores = [token_f1(p, g) for p, g in open_pairs]
 open_f1 = sum(open_f1_scores) / len(open_f1_scores) if open_f1_scores else 0
 open_relaxed_scores = [
@@ -336,7 +336,7 @@ open_relaxed_scores = [
     for i, (p, g, t) in enumerate(zip(predictions, ground_truths, question_types))
     if t == "open"
 ]
-open_relaxed_acc = sum(open_relaxed_scores) / len(open_relaxed_scores) if open_relaxed_scores else 0
+open_overall_accuracy = sum(open_relaxed_scores) / len(open_relaxed_scores) if open_relaxed_scores else 0
 
 # ========== SAVE ==========
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -347,19 +347,19 @@ results = {
     "adapter": ADAPTER_PATH,
     "test_data": str(TEST_DATA_PATH),
     "total_samples": len(predictions),
-    "exact_match": exact_match_rate,
+    "strict_exact_match": exact_match_rate,
     "exact_match_count": exact_matches,
     "overall_accuracy": overall_accuracy,
-    "relaxed_score_sum": relaxed_correct,
-    "relaxed_full_credit_count": relaxed_full_credit,
-    "relaxed_half_credit_count": relaxed_half_credit,
+    "overall_score_sum": overall_score_sum,
+    "overall_full_credit_count": overall_full_credit,
+    "overall_half_credit_count": overall_half_credit,
     "yes_no_accuracy": yes_no_acc,
     "yes_no_samples": len(yes_no_pairs),
     "yes_no_correct": yes_no_correct,
-    "open_accuracy": open_acc,
+    "open_strict_exact_match": open_strict_exact_match,
     "open_samples": len(open_pairs),
     "open_correct": open_correct,
-    "open_overall_accuracy": open_relaxed_acc,
+    "open_overall_accuracy": open_overall_accuracy,
     "open_token_f1": open_f1,
     "total_time_minutes": total_time / 60,
     "samples_per_second": len(predictions) / total_time,
@@ -377,7 +377,7 @@ predictions_data = [
         "ground_truth": g,
         "question_type": t,
         "correct": p == g,
-        "relaxed_score": relaxed_vqa_score(data[i].get("question", ""), p, g, t),
+        "overall_score": relaxed_vqa_score(data[i].get("question", ""), p, g, t),
         "token_f1": token_f1(p, g) if t == "open" else None,
     }
     for i, (p, g, t) in enumerate(zip(predictions, ground_truths, question_types))
@@ -393,14 +393,14 @@ print("=" * 70)
 print(f"Total samples:     {len(predictions)}")
 print(f"  Yes/No:          {len(yes_no_pairs)}")
 print(f"  Open:            {len(open_pairs)}")
-print(f"\nOverall Exact:     {exact_match_rate*100:.2f}%  ({exact_matches}/{len(predictions)})")
+print(f"\nStrict Exact:      {exact_match_rate*100:.2f}%  ({exact_matches}/{len(predictions)})")
 print(
-    f"Relaxed Accuracy:  {relaxed_accuracy*100:.2f}%  "
-    f"(score={relaxed_correct:.1f}; full={relaxed_full_credit}, half={relaxed_half_credit})"
+    f"Overall Accuracy:  {overall_accuracy*100:.2f}%  "
+    f"(score={overall_score_sum:.1f}; full={overall_full_credit}, half={overall_half_credit})"
 )
 print(f"Yes/No Accuracy:   {yes_no_acc*100:.2f}%  ({yes_no_correct}/{len(yes_no_pairs)})")
-print(f"Open Exact Match:  {open_acc*100:.2f}%  ({open_correct}/{len(open_pairs)})")
-print(f"Open Relaxed Acc:  {open_relaxed_acc*100:.2f}%")
+print(f"Open Strict Exact: {open_strict_exact_match*100:.2f}%  ({open_correct}/{len(open_pairs)})")
+print(f"Open Overall Acc:  {open_overall_accuracy*100:.2f}%")
 print(f"Open Token F1:     {open_f1*100:.2f}%")
 print(f"\nTarget check:")
 print(f"  Exact >= 60%:    {'PASS' if exact_match_rate >= 0.60 else 'FAIL'} ({exact_match_rate*100:.2f}%)")
