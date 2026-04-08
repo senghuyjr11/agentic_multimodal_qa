@@ -1,4 +1,6 @@
 import gc
+import os
+import time
 import torch
 from enum import Enum
 from dataclasses import dataclass
@@ -30,16 +32,16 @@ class ModelConfig:
 class ImageAgent:
     DEFAULT_QUESTIONS = {
         ModelType.PATHVQA: (
-            "Analyze this pathology image carefully. Identify the most likely pathological "
-            "abnormality or disease pattern visible in the tissue. If the finding is uncertain "
-            "or no clear abnormality is visible, say so clearly. Describe the key microscopic "
-            "features and tissue region that support your conclusion."
+            "Analyze this pathology image and answer in 1 to 2 complete sentences. "
+            "State the most likely pathological abnormality or disease pattern. "
+            "If uncertain or no clear abnormality is visible, say that clearly. "
+            "Briefly mention the key microscopic features supporting the answer."
         ),
         ModelType.VQA_RAD: (
-            "Analyze this medical scan carefully. Identify the most likely abnormality or disease "
-            "visible in the image. If the scan appears normal or the finding is uncertain, state "
-            "that clearly. Describe the main imaging findings and the anatomical location that "
-            "support your conclusion."
+            "Analyze this medical image and answer in 1 to 2 complete sentences. "
+            "State the most likely abnormality or disease. "
+            "If the scan appears normal or the finding is uncertain, say that clearly. "
+            "Briefly mention the main imaging finding and location supporting the answer."
         ),
     }
 
@@ -67,21 +69,55 @@ class ImageAgent:
 
         self._processor = None
         self._model     = None
+        self._models_preloaded = False
+        self.max_new_tokens = int(os.getenv("APP_VQA_MAX_NEW_TOKENS", "64"))
+        self.image_size = int(os.getenv("APP_VQA_IMAGE_SIZE", "336"))
+        self.min_pixels = int(os.getenv("APP_VQA_MIN_PIXELS", str(64 * 28 * 28)))
+        self.max_pixels = int(os.getenv("APP_VQA_MAX_PIXELS", str(144 * 28 * 28)))
+        self.attn_implementation = os.getenv("APP_VQA_ATTN_IMPL", "sdpa").strip() or None
+
+    @property
+    def models_preloaded(self) -> bool:
+        return self._models_preloaded and self._processor is not None and self._model is not None
 
     def preload_models(self):
+        if self.models_preloaded:
+            print("✓ VQA models already preloaded; skipping reload")
+            return
+
         print("\nLoading base model (Qwen3-VL-8B) once...")
+        print(
+            f"  Inference config: max_new_tokens={self.max_new_tokens}, "
+            f"image_size={self.image_size}, "
+            f"min_pixels={self.min_pixels}, max_pixels={self.max_pixels}, "
+            f"attn={self.attn_implementation or 'default'}, compute_dtype=float16"
+        )
         base_model_id = self.pathvqa_config.base_model_id
 
-        self._processor = AutoProcessor.from_pretrained(base_model_id)
+        if torch.cuda.is_available():
+            torch.backends.cuda.matmul.allow_tf32 = True
+            torch.set_float32_matmul_precision("high")
+
+        self._processor = AutoProcessor.from_pretrained(
+            base_model_id,
+            min_pixels=self.min_pixels,
+            max_pixels=self.max_pixels,
+        )
+
+        model_kwargs = {
+            "quantization_config": BitsAndBytesConfig(
+                load_in_4bit=True,
+                bnb_4bit_quant_type="nf4",
+                bnb_4bit_compute_dtype=torch.float16,
+            ),
+            "device_map": {"": 0},
+        }
+        if self.attn_implementation:
+            model_kwargs["attn_implementation"] = self.attn_implementation
 
         base_model = Qwen3VLForConditionalGeneration.from_pretrained(
             base_model_id,
-            quantization_config=BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_quant_type="nf4",
-                bnb_4bit_compute_dtype=torch.bfloat16,
-            ),
-            device_map={"": 0},
+            **model_kwargs,
         )
 
         print("  Loading PathVQA adapter...")
@@ -103,11 +139,12 @@ class ImageAgent:
         print("✓ Base model + both adapters loaded")
 
         self._warmup()
+        self._models_preloaded = True
         print("✓ GPU warmed up — ready\n")
 
     def _warmup(self):
         print("  Warming up GPU (compiling CUDA kernels)...")
-        dummy_image = Image.new("RGB", (384, 384), color=(128, 128, 128))
+        dummy_image = Image.new("RGB", (self.image_size, self.image_size), color=(128, 128, 128))
         dummy_text  = self._processor.apply_chat_template(
             [{"role": "user", "content": [{"type": "image"}, {"type": "text", "text": "test"}]}],
             add_generation_prompt=True,
@@ -120,7 +157,7 @@ class ImageAgent:
 
         for adapter in ("pathvqa", "vqa_rad"):
             self._model.set_adapter(adapter)
-            with torch.no_grad():
+            with torch.inference_mode():
                 self._model.generate(**inputs, max_new_tokens=5, do_sample=False)
 
         torch.cuda.empty_cache()
@@ -129,7 +166,7 @@ class ImageAgent:
         inputs = self._clf_processor(image, return_tensors="pt")
         # ViT stays on CPU intentionally
 
-        with torch.no_grad():
+        with torch.inference_mode():
             logits = self._clf_model(**inputs).logits
             probs  = torch.softmax(logits, dim=-1)
             conf, idx = probs.max(dim=-1)
@@ -145,10 +182,22 @@ class ImageAgent:
             return ModelType.REJECT, conf
 
     def predict(self, image_path: str, question: Optional[str] = None) -> dict:
-        image = Image.open(image_path).convert("RGB")
-        image_resized = image.resize((384, 384), Image.Resampling.BILINEAR)
+        if not self.models_preloaded:
+            raise RuntimeError(
+                "VQA models are not preloaded. Start the API through api_refactored:app "
+                "and wait for the startup preload to finish before sending image requests."
+            )
 
+        total_start = time.perf_counter()
+
+        load_start = time.perf_counter()
+        image = Image.open(image_path).convert("RGB")
+        image_resized = image.resize((self.image_size, self.image_size), Image.Resampling.BILINEAR)
+        load_seconds = time.perf_counter() - load_start
+
+        classify_start = time.perf_counter()
         model_type, confidence = self.route(image)
+        classify_seconds = time.perf_counter() - classify_start
 
         print(f"\n{'='*60}")
         print(f"[CLASSIFIER] {model_type.value.upper()} (confidence={confidence:.1%})")
@@ -169,10 +218,11 @@ class ImageAgent:
         self._model.set_adapter(adapter_name)
         print(f"[ADAPTER] Switched to {adapter_name}")
 
-        torch.cuda.empty_cache()
-
         if question and question.strip():
-            final_question = question.strip()
+            final_question = (
+                f"{question.strip()} "
+                "Answer briefly in 1 to 2 complete sentences."
+            )
             prompt_source = "user_question"
         else:
             final_question = self.DEFAULT_QUESTIONS[model_type]
@@ -186,21 +236,26 @@ class ImageAgent:
         ]
         text_prompt = self._processor.apply_chat_template(messages, add_generation_prompt=True)
 
+        preprocess_start = time.perf_counter()
         inputs = self._processor(
             text=[text_prompt],
             images=[image_resized],
             padding=True,
             return_tensors="pt",
         ).to(self._model.device)
+        preprocess_seconds = time.perf_counter() - preprocess_start
 
-        with torch.no_grad():
+        generate_start = time.perf_counter()
+        with torch.inference_mode():
             output_ids = self._model.generate(
                 **inputs,
-                max_new_tokens=256,
+                max_new_tokens=self.max_new_tokens,
                 do_sample=False,
+                use_cache=True,
                 eos_token_id=self._processor.tokenizer.eos_token_id,
                 pad_token_id=self._processor.tokenizer.pad_token_id,
             )
+        generate_seconds = time.perf_counter() - generate_start
 
         answer = self._processor.decode(
             output_ids[0][len(inputs.input_ids[0]):],
@@ -208,6 +263,15 @@ class ImageAgent:
         ).strip()
 
         print(f"[VQA] Answer: {answer[:100]}...")
+        print(
+            f"[TIMING] load_image={load_seconds:.2f}s "
+            f"classify={classify_seconds:.2f}s "
+            f"preprocess={preprocess_seconds:.2f}s "
+            f"generate={generate_seconds:.2f}s "
+            f"total={time.perf_counter() - total_start:.2f}s "
+            f"max_new_tokens={self.max_new_tokens} "
+            f"image_size={self.image_size}"
+        )
 
         return {
             "question": final_question,

@@ -125,11 +125,16 @@ async def startup_event():
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
+    image_models_preloaded = (
+        pipeline is not None and pipeline.image_agent.models_preloaded
+    )
+
     return {
         "status": "healthy",
         "pipeline_ready": pipeline is not None,
+        "image_models_preloaded": image_models_preloaded,
         "structure": "clean_agents",
-        "models_preloaded": True,
+        "models_preloaded": image_models_preloaded,
         "features": [
             "JWT Authentication",
             "Multi-turn Conversations",
@@ -170,6 +175,12 @@ async def start_new_chat(
 
     if not image and not question:
         raise HTTPException(status_code=400, detail="Must provide image or question")
+
+    if image and not pipeline.image_agent.models_preloaded:
+        raise HTTPException(
+            status_code=503,
+            detail="Image VQA models are still loading. Please retry after API startup finishes."
+        )
 
     image_path = None
     try:
@@ -230,6 +241,12 @@ async def send_message(
 
     if not image and not question:
         raise HTTPException(status_code=400, detail="Must provide image or question")
+
+    if image and not pipeline.image_agent.models_preloaded:
+        raise HTTPException(
+            status_code=503,
+            detail="Image VQA models are still loading. Please retry after API startup finishes."
+        )
 
     if not pipeline.session_mgr.session_exists(current_user, session_id):
         raise HTTPException(
@@ -532,6 +549,12 @@ async def chat_legacy(
     if pipeline is None:
         raise HTTPException(status_code=503, detail="Pipeline not initialized")
 
+    if image and not pipeline.image_agent.models_preloaded:
+        raise HTTPException(
+            status_code=503,
+            detail="Image VQA models are still loading. Please retry after API startup finishes."
+        )
+
     image_path = None
     try:
         # Handle image upload
@@ -564,4 +587,5 @@ async def chat_legacy(
 
 
 if __name__ == "__main__":
-    uvicorn.run("api_refactored:app", host="0.0.0.0", port=8000, reload=True)
+    reload_enabled = os.getenv("APP_RELOAD", "0").strip().lower() in {"1", "true", "yes", "on"}
+    uvicorn.run("api_refactored:app", host="0.0.0.0", port=8000, reload=reload_enabled)
