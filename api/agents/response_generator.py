@@ -224,6 +224,15 @@ Task:
 4. Include specific details from the articles
 5. {citation_instruction}
 6. Keep it concise and educational
+7. Use this exact structure:
+   Summary:
+   - 1 to 2 bullets
+   Why It Matters:
+   - 2 to 4 bullets
+   Key Evidence:
+   - 2 to 4 bullets
+8. Use short bullets, not long paragraphs
+9. Do not add any heading beyond those three section titles
 
 Detailed Response:"""
                 )
@@ -304,6 +313,15 @@ Task:
 - Do not invent new diagnoses or claims
 - If the previous answer is uncertain, keep that uncertainty
 - Do not add citations or references unless they are explicitly provided
+- Use this exact structure:
+  Summary:
+  - 1 to 2 bullets
+  Key Findings:
+  - 2 to 4 bullets
+  Plain Explanation:
+  - 2 to 4 bullets
+- Use short bullets, not long paragraphs
+- Keep the full answer under 140 words
 
 Clear Explanation:"""
                 )

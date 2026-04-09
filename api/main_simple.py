@@ -381,6 +381,8 @@ class MedicalVQAPipeline:
         vqa_answer = None
         vqa_timing = None
         pubmed_articles = []
+        pubmed_attempted = False
+        references_note = None
 
         # 4a. Image analysis?
         if decision.needs_vqa and image_path:
@@ -412,6 +414,7 @@ class MedicalVQAPipeline:
 
         # 4b. PubMed search?
         if decision.needs_pubmed:
+            pubmed_attempted = True
             # Case 1: Reuse cached articles
             if use_cached_articles:
                 pubmed_articles = self.memory.get_pubmed_articles(session_id)
@@ -443,6 +446,9 @@ class MedicalVQAPipeline:
                         print(f"  → Using {len(cached_articles)} cached articles from previous turn")
                         pubmed_articles = cached_articles
 
+        if pubmed_attempted and not pubmed_articles:
+            references_note = "No supporting references were found for this step."
+
         # ==========================================
         # STEP 5: GENERATE RESPONSE
         # ==========================================
@@ -463,6 +469,9 @@ class MedicalVQAPipeline:
             previous_response=previous_response,
             has_image=bool(image_path)
         )
+
+        if references_note:
+            english_response = f"{english_response}\n\nNote: {references_note}"
 
         # ==========================================
         # STEP 6: TRANSLATE OUTPUT
@@ -505,6 +514,8 @@ class MedicalVQAPipeline:
             },
             "vqa_answer": vqa_answer,
             "total_seconds": vqa_timing.get("total_seconds") if vqa_timing else None,
+            "pubmed_attempted": pubmed_attempted,
+            "references_note": references_note,
             "num_articles": len(pubmed_articles),
             "memory": {
                 **self.memory.get_context_status(session_id),
