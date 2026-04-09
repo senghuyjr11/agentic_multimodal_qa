@@ -284,22 +284,41 @@ Medical search terms:"""
         if not is_asking_explanation:
             return False, None
 
-        # Check if previous AI answer was short (likely VQA answer)
-        words_in_last_answer = len(last_ai_msg.split())
+        search_query = self._build_followup_search_query(last_ai_msg)
 
-        if words_in_last_answer <= 5:  # Short answer like "positively"
-            print(f"\n[FOLLOW-UP DETECTED]")
-            print(f"  Previous answer: {last_ai_msg}")
-            print(f"  User asking: {message}")
-            print(f"  → Will search PubMed for explanation")
+        if not search_query:
+            return False, None
 
-            # Use previous answer as search query
-            # Or combine with current question
-            search_query = last_ai_msg
+        print(f"\n[FOLLOW-UP DETECTED]")
+        print(f"  Previous answer: {last_ai_msg}")
+        print(f"  User asking: {message}")
+        print(f"  Search query: {search_query}")
+        print(f"  → Will search PubMed for explanation")
 
-            return True, search_query
+        return True, search_query
 
-        return False, None
+    def _build_followup_search_query(self, last_ai_msg: str) -> Optional[str]:
+        if not last_ai_msg:
+            return None
+
+        import re
+
+        cleaned = re.sub(r'\s+', ' ', last_ai_msg).strip()
+        cleaned = re.sub(r'\*+', '', cleaned)
+        cleaned = re.sub(r'\[[^\]]+\]\([^)]+\)', '', cleaned).strip()
+
+        if not cleaned:
+            return None
+
+        # Prefer the first sentence for literature lookup when the answer is long.
+        first_sentence = re.split(r'(?<=[.!?])\s+', cleaned, maxsplit=1)[0].strip()
+        candidate = first_sentence or cleaned
+
+        words = candidate.split()
+        if len(words) > 12:
+            candidate = " ".join(words[:12])
+
+        return candidate.strip(" .,:;!-") or None
 
     def is_asking_about_previous_references(self, message: str) -> bool:
         """

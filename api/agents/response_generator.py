@@ -280,8 +280,57 @@ Response:"""
 
             return answer
 
+        # SCENARIO 3: Follow-up explanation using conversation memory only
+        if memory and self._is_followup_explanation_request(message):
+            previous_response = self._get_last_ai_message(memory)
+            context = self._get_context(memory, num_turns=10)
+
+            if previous_response:
+                prompt = ChatPromptTemplate.from_template(
+                    """You are a medical assistant helping the user understand a previous answer.
+
+CONVERSATION HISTORY:
+{context}
+
+MOST RECENT MEDICAL ANSWER:
+{previous_response}
+
+USER REQUEST:
+{message}
+
+Task:
+- Explain the previous medical answer more clearly using the conversation context
+- Stay consistent with what was already said
+- Do not invent new diagnoses or claims
+- If the previous answer is uncertain, keep that uncertainty
+- Do not add citations or references unless they are explicitly provided
+
+Clear Explanation:"""
+                )
+                chain = prompt | self.llm | self.parser
+                return chain.invoke({
+                    "context": context,
+                    "previous_response": previous_response,
+                    "message": message
+                })
+
         # SCENARIO 3: No data available
         return "I don't have enough information to answer this question. Could you provide more details or upload a medical image?"
+
+    def _is_followup_explanation_request(self, message: str) -> bool:
+        message_lower = message.lower()
+        patterns = [
+            "explain", "more detail", "more details", "tell me more",
+            "elaborate", "clearer", "explain clearly", "what do you mean",
+            "break it down", "help me understand"
+        ]
+        return any(pattern in message_lower for pattern in patterns)
+
+    def _get_last_ai_message(self, memory: InMemoryConversation) -> Optional[str]:
+        for msg in reversed(memory.messages):
+            if msg.type == "ai":
+                return msg.content
+        return None
 
     def _get_context(
             self,
