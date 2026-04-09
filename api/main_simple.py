@@ -74,6 +74,15 @@ class MedicalVQAPipeline:
 
         print("✓ All agents initialized\n")
 
+    @staticmethod
+    def _log_decision(label: str, decision) -> None:
+        print(f"\n[{label}]")
+        print(f"  Mode: {decision.response_mode}")
+        print(f"  VQA needed: {decision.needs_vqa}")
+        print(f"  PubMed needed: {decision.needs_pubmed}")
+        print(f"  Search: {decision.search_query}")
+        print(f"  Reasoning: {decision.reasoning}")
+
     def run(
         self,
         username: str,
@@ -315,6 +324,7 @@ class MedicalVQAPipeline:
             has_image=bool(image_path),
             memory=memory
         )
+        self._log_decision("ROUTER DECISION (INITIAL)", decision)
 
         # NEW: Hard override - if image present, force VQA
         if bool(image_path) and not decision.needs_vqa:
@@ -322,6 +332,17 @@ class MedicalVQAPipeline:
             decision.needs_vqa = True
             if decision.response_mode == "casual_chat":
                 decision.response_mode = "medical_answer"
+
+        # Initial image uploads are answered by VQA only.
+        # PubMed is reserved for later follow-up questions if the user wants explanation.
+        if bool(image_path) and decision.needs_pubmed:
+            print("  → Image upload detected: deferring PubMed unless user asks follow-up")
+            decision.needs_pubmed = False
+            decision.search_query = None
+            if decision.reasoning:
+                decision.reasoning += " | PubMed deferred for initial image turn."
+            else:
+                decision.reasoning = "PubMed deferred for initial image turn."
 
         # Check 1: User asking to elaborate on existing references (MOVED UP - HIGHER PRIORITY)
         use_cached_articles = False
@@ -352,16 +373,20 @@ class MedicalVQAPipeline:
                 decision.response_mode = "medical_answer"
                 print(f"  → Follow-up detected, will search PubMed")
 
+        self._log_decision("EXECUTION PLAN (PRE-STEP-4)", decision)
+
         # ==========================================
         # STEP 4: EXECUTE BASED ON DECISION
         # ==========================================
         vqa_answer = None
+        vqa_timing = None
         pubmed_articles = []
 
         # 4a. Image analysis?
         if decision.needs_vqa and image_path:
             print("\n[Step 4a] Image analysis...")
             vqa_result = self.image_agent.predict(image_path, english_question)
+            vqa_timing = vqa_result.get("timing")
 
             if vqa_result.get("ood", False):
                 print("  Image rejected (OOD)")
@@ -372,11 +397,9 @@ class MedicalVQAPipeline:
                 decision.search_query = None
             else:
                 vqa_answer = vqa_result["answer"]
-                print(f"  VQA: {vqa_answer}")
                 decision.needs_pubmed = False
                 decision.search_query = None
 
-            vqa_answer = vqa_result["answer"]
             print(f"  VQA: {vqa_answer}")
 
             # NEW SIMPLE LOGIC: Just show VQA answer, don't search PubMed
@@ -385,6 +408,7 @@ class MedicalVQAPipeline:
             print("  → Skipping PubMed (user can ask follow-up for explanation)")
             decision.needs_pubmed = False
             decision.search_query = None
+            self._log_decision("EXECUTION PLAN (POST-VQA OVERRIDE)", decision)
 
         # 4b. PubMed search?
         if decision.needs_pubmed:
@@ -480,6 +504,7 @@ class MedicalVQAPipeline:
                 "reasoning": decision.reasoning
             },
             "vqa_answer": vqa_answer,
+            "total_seconds": vqa_timing.get("total_seconds") if vqa_timing else None,
             "num_articles": len(pubmed_articles),
             "memory": {
                 **self.memory.get_context_status(session_id),

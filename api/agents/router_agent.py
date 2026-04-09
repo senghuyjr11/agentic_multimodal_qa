@@ -124,15 +124,6 @@ class RouterAgent:
             if decision.response_mode == "casual_chat":
                 decision.response_mode = "medical_answer"
 
-        # Log decision
-        print(f"\n[ROUTER DECISION]")
-        print(f"  Mode: {decision.response_mode}")
-        print(f"  VQA needed: {decision.needs_vqa}")
-        print(f"  PubMed needed: {decision.needs_pubmed}")
-        if decision.search_query:
-            print(f"  Search: {decision.search_query}")
-        print(f"  Reasoning: {decision.reasoning}")
-
         return decision
 
     def should_search_pubmed_for_vqa(

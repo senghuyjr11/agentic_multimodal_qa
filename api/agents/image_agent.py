@@ -205,12 +205,16 @@ class ImageAgent:
 
         if model_type == ModelType.REJECT:
             print("[REJECT] Non-medical image detected")
+            total_seconds = time.perf_counter() - total_start
             return {
                 "question": question or "N/A",
                 "answer": self.REJECTION_MESSAGE,
                 "model": "reject",
                 "confidence": confidence,
                 "ood": True,
+                "timing": {
+                    "total_seconds": round(total_seconds, 4),
+                },
             }
 
         # Switch adapter — no model reload needed
@@ -263,12 +267,13 @@ class ImageAgent:
         ).strip()
 
         print(f"[VQA] Answer: {answer[:100]}...")
+        total_seconds = time.perf_counter() - total_start
         print(
             f"[TIMING] load_image={load_seconds:.2f}s "
             f"classify={classify_seconds:.2f}s "
             f"preprocess={preprocess_seconds:.2f}s "
             f"generate={generate_seconds:.2f}s "
-            f"total={time.perf_counter() - total_start:.2f}s "
+            f"total={total_seconds:.2f}s "
             f"max_new_tokens={self.max_new_tokens} "
             f"image_size={self.image_size}"
         )
@@ -279,6 +284,9 @@ class ImageAgent:
             "model": model_type.value,
             "confidence": confidence,
             "ood": False,
+            "timing": {
+                "total_seconds": round(total_seconds, 4),
+            },
         }
 
 
