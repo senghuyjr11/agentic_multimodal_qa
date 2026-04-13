@@ -298,6 +298,58 @@ Medical search terms:"""
         return True, search_query
 
     def _build_followup_search_query(self, last_ai_msg: str) -> Optional[str]:
+        llm_query = self._extract_search_keywords_with_llm(last_ai_msg)
+        if llm_query:
+            return llm_query
+
+        return self._fallback_followup_search_query(last_ai_msg)
+
+    def _extract_search_keywords_with_llm(self, last_ai_msg: str) -> Optional[str]:
+        if not last_ai_msg:
+            return None
+
+        prompt = f"""You convert a medical explanation into a short PubMed keyword query.
+
+SOURCE TEXT:
+{last_ai_msg}
+
+Rules:
+- Return ONLY keywords, no full sentence
+- Prefer diagnosis names, pathology/radiology terms, organ names, and core disease concepts
+- Remove filler words and descriptive prose
+- Keep it between 2 and 6 keywords
+- No punctuation except spaces
+- No markdown
+
+Examples:
+- "The image demonstrates a heart with a notable dilation of the left ventricle and aortic root." -> left ventricle dilation aortic root dilation
+- "This may be a benign mixed mesodermal tumor also known as a teratoma." -> benign mixed mesodermal tumor teratoma
+- "Features are consistent with constrictive pericarditis." -> constrictive pericarditis
+
+Keyword query:"""
+
+        try:
+            response = self.model.generate_content(prompt)
+            query = (response.text or "").strip()
+
+            import re
+
+            query = re.sub(r'```.*?```', '', query, flags=re.DOTALL).strip()
+            query = re.sub(r'[^A-Za-z0-9\s\-]', ' ', query)
+            query = re.sub(r'\s+', ' ', query).strip()
+            if not query:
+                return None
+
+            words = query.split()
+            if len(words) > 6:
+                query = " ".join(words[:6])
+
+            return query.strip() or None
+        except Exception as e:
+            print(f"  LLM keyword extraction failed: {e}")
+            return None
+
+    def _fallback_followup_search_query(self, last_ai_msg: str) -> Optional[str]:
         if not last_ai_msg:
             return None
 
@@ -310,15 +362,61 @@ Medical search terms:"""
         if not cleaned:
             return None
 
-        # Prefer the first sentence for literature lookup when the answer is long.
+        patterns = [
+            r'consistent with\s+(?:a|an)?\s*([^.;:()]+)',
+            r'likely (?:a|an)?\s*([^.;:()]+)',
+            r'may be\s+(?:a|an)?\s*([^.;:()]+)',
+            r'suggests (?:this may be|it may be)?\s*(?:a|an)?\s*([^.;:()]+)',
+            r'also referred to as\s+(?:a|an)?\s*([^.;:()]+)',
+            r'also known as\s+(?:a|an)?\s*([^.;:()]+)',
+        ]
+
+        extracted_chunks = []
+        for pattern in patterns:
+            matches = re.findall(pattern, cleaned, flags=re.IGNORECASE)
+            for match in matches:
+                chunk = re.sub(r'\s+', ' ', match).strip(" .,:;!-")
+                if chunk and chunk.lower() not in [c.lower() for c in extracted_chunks]:
+                    extracted_chunks.append(chunk)
+
+        def to_keyword_query(text: str) -> Optional[str]:
+            stopwords = {
+                "the", "a", "an", "and", "or", "with", "without", "of", "to",
+                "in", "on", "for", "from", "by", "this", "that", "these", "those",
+                "image", "shows", "showing", "reveals", "revealing", "exhibiting",
+                "appearance", "surface", "presence", "including", "includes",
+                "characteristic", "characterized", "consistent", "likely", "suggests",
+                "suggesting", "also", "known", "referred", "referredto", "may", "be",
+                "due", "large", "irregular", "fleshy", "multicolored", "lobulated"
+            }
+
+            tokens = re.findall(r"[A-Za-z][A-Za-z\-]+", text.lower())
+            keywords = []
+
+            for token in tokens:
+                normalized = token.replace("-", "")
+                if normalized in stopwords:
+                    continue
+                if len(normalized) < 3:
+                    continue
+                if normalized not in keywords:
+                    keywords.append(normalized)
+
+            if not keywords:
+                return None
+
+            return " ".join(keywords[:6])
+
+        if extracted_chunks:
+            query = to_keyword_query(" ".join(extracted_chunks[:2]))
+            if query:
+                return query
+
+        # Fallback: prefer the first sentence when no diagnosis phrase is found.
         first_sentence = re.split(r'(?<=[.!?])\s+', cleaned, maxsplit=1)[0].strip()
         candidate = first_sentence or cleaned
-
-        words = candidate.split()
-        if len(words) > 12:
-            candidate = " ".join(words[:12])
-
-        return candidate.strip(" .,:;!-") or None
+        query = to_keyword_query(candidate)
+        return query or candidate.strip(" .,:;!-") or None
 
     def is_asking_about_previous_references(self, message: str) -> bool:
         """

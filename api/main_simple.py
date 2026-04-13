@@ -83,6 +83,63 @@ class MedicalVQAPipeline:
         print(f"  Search: {decision.search_query}")
         print(f"  Reasoning: {decision.reasoning}")
 
+    def _build_cache_validation_query(
+        self,
+        message: Optional[str],
+        session_id: int,
+        preferred_query: Optional[str] = None
+    ) -> Optional[str]:
+        if preferred_query and preferred_query.strip():
+            return preferred_query.strip()
+
+        if message and message.strip():
+            lowered = message.lower()
+            generic_followups = [
+                "explain", "more detail", "more details", "tell me more",
+                "elaborate", "clearer", "break it down", "help me understand",
+                "specific aspect", "those references", "those articles", "those resources"
+            ]
+            if not any(pattern in lowered for pattern in generic_followups):
+                return message.strip()
+
+        last_ai_message = self.memory.get_last_ai_message(session_id)
+        if not last_ai_message:
+            return message.strip() if message else None
+
+        keyword_query = self.router._build_followup_search_query(last_ai_message)
+        if keyword_query:
+            return keyword_query
+
+        first_line = last_ai_message.splitlines()[0].strip()
+        words = first_line.split()
+        if len(words) > 16:
+            first_line = " ".join(words[:16])
+        return first_line or (message.strip() if message else None)
+
+    def _get_relevant_cached_articles(
+        self,
+        session_id: int,
+        query: Optional[str],
+        min_relevance: float = 0.45
+    ):
+        cached_articles = self.memory.get_pubmed_articles(session_id)
+        if not cached_articles or not query:
+            return []
+
+        scored_articles = self.pubmed_agent.score_articles(query, list(cached_articles))
+        filtered_articles = [
+            article for article in scored_articles
+            if getattr(article, "relevance_score", 0.0) is not None
+            and getattr(article, "relevance_score", 0.0) >= min_relevance
+        ]
+
+        top_score = getattr(scored_articles[0], "relevance_score", None) if scored_articles else None
+        print(f"  Cached article validation query: {query}")
+        print(f"  Cached article top score: {top_score}")
+        print(f"  Cached articles kept: {len(filtered_articles)}/{len(scored_articles)}")
+
+        return filtered_articles[:5]
+
     def run(
         self,
         username: str,
@@ -347,7 +404,12 @@ class MedicalVQAPipeline:
         # Check 1: User asking to elaborate on existing references (MOVED UP - HIGHER PRIORITY)
         use_cached_articles = False
         if english_question and self.router.is_asking_about_previous_references(english_question):
-            cached_articles = self.memory.get_pubmed_articles(session_id)
+            cache_query = self._build_cache_validation_query(
+                english_question,
+                session_id,
+                decision.search_query
+            )
+            cached_articles = self._get_relevant_cached_articles(session_id, cache_query)
 
             if cached_articles:
                 print(f"\n[REUSING ARTICLES] User asking to elaborate on previous response")
@@ -359,6 +421,11 @@ class MedicalVQAPipeline:
                 decision.search_query = None  # Clear search query to prevent new search
                 decision.response_mode = "medical_answer"
                 use_cached_articles = True
+            else:
+                print("\n[CACHED ARTICLES REJECTED] No relevant cached articles for this follow-up")
+                decision.needs_pubmed = True
+                decision.search_query = cache_query
+                decision.response_mode = "medical_answer"
 
         # Check 2: Follow-up asking for explanation of previous short answer
         elif not decision.needs_pubmed and not decision.needs_vqa:
@@ -387,6 +454,7 @@ class MedicalVQAPipeline:
         # 4a. Image analysis?
         if decision.needs_vqa and image_path:
             print("\n[Step 4a] Image analysis...")
+            self.memory.clear_pubmed_articles(session_id)
             vqa_result = self.image_agent.predict(image_path, english_question)
             vqa_timing = vqa_result.get("timing")
 
@@ -417,8 +485,13 @@ class MedicalVQAPipeline:
             pubmed_attempted = True
             # Case 1: Reuse cached articles
             if use_cached_articles:
-                pubmed_articles = self.memory.get_pubmed_articles(session_id)
-                print(f"  Using {len(pubmed_articles)} cached articles (no new search)")
+                cache_query = self._build_cache_validation_query(
+                    english_question,
+                    session_id,
+                    decision.search_query
+                )
+                pubmed_articles = self._get_relevant_cached_articles(session_id, cache_query)
+                print(f"  Using {len(pubmed_articles)} validated cached articles (no new search)")
 
             # Case 2: Search PubMed (only for text-only questions, not images)
             elif decision.search_query and not vqa_answer:
@@ -441,7 +514,7 @@ class MedicalVQAPipeline:
                     print("  No articles found")
 
                     # Try using cached articles from previous turn
-                    cached_articles = self.memory.get_pubmed_articles(session_id)
+                    cached_articles = self._get_relevant_cached_articles(session_id, decision.search_query)
                     if cached_articles:
                         print(f"  → Using {len(cached_articles)} cached articles from previous turn")
                         pubmed_articles = cached_articles
