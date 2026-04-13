@@ -1,0 +1,14 @@
+{
+  "model": "models/gemini-flash-latest",
+  "cases_requested": 19,
+  "cases_scored": 19,
+  "cases_failed": 0,
+  "avg_answer_relevance_score": 4.4211,
+  "avg_groundedness_score": 4.1053,
+  "avg_context_relevance_score": 4.2105,
+  "avg_coherence_score": 4.8421,
+  "avg_overall_score": 4.1053,
+  "results_jsonl": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\results\\llm_judge_results.jsonl",
+  "results_csv": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\results\\llm_judge_results.csv",
+  "errors": []
+}
