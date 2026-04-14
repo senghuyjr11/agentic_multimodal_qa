@@ -53,6 +53,39 @@ class RouterAgent:
             RoutingDecision with what to do
         """
 
+        message_lower = message.lower().strip()
+
+        # Hard rules for conversational feedback that should not trigger medical generation.
+        casual_feedback_patterns = [
+            "it is ok", "it's ok", "dont forget", "don't forget",
+            "next time", "you forgot", "forgot what we talked about",
+            "no worries", "that is okay", "that's okay"
+        ]
+        if any(pattern in message_lower for pattern in casual_feedback_patterns):
+            return RoutingDecision(
+                needs_vqa=False,
+                needs_pubmed=False,
+                search_query=None,
+                response_mode="casual_chat",
+                reasoning="Conversational feedback or reminder; respond casually and maintain context."
+            )
+
+        previous_reference_patterns = [
+            "previous answer reference",
+            "reference for the previous answer",
+            "references for the previous answer",
+            "the previous answer reference",
+            "previous response reference",
+        ]
+        if any(pattern in message_lower for pattern in previous_reference_patterns):
+            return RoutingDecision(
+                needs_vqa=False,
+                needs_pubmed=False,
+                search_query=None,
+                response_mode="modify_previous",
+                reasoning="User is asking about references from the previous answer."
+            )
+
         # Get recent conversation context (last 5 turns)
         context = self._get_context(memory, num_turns=5)
 

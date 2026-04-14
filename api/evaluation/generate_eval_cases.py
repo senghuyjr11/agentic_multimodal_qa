@@ -6,15 +6,33 @@ from typing import Iterable
 EVAL_DIR = Path(__file__).resolve().parent
 API_DIR = EVAL_DIR.parent
 SESSIONS_DIR = API_DIR / "sessions"
-DEFAULT_OUTPUT = EVAL_DIR / "eval_cases.jsonl"
+DEFAULT_OUTPUT = EVAL_DIR / "eval_cases_12.jsonl"
+
+# Simple manual config:
+# - Change DEFAULT_USERNAME to the user you want
+# - Set SESSION_IDS to a list like [10, 11, 12] to export only those sessions
+# - Leave SESSION_IDS as None to export all sessions for that user
 DEFAULT_USERNAME = "kyojuro"
+SESSION_IDS = [12]
 
 
-def iter_session_files(sessions_dir: Path, username: str | None = None) -> Iterable[Path]:
+def iter_session_files(
+    sessions_dir: Path,
+    username: str | None = None,
+    session_ids: list[int] | None = None
+) -> Iterable[Path]:
     if username:
         user_dir = sessions_dir / username
         if not user_dir.exists():
             return []
+
+        if session_ids:
+            files = [
+                user_dir / str(session_id) / "session_data.json"
+                for session_id in session_ids
+            ]
+            return [path for path in files if path.exists()]
+
         return sorted(
             user_dir.glob("*/session_data.json"),
             key=lambda p: int(p.parent.name)
@@ -44,9 +62,10 @@ def main() -> None:
     sessions_dir = SESSIONS_DIR.resolve()
     output_path = DEFAULT_OUTPUT.resolve()
     username = DEFAULT_USERNAME
+    session_ids = SESSION_IDS
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    session_files = list(iter_session_files(sessions_dir, username))
+    session_files = list(iter_session_files(sessions_dir, username, session_ids))
     exported = 0
 
     with output_path.open("w", encoding="utf-8") as f:
@@ -61,7 +80,9 @@ def main() -> None:
 
     print(
         f"Exported {exported} cases from {len(session_files)} session files "
-        f"for user '{username}' to {output_path}"
+        f"for user '{username}'"
+        f"{f' with sessions {session_ids}' if session_ids else ''} "
+        f"to {output_path}"
     )
 
 

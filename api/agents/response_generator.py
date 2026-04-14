@@ -103,7 +103,39 @@ class ResponseGenerator:
             for keyword in translation_keywords
         )
 
-        if is_translation_request:
+        reference_request_patterns = [
+            "previous answer reference",
+            "previous response reference",
+            "reference for the previous answer",
+            "references for the previous answer",
+            "the previous answer reference",
+        ]
+        is_reference_request = any(pattern in message.lower() for pattern in reference_request_patterns)
+
+        if is_reference_request:
+            prompt = ChatPromptTemplate.from_template(
+                """You are a medical assistant helping with a question about the previous answer.
+
+CONVERSATION HISTORY:
+{context}
+
+MOST RECENT RESPONSE:
+{previous_response}
+
+USER REQUEST:
+{message}
+
+Task:
+- Determine whether the previous answer actually included references
+- If it included references, restate only those references clearly
+- If it did not include references, say so directly and briefly
+- Do not invent new references
+- Do not answer a different medical question
+
+Response:"""
+            )
+
+        elif is_translation_request:
             prompt = ChatPromptTemplate.from_template(
                 """You are a medical assistant helping modify a previous response.
 
@@ -332,7 +364,42 @@ Clear Explanation:"""
                     "message": message
                 })
 
-        # SCENARIO 3: No data available
+        # SCENARIO 4: Topic-aware follow-up using memory when no fresh literature is available
+        if memory and self._is_topic_aware_followup(message):
+            previous_response = self._get_last_ai_message(memory)
+            context = self._get_context(memory, num_turns=10)
+
+            if previous_response:
+                prompt = ChatPromptTemplate.from_template(
+                    """You are a medical assistant answering a follow-up question using the ongoing conversation.
+
+CONVERSATION HISTORY:
+{context}
+
+MOST RECENT MEDICAL ANSWER:
+{previous_response}
+
+CURRENT QUESTION:
+{message}
+
+Task:
+- Answer the follow-up question using the current topic from conversation history
+- Stay grounded in what was already discussed
+- If the exact answer is not known, say what is generally true while keeping uncertainty clear
+- Do not say you lack information if the topic is already clear from context
+- Do not invent references or citations
+- Keep the answer concise and directly responsive
+
+Response:"""
+                )
+                chain = prompt | self.llm | self.parser
+                return chain.invoke({
+                    "context": context,
+                    "previous_response": previous_response,
+                    "message": message
+                })
+
+        # SCENARIO 5: No data available
         return "I don't have enough information to answer this question. Could you provide more details or upload a medical image?"
 
     def _is_followup_explanation_request(self, message: str) -> bool:
@@ -341,6 +408,16 @@ Clear Explanation:"""
             "explain", "more detail", "more details", "tell me more",
             "elaborate", "clearer", "explain clearly", "what do you mean",
             "break it down", "help me understand"
+        ]
+        return any(pattern in message_lower for pattern in patterns)
+
+    def _is_topic_aware_followup(self, message: str) -> bool:
+        message_lower = message.lower().strip()
+        patterns = [
+            "food to avoid", "foods to avoid", "what should i avoid",
+            "can i eat", "should i avoid", "is there any food",
+            "diet", "treatment", "symptom", "prognosis", "risk",
+            "complication", "follow up", "recovery"
         ]
         return any(pattern in message_lower for pattern in patterns)
 

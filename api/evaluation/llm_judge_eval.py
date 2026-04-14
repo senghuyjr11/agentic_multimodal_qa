@@ -24,8 +24,8 @@ except ImportError as exc:
 EVAL_DIR = Path(__file__).resolve().parent
 ROOT_DIR = EVAL_DIR.parent.parent
 ENV_PATH = ROOT_DIR / ".env"
-CASES_PATH = EVAL_DIR / "eval_cases.jsonl"
-RESULTS_DIR = EVAL_DIR / "results"
+CASES_PATH = EVAL_DIR / "eval_cases_12.jsonl"
+RESULTS_DIR = EVAL_DIR / "results_session_12"
 RESULTS_JSONL = RESULTS_DIR / "llm_judge_results.jsonl"
 RESULTS_CSV = RESULTS_DIR / "llm_judge_results.csv"
 SUMMARY_JSON = RESULTS_DIR / "llm_judge_summary.json"
@@ -48,7 +48,7 @@ def average(values: list[float]) -> float | None:
 
 
 def load_runtime_config() -> tuple[str, float, int | None]:
-    model_name = os.getenv("LLM_JUDGE_MODEL", "models/gemini-flash-latest")
+    model_name = os.getenv("LLM_JUDGE_MODEL", "models/gemini-2.5-flash-lite")
     sleep_seconds = float(os.getenv("LLM_JUDGE_SLEEP_SECONDS", "8"))
     max_cases_env = os.getenv("LLM_JUDGE_MAX_CASES")
     max_cases = int(max_cases_env) if max_cases_env else None
