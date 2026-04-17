@@ -36,7 +36,7 @@ class ResponseGenerator:
 
     def __init__(self, google_api_key: str):
         self.llm = ChatGoogleGenerativeAI(
-            model="gemma-3-4b-it",
+            model="gemini-2.5-flash-lite",
             google_api_key=google_api_key
         )
         self.parser = StrOutputParser()
@@ -235,6 +235,7 @@ Formatted Response:"""
             # Check if user is asking for elaboration
             is_elaboration = any(word in message_lower for word in
                                  ["explain", "elaborate", "tell me more", "detail", "those resources"])
+            question_style = self._classify_medical_question_style(message)
 
             if is_elaboration:
                 prompt = ChatPromptTemplate.from_template(
@@ -250,21 +251,23 @@ MEDICAL LITERATURE:
 {lit_section}
 
 Task:
-1. Provide a MORE DETAILED explanation using the literature
-2. Go deeper into the mechanisms
-3. Explain the biological/chemical basis
-4. Include specific details from the articles
-5. {citation_instruction}
-6. Keep it concise and educational
-7. Use this exact structure:
+1. Provide a MORE DETAILED explanation using ONLY the literature provided
+2. Go deeper into the mechanisms only when the literature clearly supports them
+3. If the literature is indirect, weak, or only partly related, say that clearly
+4. Do NOT infer a specific diagnosis, treatment, prognosis, or disease subtype unless the literature directly supports it
+5. Do NOT introduce examples from unrelated diseases just because they appear in the articles
+6. Keep all claims conservative and evidence-bound
+7. {citation_instruction}
+8. Keep it concise and educational
+9. Use this exact structure:
    Summary:
    - 1 to 2 bullets
    Why It Matters:
    - 2 to 4 bullets
    Key Evidence:
    - 2 to 4 bullets
-8. Use short bullets, not long paragraphs
-9. Do not add any heading beyond those three section titles
+10. Use short bullets, not long paragraphs
+11. Do not add any heading beyond those three section titles
 
 Detailed Response:"""
                 )
@@ -279,7 +282,21 @@ CURRENT QUESTION:
 
 {lit_section}
 
-Answer the question using the medical literature provided.
+Answer the question using ONLY the medical literature provided.
+Rules:
+- Base every medical claim on the provided literature
+- If the evidence is weak, indirect, or not specific to the user's exact case, say so explicitly
+- Do not overgeneralize from loosely related articles
+- Do not mention diseases, treatments, or risks unless they are directly supported by the literature
+- Prefer a cautious answer over a broad answer
+- If the literature does not clearly answer the question, say the evidence is limited
+- Answer the user's exact question in the first sentence
+- Do not start with background if a direct answer is possible
+- Keep the answer tightly focused on this question style: {question_style}
+- For severity questions: answer whether it can be mild, serious, or variable
+- For treatment questions: answer the main treatment approach first, then briefly qualify
+- For diet/food questions: if no direct evidence is available, clearly say no specific food restriction was identified
+- For healing/recovery time questions: if no direct timeline is available, clearly say the literature does not provide a reliable timeline
 {citation_instruction}
 
 Response:"""
@@ -298,6 +315,7 @@ Response:"""
                 "message": message,
                 "lit_section": lit_section,
                 "citation_instruction": citation_instruction,
+                "question_style": question_style,
             })
 
             # Strip any LLM-generated references section to avoid duplication
@@ -368,6 +386,7 @@ Clear Explanation:"""
         if memory and self._is_topic_aware_followup(message):
             previous_response = self._get_last_ai_message(memory)
             context = self._get_context(memory, num_turns=10)
+            question_style = self._classify_medical_question_style(message)
 
             if previous_response:
                 prompt = ChatPromptTemplate.from_template(
@@ -386,9 +405,13 @@ Task:
 - Answer the follow-up question using the current topic from conversation history
 - Stay grounded in what was already discussed
 - If the exact answer is not known, say what is generally true while keeping uncertainty clear
+- Do not turn a previous tentative explanation into a stronger factual claim
 - Do not say you lack information if the topic is already clear from context
 - Do not invent references or citations
 - Keep the answer concise and directly responsive
+- Answer the exact user question in the first sentence
+- Keep the answer style focused on: {question_style}
+- For treatment/severity/diet/healing questions, prefer a practical direct answer first
 
 Response:"""
                 )
@@ -396,7 +419,8 @@ Response:"""
                 return chain.invoke({
                     "context": context,
                     "previous_response": previous_response,
-                    "message": message
+                    "message": message,
+                    "question_style": question_style,
                 })
 
         # SCENARIO 5: No data available
@@ -420,6 +444,22 @@ Response:"""
             "complication", "follow up", "recovery"
         ]
         return any(pattern in message_lower for pattern in patterns)
+
+    def _classify_medical_question_style(self, message: str) -> str:
+        message_lower = message.lower().strip()
+
+        if any(pattern in message_lower for pattern in ["deadly", "serious", "serious or not", "severe", "dangerous"]):
+            return "severity"
+        if any(pattern in message_lower for pattern in ["treatment", "treat", "therapy", "medicine", "antibiotic"]):
+            return "treatment"
+        if any(pattern in message_lower for pattern in ["food", "diet", "eat", "avoid"]):
+            return "diet"
+        if any(pattern in message_lower for pattern in ["heal", "healing", "recovery", "recover", "how many month", "how long"]):
+            return "healing_time"
+        if any(pattern in message_lower for pattern in ["what is", "what does", "meaning"]):
+            return "definition"
+
+        return "general_medical"
 
     def _get_last_ai_message(self, memory: InMemoryConversation) -> Optional[str]:
         for msg in reversed(memory.messages):

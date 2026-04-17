@@ -20,7 +20,7 @@ class ConversationSummarizer:
 
     def __init__(self, google_api_key: str):
         self.llm = ChatGoogleGenerativeAI(
-            model="gemma-3-4b-it",
+            model="gemini-2.5-flash-lite",
             google_api_key=google_api_key
         )
         self.parser = StrOutputParser()

@@ -33,7 +33,7 @@ class RouterAgent:
 
     def __init__(self, google_api_key: str):
         genai.configure(api_key=google_api_key)
-        self.model = genai.GenerativeModel("gemma-3-4b-it")
+        self.model = genai.GenerativeModel("gemini-2.5-flash-lite")
 
     def decide(
         self,

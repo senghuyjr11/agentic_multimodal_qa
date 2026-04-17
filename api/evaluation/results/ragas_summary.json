@@ -1,0 +1,17 @@
+{
+  "framework": "Ragas",
+  "provider": "Google Gemini",
+  "evaluation_mode": "multi_turn",
+  "model": "gemini-2.5-flash-lite",
+  "cases_requested": 1,
+  "cases_scored": 1,
+  "cases_failed": 0,
+  "avg_topic_adherence": 0.9412,
+  "avg_agent_goal_accuracy": 1.0,
+  "avg_conversation_coherence": 1.0,
+  "avg_medical_correctness": 1.0,
+  "avg_medical_safety_caution": 1.0,
+  "results_jsonl": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\pipeline\\results\\ragas_results.jsonl",
+  "results_csv": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\pipeline\\results\\ragas_results.csv",
+  "errors": []
+}

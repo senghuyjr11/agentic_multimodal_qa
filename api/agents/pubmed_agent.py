@@ -67,11 +67,13 @@ class PubMedAgent:
         print(f"[PubMed] Searching: '{query}' (max {max_results} results)")
 
         # Search for PMIDs
+        candidate_count = max(max_results * 3, max_results)
+
         params = {
             "email": self.email,
             "db": "pubmed",
             "term": query,
-            "retmax": max_results,
+            "retmax": candidate_count,
             "retmode": "json",
             "sort": "relevance"
         }
@@ -170,10 +172,20 @@ class PubMedAgent:
                     title_elem = article_elem.find(".//ArticleTitle")
                     title = title_elem.text if title_elem is not None and title_elem.text else "Untitled"
 
-                    abstract_elem = article_elem.find(".//Abstract/AbstractText")
+                    abstract_parts = []
+                    for abstract_elem in article_elem.findall(".//Abstract/AbstractText"):
+                        label = abstract_elem.attrib.get("Label")
+                        text = "".join(abstract_elem.itertext()).strip()
+                        if not text:
+                            continue
+                        if label:
+                            abstract_parts.append(f"{label}: {text}")
+                        else:
+                            abstract_parts.append(text)
+
                     abstract = "No abstract available"
-                    if abstract_elem is not None and abstract_elem.text:
-                        abstract = abstract_elem.text[:500]  # Truncate long abstracts
+                    if abstract_parts:
+                        abstract = " ".join(abstract_parts)[:1200]
 
                     url = f"https://pubmed.ncbi.nlm.nih.gov/{pmid}/"
 
@@ -220,19 +232,31 @@ class PubMedAgent:
             )
             query_embedding = np.array(query_result.embeddings[0].values)
 
-            # Get article embeddings
-            article_texts = [f"{a.title}. {a.abstract}" for a in articles]
-            article_result = self.embedding_client.models.embed_content(
-                model="models/gemini-embedding-001",  # ← CHANGED
-                contents=article_texts,
+            # Score title and abstract separately so concise titles can dominate noisy abstracts.
+            title_texts = [a.title or "Untitled" for a in articles]
+            abstract_texts = [a.abstract or "No abstract available" for a in articles]
+
+            title_result = self.embedding_client.models.embed_content(
+                model="models/gemini-embedding-001",
+                contents=title_texts,
                 config=genai_types.EmbedContentConfig(task_type="RETRIEVAL_DOCUMENT")
             )
-            article_embeddings = [np.array(e.values) for e in article_result.embeddings]
+            abstract_result = self.embedding_client.models.embed_content(
+                model="models/gemini-embedding-001",
+                contents=abstract_texts,
+                config=genai_types.EmbedContentConfig(task_type="RETRIEVAL_DOCUMENT")
+            )
 
-            # Compute similarities
+            title_embeddings = [np.array(e.values) for e in title_result.embeddings]
+            abstract_embeddings = [np.array(e.values) for e in abstract_result.embeddings]
+
+            # Compute weighted similarity.
             query_matrix = query_embedding.reshape(1, -1)
-            article_matrix = np.array(article_embeddings)
-            similarities = cosine_similarity(query_matrix, article_matrix)[0]
+            title_matrix = np.array(title_embeddings)
+            abstract_matrix = np.array(abstract_embeddings)
+            title_similarities = cosine_similarity(query_matrix, title_matrix)[0]
+            abstract_similarities = cosine_similarity(query_matrix, abstract_matrix)[0]
+            similarities = (0.65 * title_similarities) + (0.35 * abstract_similarities)
 
             # Assign scores
             for i, article in enumerate(articles):

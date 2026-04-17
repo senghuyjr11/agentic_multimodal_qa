@@ -83,6 +83,27 @@ class MedicalVQAPipeline:
         print(f"  Search: {decision.search_query}")
         print(f"  Reasoning: {decision.reasoning}")
 
+    @staticmethod
+    def _filter_pubmed_articles(articles, min_relevance: float = 0.30, max_keep: int = 5):
+        if not articles:
+            return []
+
+        filtered = [
+            article for article in articles
+            if getattr(article, "relevance_score", None) is not None
+            and getattr(article, "relevance_score", 0.0) >= min_relevance
+        ]
+
+        if filtered:
+            return filtered[:max_keep]
+
+        # Fallback: keep the single best article if all scores are weak but non-null.
+        best_articles = [
+            article for article in articles
+            if getattr(article, "relevance_score", None) is not None
+        ]
+        return best_articles[:1]
+
     def _build_cache_validation_query(
         self,
         message: Optional[str],
@@ -502,11 +523,13 @@ class MedicalVQAPipeline:
                 )
 
                 if articles:
-                    pubmed_articles = self.pubmed_agent.score_articles(
-                    query=english_question or "medical image finding",
-                    articles=articles
-                )
-                    print(f"  Found {len(pubmed_articles)} articles")
+                    ranked_articles = self.pubmed_agent.score_articles(
+                        query=decision.search_query,
+                        articles=articles
+                    )
+                    pubmed_articles = self._filter_pubmed_articles(ranked_articles)
+                    print(f"  Found {len(articles)} candidate articles")
+                    print(f"  Keeping {len(pubmed_articles)} relevant articles")
 
                     # Store articles in memory for future reference
                     self.memory.store_pubmed_articles(session_id, pubmed_articles)
