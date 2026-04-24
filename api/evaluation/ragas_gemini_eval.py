@@ -9,18 +9,21 @@ from openai import AsyncOpenAI
 from ragas.dataset_schema import MultiTurnSample
 from ragas.llms import llm_factory
 from ragas.messages import AIMessage, HumanMessage, ToolMessage
-from ragas.metrics import AspectCritic
-from ragas.metrics.collections import (
-    AgentGoalAccuracyWithoutReference,
-    TopicAdherence,
-)
+from ragas.metrics.collections import AgentGoalAccuracyWithoutReference, TopicAdherence
+
+try:
+    # Newer Ragas style (preferred when available)
+    from ragas.metrics.collections import AspectCritic  # type: ignore
+except ImportError:
+    # Backward-compatible fallback for versions where AspectCritic lives in ragas.metrics
+    from ragas.metrics import AspectCritic  # type: ignore
 
 
 PIPELINE_DIR = Path(__file__).resolve().parent
-ROOT_DIR = PIPELINE_DIR.parent.parent.parent
+ROOT_DIR = PIPELINE_DIR.parent.parent
 ENV_PATH = ROOT_DIR / ".env"
-DATASET_PATH = PIPELINE_DIR / "ragas_dataset_senghuy.jsonl"
-RESULTS_DIR = PIPELINE_DIR / "results"
+DATASET_PATH = PIPELINE_DIR / "ragas_dataset_senghuy_non_medical.jsonl"
+RESULTS_DIR = PIPELINE_DIR / "results_non_medical"
 RESULTS_JSONL = RESULTS_DIR / "ragas_results.jsonl"
 RESULTS_CSV = RESULTS_DIR / "ragas_results.csv"
 SUMMARY_JSON = RESULTS_DIR / "ragas_summary.json"

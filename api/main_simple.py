@@ -104,6 +104,24 @@ class MedicalVQAPipeline:
         ]
         return best_articles[:1]
 
+    @staticmethod
+    def _is_identity_or_memory_message(message: Optional[str]) -> bool:
+        text = (message or "").strip().lower()
+        if not text:
+            return False
+        patterns = [
+            "my name",
+            "what is my name",
+            "what was my name",
+            "what's my name",
+            "do you know my name",
+            "remember my name",
+            "do you remember",
+            "what did i ask",
+            "first question",
+        ]
+        return any(pattern in text for pattern in patterns)
+
     def _build_cache_validation_query(
         self,
         message: Optional[str],
@@ -114,14 +132,9 @@ class MedicalVQAPipeline:
             return preferred_query.strip()
 
         if message and message.strip():
-            lowered = message.lower()
-            generic_followups = [
-                "explain", "more detail", "more details", "tell me more",
-                "elaborate", "clearer", "break it down", "help me understand",
-                "specific aspect", "those references", "those articles", "those resources"
-            ]
-            if not any(pattern in lowered for pattern in generic_followups):
-                return message.strip()
+            stripped = message.strip()
+            if len(stripped.split()) >= 4:
+                return stripped
 
         last_ai_message = self.memory.get_last_ai_message(session_id)
         if not last_ai_message:
@@ -404,6 +417,13 @@ class MedicalVQAPipeline:
         )
         self._log_decision("ROUTER DECISION (INITIAL)", decision)
 
+        # Hard guard: identity/memory messages must stay in casual mode, never PubMed.
+        if self._is_identity_or_memory_message(english_question):
+            decision.response_mode = "casual_chat"
+            decision.needs_pubmed = False
+            decision.search_query = None
+            decision.reasoning = "Identity/memory query guard (no PubMed)."
+
         # NEW: Hard override - if image present, force VQA
         if bool(image_path) and not decision.needs_vqa:
             print(f"  ⚠️  Override: Image detected, forcing VQA")
@@ -424,7 +444,12 @@ class MedicalVQAPipeline:
 
         # Check 1: User asking to elaborate on existing references (MOVED UP - HIGHER PRIORITY)
         use_cached_articles = False
-        if english_question and self.router.is_asking_about_previous_references(english_question):
+        is_memory_query = self._is_identity_or_memory_message(english_question)
+        if (
+            not is_memory_query
+            and english_question
+            and self.router.is_asking_about_previous_references(english_question)
+        ):
             cache_query = self._build_cache_validation_query(
                 english_question,
                 session_id,
@@ -449,7 +474,13 @@ class MedicalVQAPipeline:
                 decision.response_mode = "medical_answer"
 
         # Check 2: Follow-up asking for explanation of previous short answer
-        elif not decision.needs_pubmed and not decision.needs_vqa:
+        elif (
+            not is_memory_query
+            and
+            decision.response_mode == "medical_answer"
+            and not decision.needs_pubmed
+            and not decision.needs_vqa
+        ):
             needs_pubmed_followup, search_query = self.router.detect_followup_needs_pubmed(
                 message=english_question or "",
                 memory=memory

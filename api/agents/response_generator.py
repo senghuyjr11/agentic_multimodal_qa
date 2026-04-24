@@ -6,6 +6,7 @@ ONE JOB: Create the final response text
 NO routing decisions - that's router_agent.py's job
 """
 
+import re
 from typing import Optional, List
 from dataclasses import dataclass
 
@@ -86,35 +87,12 @@ class ResponseGenerator:
         if not previous_response:
             return "I don't have a previous response to modify."
 
-        # Get conversation context so LLM understands references like
-        # "make it back to eng" or "the article we just talked about"
         context = self._get_context(memory, num_turns=10) if memory else ""
+        intent = self._classify_modification_intent(message, context, previous_response)
 
-        # Check if it's a translation request
-        translation_keywords = [
-            'translate', 'explain in', 'in spanish', 'in french',
-            'in chinese', 'in korean', 'in japanese', 'in vietnamese',
-            'in english', 'back to english', 'back to eng',
-            'in arabic', 'in hindi', 'in german', 'in russian',
-        ]
-
-        is_translation_request = any(
-            keyword in message.lower()
-            for keyword in translation_keywords
-        )
-
-        reference_request_patterns = [
-            "previous answer reference",
-            "previous response reference",
-            "reference for the previous answer",
-            "references for the previous answer",
-            "the previous answer reference",
-        ]
-        is_reference_request = any(pattern in message.lower() for pattern in reference_request_patterns)
-
-        if is_reference_request:
+        if intent == "reference":
             prompt = ChatPromptTemplate.from_template(
-                """You are a medical assistant helping with a question about the previous answer.
+                """You are a medical assistant.
 
 CONVERSATION HISTORY:
 {context}
@@ -125,19 +103,17 @@ MOST RECENT RESPONSE:
 USER REQUEST:
 {message}
 
-Task:
-- Determine whether the previous answer actually included references
-- If it included references, restate only those references clearly
-- If it did not include references, say so directly and briefly
-- Do not invent new references
-- Do not answer a different medical question
+Task: answer only about references from the previous response.
+- If references exist, restate them clearly.
+- If not, say no references were included.
+- Do not invent references.
 
 Response:"""
             )
 
-        elif is_translation_request:
+        elif intent == "translate":
             prompt = ChatPromptTemplate.from_template(
-                """You are a medical assistant helping modify a previous response.
+                """You are a medical assistant.
 
 CONVERSATION HISTORY:
 {context}
@@ -148,16 +124,16 @@ MOST RECENT RESPONSE:
 USER REQUEST:
 {message}
 
-Task: Translate or rephrase the response the user is referring to into the requested language.
-Use the conversation history to identify which response they mean if it's not clear.
-Keep the same meaning and medical accuracy.
-If references were included, keep them in the same format.
+Task: translate/rephrase the intended previous response.
+- Preserve medical meaning.
+- Keep references format if references exist.
+- Use history to resolve ambiguous requests.
 
 TRANSLATED/REPHRASED RESPONSE:"""
             )
         else:
             prompt = ChatPromptTemplate.from_template(
-                """You are a medical assistant helping modify a previous response.
+                """You are a medical assistant.
 
 CONVERSATION HISTORY:
 {context}
@@ -168,12 +144,9 @@ MOST RECENT RESPONSE:
 USER REQUEST:
 {message}
 
-Use the conversation history to understand what the user is referring to.
-Common modifications:
-- "remove references" → remove reference section
-- "make shorter" / "summarize" → condense to key points
-- "simplify" → use simpler language
-- "back to English" / "in English" → translate the most recent non-English response back to English
+Task: apply the user's requested edit to the relevant previous response.
+- Follow the request exactly (shorten/simplify/remove references/rewrite).
+- Keep medical meaning unchanged.
 
 MODIFIED RESPONSE:"""
             )
@@ -198,18 +171,14 @@ MODIFIED RESPONSE:"""
         # SCENARIO 1: Image with VQA answer - format and return
         if has_image and vqa_answer:
             prompt = ChatPromptTemplate.from_template(
-                """You are a medical assistant. A vision model analyzed a medical image and produced the following raw answer.
+                """You are a medical assistant.
 
 RAW VQA ANSWER: {vqa_answer}
-
 USER QUESTION: {message}
 
-Rewrite the answer as a clear, properly formatted medical response:
-- Use correct capitalization and punctuation
-- Write in complete sentences
-- Keep it concise but informative
-- Do not add information not present in the raw answer
-- Do not reference any literature or add citations
+Rewrite into a clear short answer.
+- Keep only information from RAW VQA ANSWER.
+- Do not add new facts or citations.
 
 Formatted Response:"""
             )
@@ -239,7 +208,7 @@ Formatted Response:"""
 
             if is_elaboration:
                 prompt = ChatPromptTemplate.from_template(
-                    """You are a medical assistant. The user wants MORE DETAIL about the previous response.
+                    """You are a medical assistant.
 
 CONVERSATION HISTORY:
 {context}
@@ -251,23 +220,17 @@ MEDICAL LITERATURE:
 {lit_section}
 
 Task:
-1. Provide a MORE DETAILED explanation using ONLY the literature provided
-2. Go deeper into the mechanisms only when the literature clearly supports them
-3. If the literature is indirect, weak, or only partly related, say that clearly
-4. Do NOT infer a specific diagnosis, treatment, prognosis, or disease subtype unless the literature directly supports it
-5. Do NOT introduce examples from unrelated diseases just because they appear in the articles
-6. Keep all claims conservative and evidence-bound
-7. {citation_instruction}
-8. Keep it concise and educational
-9. Use this exact structure:
-   Summary:
-   - 1 to 2 bullets
-   Why It Matters:
-   - 2 to 4 bullets
-   Key Evidence:
-   - 2 to 4 bullets
-10. Use short bullets, not long paragraphs
-11. Do not add any heading beyond those three section titles
+- Give a deeper explanation using only the provided literature.
+- If evidence is weak/indirect, say so clearly.
+- Be conservative; avoid unsupported certainty.
+- {citation_instruction}
+- Use this structure only:
+Summary:
+- 1-2 bullets
+Why It Matters:
+- 2-4 bullets
+Key Evidence:
+- 2-4 bullets
 
 Detailed Response:"""
                 )
@@ -282,21 +245,11 @@ CURRENT QUESTION:
 
 {lit_section}
 
-Answer the question using ONLY the medical literature provided.
-Rules:
-- Base every medical claim on the provided literature
-- If the evidence is weak, indirect, or not specific to the user's exact case, say so explicitly
-- Do not overgeneralize from loosely related articles
-- Do not mention diseases, treatments, or risks unless they are directly supported by the literature
-- Prefer a cautious answer over a broad answer
-- If the literature does not clearly answer the question, say the evidence is limited
-- Answer the user's exact question in the first sentence
-- Do not start with background if a direct answer is possible
-- Keep the answer tightly focused on this question style: {question_style}
-- For severity questions: answer whether it can be mild, serious, or variable
-- For treatment questions: answer the main treatment approach first, then briefly qualify
-- For diet/food questions: if no direct evidence is available, clearly say no specific food restriction was identified
-- For healing/recovery time questions: if no direct timeline is available, clearly say the literature does not provide a reliable timeline
+Answer using only the provided literature.
+- First sentence: direct answer to the user question.
+- If evidence is weak/indirect, state that clearly.
+- Do not overclaim beyond evidence.
+- Keep answer focused on question style: {question_style}
 {citation_instruction}
 
 Response:"""
@@ -346,7 +299,7 @@ Response:"""
 
             if previous_response:
                 prompt = ChatPromptTemplate.from_template(
-                    """You are a medical assistant helping the user understand a previous answer.
+                    """You are a medical assistant.
 
 CONVERSATION HISTORY:
 {context}
@@ -357,21 +310,18 @@ MOST RECENT MEDICAL ANSWER:
 USER REQUEST:
 {message}
 
-Task:
-- Explain the previous medical answer more clearly using the conversation context
-- Stay consistent with what was already said
-- Do not invent new diagnoses or claims
-- If the previous answer is uncertain, keep that uncertainty
-- Do not add citations or references unless they are explicitly provided
-- Use this exact structure:
-  Summary:
-  - 1 to 2 bullets
-  Key Findings:
-  - 2 to 4 bullets
-  Plain Explanation:
-  - 2 to 4 bullets
-- Use short bullets, not long paragraphs
-- Keep the full answer under 140 words
+Explain the previous answer more clearly.
+- Stay consistent with prior content.
+- Keep uncertainty if uncertain.
+- No new references.
+- Use this structure only:
+Summary:
+- 1-2 bullets
+Key Findings:
+- 2-4 bullets
+Plain Explanation:
+- 2-4 bullets
+- Keep under 140 words.
 
 Clear Explanation:"""
                 )
@@ -390,7 +340,7 @@ Clear Explanation:"""
 
             if previous_response:
                 prompt = ChatPromptTemplate.from_template(
-                    """You are a medical assistant answering a follow-up question using the ongoing conversation.
+                    """You are a medical assistant.
 
 CONVERSATION HISTORY:
 {context}
@@ -401,17 +351,13 @@ MOST RECENT MEDICAL ANSWER:
 CURRENT QUESTION:
 {message}
 
-Task:
-- Answer the follow-up question using the current topic from conversation history
-- Stay grounded in what was already discussed
-- If the exact answer is not known, say what is generally true while keeping uncertainty clear
-- Do not turn a previous tentative explanation into a stronger factual claim
-- Do not say you lack information if the topic is already clear from context
-- Do not invent references or citations
-- Keep the answer concise and directly responsive
-- Answer the exact user question in the first sentence
-- Keep the answer style focused on: {question_style}
-- For treatment/severity/diet/healing questions, prefer a practical direct answer first
+Answer the follow-up using conversation context.
+- First sentence: direct answer.
+- Stay consistent with prior discussion.
+- If uncertain, say uncertain; do not overstate.
+- No invented references/citations.
+- Keep concise.
+- Style focus: {question_style}
 
 Response:"""
                 )
@@ -427,38 +373,68 @@ Response:"""
         return "I don't have enough information to answer this question. Could you provide more details or upload a medical image?"
 
     def _is_followup_explanation_request(self, message: str) -> bool:
+        prompt = f"""Classify this user message.
+
+Message: {message}
+
+Return JSON only:
+{{
+  "is_followup_explanation": true | false
+}}
+
+true only when user asks to explain/clarify a previous answer."""
+        try:
+            parsed = self._llm_json(prompt)
+            if "is_followup_explanation" in parsed:
+                return bool(parsed.get("is_followup_explanation"))
+        except Exception:
+            pass
         message_lower = message.lower()
-        patterns = [
-            "explain", "more detail", "more details", "tell me more",
-            "elaborate", "clearer", "explain clearly", "what do you mean",
-            "break it down", "help me understand"
-        ]
-        return any(pattern in message_lower for pattern in patterns)
+        return any(
+            pattern in message_lower
+            for pattern in ["explain", "more detail", "tell me more", "elaborate", "clearer"]
+        )
 
     def _is_topic_aware_followup(self, message: str) -> bool:
+        prompt = f"""Classify this user message.
+
+Message: {message}
+
+Return JSON only:
+{{
+  "is_topic_followup": true | false
+}}
+
+true when it is a follow-up medical question that depends on prior conversation topic."""
+        try:
+            parsed = self._llm_json(prompt)
+            if "is_topic_followup" in parsed:
+                return bool(parsed.get("is_topic_followup"))
+        except Exception:
+            pass
         message_lower = message.lower().strip()
-        patterns = [
-            "food to avoid", "foods to avoid", "what should i avoid",
-            "can i eat", "should i avoid", "is there any food",
-            "diet", "treatment", "symptom", "prognosis", "risk",
-            "complication", "follow up", "recovery"
-        ]
-        return any(pattern in message_lower for pattern in patterns)
+        return any(
+            pattern in message_lower
+            for pattern in ["diet", "treatment", "symptom", "prognosis", "risk", "recovery", "follow up"]
+        )
 
     def _classify_medical_question_style(self, message: str) -> str:
-        message_lower = message.lower().strip()
+        prompt = f"""Classify medical question style.
 
-        if any(pattern in message_lower for pattern in ["deadly", "serious", "serious or not", "severe", "dangerous"]):
-            return "severity"
-        if any(pattern in message_lower for pattern in ["treatment", "treat", "therapy", "medicine", "antibiotic"]):
-            return "treatment"
-        if any(pattern in message_lower for pattern in ["food", "diet", "eat", "avoid"]):
-            return "diet"
-        if any(pattern in message_lower for pattern in ["heal", "healing", "recovery", "recover", "how many month", "how long"]):
-            return "healing_time"
-        if any(pattern in message_lower for pattern in ["what is", "what does", "meaning"]):
-            return "definition"
+Message: {message}
 
+Return JSON only:
+{{
+  "style": "severity" | "treatment" | "diet" | "healing_time" | "definition" | "general_medical"
+}}"""
+        try:
+            parsed = self._llm_json(prompt)
+            style = (parsed.get("style") or "").strip().lower()
+            allowed = {"severity", "treatment", "diet", "healing_time", "definition", "general_medical"}
+            if style in allowed:
+                return style
+        except Exception:
+            pass
         return "general_medical"
 
     def _get_last_ai_message(self, memory: InMemoryConversation) -> Optional[str]:
@@ -531,18 +507,15 @@ Response:"""
         prompt = ChatPromptTemplate.from_template(
             """You are a friendly Medical VQA Assistant.
 
-Previous conversation:
+Conversation:
 {context}
 
 User: {message}
 
 Instructions:
-- Answer naturally and warmly (1-3 sentences)
-- If the user asks "what's my name", check the conversation history above
-- If the user asks about their first question, check the conversation history above
-- If the user asks to remember something, refer to the conversation history
-- Be conversational and helpful
-- NO citations or references in casual chat
+- Reply warmly in 1-3 sentences.
+- Use conversation history for memory/name questions.
+- No citations or references.
 
 Response:"""
         )
@@ -568,7 +541,20 @@ Response:"""
 
         message_lower = message.lower()
 
-        # Detect memory questions
+        # 1) Deterministic handling for name-introduction statements.
+        # This avoids the "I don't see that..." failure when user just told us their name.
+        introduced_name = self._extract_name_from_message(message)
+        if introduced_name:
+            return f"Nice to meet you, {introduced_name}. I will remember your name in this session."
+
+        # 2) Deterministic handling for name recall questions.
+        if self._is_name_question(message_lower):
+            remembered_name = self._find_latest_name_in_memory(memory)
+            if remembered_name:
+                return f"Your name is {remembered_name}."
+            return "I don't see your name in our conversation history yet."
+
+        # 3) Generic memory-question handling via LLM prompt.
         memory_patterns = [
             "my name", "what's my name", "do you know my name",
             "my first question", "first question", "what did i ask",
@@ -585,25 +571,118 @@ Response:"""
         context = self._get_context_for_memory(memory, num_turns=50)
 
         prompt = ChatPromptTemplate.from_template(
-            """You are a helpful assistant. Answer the user's question by looking at the conversation history.
+            """Answer the user using conversation history only.
 
-FULL CONVERSATION HISTORY:
+Conversation:
 {context}
 
 USER QUESTION: {message}
 
 Instructions:
-- If they ask about their name, look for where they introduced themselves
-- If they ask about their first question, find the first User: message
-- If they ask "do you remember X", check if X appears in the history
-- Answer directly and concisely
-- If you can't find the information, say "I don't see that in our conversation history"
+- Answer directly and concisely.
+- If info is missing, say: "I don't see that in our conversation history."
 
 Answer:"""
         )
 
         chain = prompt | self.llm | self.parser
         return chain.invoke({"context": context, "message": message})
+
+    def _classify_modification_intent(
+        self,
+        message: str,
+        context: str,
+        previous_response: str,
+    ) -> str:
+        prompt = f"""Classify user intent for editing previous response.
+
+Conversation:
+{context}
+
+Previous response:
+{previous_response}
+
+User request:
+{message}
+
+Return JSON only:
+{{
+  "intent": "reference" | "translate" | "edit_general"
+}}
+
+- reference: asks about prior references/articles/sources
+- translate: asks language change/translate/back to English
+- edit_general: shorten/simplify/rewrite/remove sections"""
+        try:
+            parsed = self._llm_json(prompt)
+            intent = (parsed.get("intent") or "").strip().lower()
+            if intent in {"reference", "translate", "edit_general"}:
+                return intent
+        except Exception:
+            pass
+
+        lowered = message.lower()
+        if "reference" in lowered or "sources" in lowered:
+            return "reference"
+        if "translate" in lowered or "english" in lowered:
+            return "translate"
+        return "edit_general"
+
+    def _llm_json(self, prompt: str) -> dict:
+        raw = self.llm.invoke(prompt)
+        text = str(raw.content if hasattr(raw, "content") else raw).strip()
+        cleaned = re.sub(r"```json\s*|\s*```", "", text, flags=re.IGNORECASE).strip()
+        try:
+            import json
+            return json.loads(cleaned)
+        except Exception:
+            match = re.search(r"\{.*\}", cleaned, flags=re.DOTALL)
+            if match:
+                try:
+                    import json
+                    return json.loads(match.group(0))
+                except Exception:
+                    return {}
+        return {}
+
+    @staticmethod
+    def _is_name_question(message_lower: str) -> bool:
+        patterns = [
+            "what is my name",
+            "what's my name",
+            "what was my name",
+            "do you know my name",
+            "remember my name",
+            "my name?",
+        ]
+        return any(pattern in message_lower for pattern in patterns)
+
+    @staticmethod
+    def _extract_name_from_message(message: str) -> Optional[str]:
+        text = (message or "").strip()
+        if not text:
+            return None
+
+        patterns = [
+            r"\bmy name is\s+([A-Za-z][A-Za-z\-']{0,39})\b",
+            r"\bi am\s+([A-Za-z][A-Za-z\-']{0,39})\b",
+            r"\bi'm\s+([A-Za-z][A-Za-z\-']{0,39})\b",
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, text, flags=re.IGNORECASE)
+            if match:
+                name = match.group(1).strip()
+                return name[:1].upper() + name[1:]
+        return None
+
+    def _find_latest_name_in_memory(self, memory: InMemoryConversation) -> Optional[str]:
+        for msg in reversed(memory.messages):
+            if msg.type != "human":
+                continue
+            extracted = self._extract_name_from_message(getattr(msg, "content", "") or "")
+            if extracted:
+                return extracted
+        return None
 
 
 if __name__ == "__main__":

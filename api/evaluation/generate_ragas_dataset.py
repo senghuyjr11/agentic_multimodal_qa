@@ -4,13 +4,14 @@ from typing import Iterable
 
 
 PIPELINE_DIR = Path(__file__).resolve().parent
-API_DIR = PIPELINE_DIR.parent.parent
+API_DIR = PIPELINE_DIR.parent
 SESSIONS_DIR = API_DIR / "sessions"
-OUTPUT_PATH = PIPELINE_DIR / "ragas_dataset_senghuy.jsonl"
+OUTPUT_PATH = PIPELINE_DIR / "ragas_dataset_senghuy_non_medical.jsonl"
 
 # Simple manual config
 DEFAULT_USERNAME = "senghuy"
-SESSION_IDS = [1]
+SESSION_IDS = [7]
+TURN_FILTER_MODE = "medical_only"  # "medical_only" | "all"
 
 # Multi-turn evaluation config
 MAX_TURNS_PER_SESSION: int | None = None
@@ -43,40 +44,47 @@ def iter_session_files(
     return sorted(user_dir.glob("*/session_data.json"), key=lambda p: int(p.parent.name))
 
 
-def should_include_turn(turn: dict) -> bool:
+def should_include_turn(turn: dict, mode: str = "medical_only") -> bool:
     meta = turn.get("meta", {}) or {}
     decision = meta.get("decision", {}) or {}
     response_mode = decision.get("response_mode")
-
-    # For session-level memory evaluation, keep substantive turns and skip only
-    # trivial greetings/thanks that add little signal.
-    if response_mode == "medical_answer":
-        return True
-
-    user_text = (turn.get("user") or "").strip().lower()
+    num_articles = meta.get("num_articles", 0) or 0
     assistant_text = (turn.get("assistant") or "").strip().lower()
 
-    trivial_patterns = [
-        "hi",
-        "hello",
-        "thank you",
-        "thanks",
-        "good memory",
+    if mode == "all":
+        return True
+
+    # Keep medically meaningful turns for conversation-level medical evaluation.
+    # Exclude non-medical/casual turns and invalid-image guardrail messages.
+    if response_mode != "medical_answer":
+        return False
+
+    invalid_image_markers = [
+        "does not appear to be a medical scan",
+        "please upload a valid medical image",
+        "model can only analyze medical images",
     ]
-
-    if user_text in trivial_patterns:
+    if any(marker in assistant_text for marker in invalid_image_markers):
         return False
 
-    if assistant_text.startswith("you're welcome") or assistant_text.startswith("you're most welcome"):
-        return False
+    # Keep turns that are grounded in retrieval or an actual medical explanation.
+    if num_articles > 0:
+        return True
 
-    return True
+    image_response_indicators = [
+        "image shows",
+        "this image",
+        "consistent with",
+        "diagnosis",
+        "findings",
+    ]
+    return any(marker in assistant_text for marker in image_response_indicators)
 
 
-def build_messages(history: list[dict]) -> list[dict]:
+def build_messages(history: list[dict], mode: str = "medical_only") -> list[dict]:
     messages = []
 
-    selected_turns = [turn for turn in history if should_include_turn(turn)]
+    selected_turns = [turn for turn in history if should_include_turn(turn, mode=mode)]
     if MAX_TURNS_PER_SESSION is not None:
         selected_turns = selected_turns[:MAX_TURNS_PER_SESSION]
 
@@ -105,7 +113,7 @@ def build_messages(history: list[dict]) -> list[dict]:
 
 def make_case(session_data: dict) -> dict | None:
     history = session_data.get("conversation_history", []) or []
-    messages = build_messages(history)
+    messages = build_messages(history, mode=TURN_FILTER_MODE)
 
     if len(messages) < 2:
         return None
@@ -116,6 +124,7 @@ def make_case(session_data: dict) -> dict | None:
         "reference_topics": REFERENCE_TOPICS,
         "source_session_id": session_data["session_id"],
         "num_messages": len(messages),
+        "turn_filter_mode": TURN_FILTER_MODE,
     }
 
 
@@ -144,6 +153,13 @@ def main() -> None:
         f"{f' with sessions {SESSION_IDS}' if SESSION_IDS else ''} "
         f"to {output_path}"
     )
+    print(f"Turn filter mode: {TURN_FILTER_MODE}")
+    if exported == 0:
+        print(
+            "No cases exported. If your session is mostly casual chat, set "
+            "TURN_FILTER_MODE = 'all' to include all turns."
+        )
+    print(f"Sessions directory: {SESSIONS_DIR.resolve()}")
 
 
 if __name__ == "__main__":

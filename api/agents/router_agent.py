@@ -6,9 +6,12 @@ ONE JOB: Decide what agents are needed for this message
 NO response generation - that's response_generator.py's job
 """
 
-import google.generativeai as genai
+import json
+import re
+
 from dataclasses import dataclass
 from typing import Optional
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Import from our simple memory manager (relative import)
 from .memory_manager import InMemoryConversation
@@ -32,8 +35,10 @@ class RouterAgent:
     """
 
     def __init__(self, google_api_key: str):
-        genai.configure(api_key=google_api_key)
-        self.model = genai.GenerativeModel("gemini-2.5-flash-lite")
+        self.llm = ChatGoogleGenerativeAI(
+            model="gemini-2.5-flash-lite",
+            google_api_key=google_api_key
+        )
 
     def decide(
         self,
@@ -55,92 +60,32 @@ class RouterAgent:
 
         message_lower = message.lower().strip()
 
-        # Hard rules for conversational feedback that should not trigger medical generation.
-        casual_feedback_patterns = [
-            "it is ok", "it's ok", "dont forget", "don't forget",
-            "next time", "you forgot", "forgot what we talked about",
-            "no worries", "that is okay", "that's okay"
-        ]
-        if any(pattern in message_lower for pattern in casual_feedback_patterns):
-            return RoutingDecision(
-                needs_vqa=False,
-                needs_pubmed=False,
-                search_query=None,
-                response_mode="casual_chat",
-                reasoning="Conversational feedback or reminder; respond casually and maintain context."
-            )
-
-        previous_reference_patterns = [
-            "previous answer reference",
-            "reference for the previous answer",
-            "references for the previous answer",
-            "the previous answer reference",
-            "previous response reference",
-        ]
-        if any(pattern in message_lower for pattern in previous_reference_patterns):
-            return RoutingDecision(
-                needs_vqa=False,
-                needs_pubmed=False,
-                search_query=None,
-                response_mode="modify_previous",
-                reasoning="User is asking about references from the previous answer."
-            )
-
         # Get recent conversation context (last 5 turns)
         context = self._get_context(memory, num_turns=5)
 
-        # Build prompt for LLM
-        prompt = f"""You are a routing agent. Analyze the message and decide what's needed.
+        prompt = f"""Route this message for a medical assistant.
 
-        CONVERSATION HISTORY:
-        {context}
+Conversation:
+{context}
 
-        CURRENT MESSAGE:
-        User: {message}
-        Has image: {has_image}
+User message: {message}
+Has image: {has_image}
 
-        DECISION TYPES:
-        1. "casual_chat" - Greetings, thanks, small talk, system questions
-        2. "medical_answer" - Medical questions needing explanation
-        3. "modify_previous" - User wants to change the last response
+Return JSON only:
+{{
+  "response_mode": "casual_chat" | "medical_answer" | "modify_previous",
+  "needs_pubmed": true | false,
+  "search_query": "2-6 medical keywords or null",
+  "reasoning": "short reason"
+}}
 
-        AGENTS AVAILABLE:
-        - PubMed: Search medical literature
+Guidance:
+- casual_chat: greetings, thanks, social chat
+- modify_previous: asks to rewrite/translate/shorten/remove refs from prior answer
+- medical_answer: medical Q/A or follow-up explanation
+- keep search_query as short keywords, never full sentence"""
 
-        RULES:
-        - Casual chat (hi, thanks, good) → casual_chat, no PubMed
-        - Medical questions → medical_answer, use PubMed
-        - "translate", "summarize", "remove references", "make it shorter", "in English", "back to English" → modify_previous
-        - A single language name (e.g. "Korean", "Chinese", "French", "khmer?") after a series of translations → modify_previous (user wants to translate to that language)
-        - "make it back to eng/english" or "in English" after non-English responses → modify_previous
-
-        OUTPUT (JSON only):
-        {{
-          "needs_pubmed": true/false,
-          "search_query": "search terms" or null,
-          "response_mode": "casual_chat"|"medical_answer"|"modify_previous",
-          "reasoning": "why you decided this"
-        }}
-
-        Examples:
-        - "hi" → {{"needs_pubmed": false, "response_mode": "casual_chat", "search_query": null, "reasoning": "greeting"}}
-        - "what is diabetes?" → {{"needs_pubmed": true, "response_mode": "medical_answer", "search_query": "diabetes", "reasoning": "medical question"}}
-        - "make it shorter" → {{"needs_pubmed": false, "response_mode": "modify_previous", "search_query": null, "reasoning": "modify request"}}
-        - "Korean" (after previous translations) → {{"needs_pubmed": false, "response_mode": "modify_previous", "search_query": null, "reasoning": "user wants translation to Korean"}}
-        - "back to English" → {{"needs_pubmed": false, "response_mode": "modify_previous", "search_query": null, "reasoning": "user wants English version"}}
-        """
-
-
-        # Ask LLM
-        response = self.model.generate_content(prompt)
-        text = response.text.strip()
-
-        # Parse JSON
-        import json
-        import re
-
-        text = re.sub(r'```json\s*|\s*```', '', text)
-        decision_dict = json.loads(text)
+        decision_dict = self._llm_json(prompt)
 
         # Create decision object
         decision = RoutingDecision(
@@ -151,13 +96,7 @@ class RouterAgent:
             reasoning=decision_dict.get("reasoning", "")
         )
 
-        # HARD RULE: Image = VQA required
-        if has_image:
-            decision.needs_vqa = True
-            if decision.response_mode == "casual_chat":
-                decision.response_mode = "medical_answer"
-
-        return decision
+        return self._normalize_decision(decision, message_lower, has_image)
 
     def should_search_pubmed_for_vqa(
         self,
@@ -171,49 +110,30 @@ class RouterAgent:
         Returns True if answer contains medical terminology that needs explanation
         """
 
-        answer_lower = vqa_answer.lower().strip()
+        prompt = f"""Decide if PubMed search is needed for this VQA result.
 
-        # Step 1: Check for medical keywords first (HIGH PRIORITY)
-        medical_keywords = [
-            'infarct', 'fracture', 'lesion', 'tumor', 'mass', 'opacity',
-            'pneumonia', 'carcinoma', 'infiltrate', 'edema', 'hemorrhage',
-            'stenosis', 'occlusion', 'thrombosis', 'ischemia', 'necrosis',
-            'hyperplasia', 'atrophy', 'hypertrophy', 'inflammation',
-            'fibrosis', 'sclerosis', 'cirrhosis', 'emphysema', 'effusion',
-            'nodule', 'cyst', 'abscess', 'aneurysm', 'embolism',
-            'metastasis', 'lymphoma', 'melanoma', 'sarcoma', 'adenoma',
-            'disease', 'syndrome', 'disorder', 'condition',
-            'pneumothorax', 'pleural', 'consolidation', 'atelectasis'
-        ]
+Question: {original_question}
+VQA answer: {vqa_answer}
 
-        # If ANY medical keyword found, ALWAYS search PubMed
-        if any(keyword in answer_lower for keyword in medical_keywords):
-            return True
+Return JSON only:
+{{
+  "needs_pubmed": true | false,
+  "reasoning": "short reason"
+}}
 
-        # Step 2: Simple answers that don't need literature (ONLY if no medical keywords)
-        import re
-        simple_patterns = [
-            r'^(yes|no|yeah|nope)\.?$',  # Yes/No
-            r'^(normal|abnormal)\.?$',  # Normal/Abnormal
-            r'^\d+\.?$',  # Just numbers
-            r'^(left|right|upper|lower|anterior|posterior)\.?$',  # Simple locations only
-            r'^(white|black|red|blue|green|yellow|gray|grey)\.?$',  # Colors
-        ]
+Use true when answer contains a medical finding/diagnosis that benefits from evidence.
+Use false for trivial outputs (yes/no, numbers, color, side, basic location only)."""
+        try:
+            parsed = self._llm_json(prompt)
+            if "needs_pubmed" in parsed:
+                return bool(parsed.get("needs_pubmed"))
+        except Exception:
+            pass
 
-        for pattern in simple_patterns:
-            if re.match(pattern, answer_lower, re.IGNORECASE):
-                return False
-
-        # Step 3: Check question type + answer length
-        yes_no_questions = ['is this', 'is there', 'are there', 'does this', 'can you see']
-        words = vqa_answer.split()
-
-        # If it's a yes/no question AND answer is 1-2 words AND no medical keywords
-        if len(words) <= 2 and any(q in original_question.lower() for q in yes_no_questions):
+        answer_lower = (vqa_answer or "").strip().lower()
+        if re.fullmatch(r"(yes|no|normal|abnormal|\d+|left|right|upper|lower)\.?", answer_lower):
             return False
-
-        # Step 4: Default - if answer is more than 1 word, likely needs explanation
-        return len(words) >= 1
+        return bool(answer_lower)
 
     def extract_medical_terms(self, vqa_answer: str) -> str:
         """
@@ -223,26 +143,22 @@ class RouterAgent:
         For simple diagnoses, returns the answer as-is.
         """
 
-        # If answer is already concise (2-4 words), use it directly
-        words = vqa_answer.split()
-        if 2 <= len(words) <= 4:
-            return vqa_answer
+        prompt = f"""Convert this VQA answer into a short PubMed keyword query.
 
-        # For longer answers, extract key terms
-        prompt = f"""Extract the main medical condition/diagnosis from this VQA answer for PubMed search.
+VQA answer: {vqa_answer}
 
-VQA ANSWER: {vqa_answer}
+Return JSON only:
+{{
+  "query": "2-6 keywords"
+}}
 
-Return ONLY the key medical term(s) for searching (2-5 words max).
-Examples:
-- "cerebral infarct in the right hemisphere" → "cerebral infarct"
-- "fracture of the left femur with displacement" → "femur fracture"
-- "large mass in the lung with surrounding opacity" → "lung mass"
-
-Medical search terms:"""
-
-        response = self.model.generate_content(prompt)
-        return response.text.strip()
+Rules: keyword phrase only, no sentence, no punctuation."""
+        parsed = self._llm_json(prompt)
+        query = (parsed.get("query") or "").strip()
+        query = re.sub(r"[^A-Za-z0-9\s\-]", " ", query)
+        query = re.sub(r"\s+", " ", query).strip()
+        words = query.split()
+        return " ".join(words[:6]) if words else vqa_answer
 
     def _get_context(
         self,
@@ -280,46 +196,50 @@ Medical search terms:"""
         Returns: (needs_pubmed, search_query)
         """
 
-        # Get last 2 messages (user question + AI answer)
         if len(memory.messages) < 2:
             return False, None
 
-        last_user_msg = None
         last_ai_msg = None
 
-        # Find last user and AI messages (LangChain: type == "ai" / "human")
+        # Find last AI message (LangChain: type == "ai")
         for msg in reversed(memory.messages):
             if msg.type == "ai" and last_ai_msg is None:
                 last_ai_msg = msg.content
-            elif msg.type == "human" and last_user_msg is None:
-                last_user_msg = msg.content
-
-            if last_user_msg and last_ai_msg:
+            if last_ai_msg:
                 break
 
         if not last_ai_msg:
             return False, None
 
-        message_lower = message.lower()
+        prompt = f"""Detect if this is a medical follow-up that needs PubMed.
 
-        # Patterns that indicate asking for explanation
-        explanation_patterns = [
-            "what does", "what is", "what are",
-            "explain", "meaning", "definition",
-            "why", "how", "tell me more",
-            "what do you mean", "elaborate",
-            "can you explain", "don't understand"
-        ]
+LAST ASSISTANT ANSWER:
+{last_ai_msg}
 
-        # Check if current message is asking for explanation
-        is_asking_explanation = any(pattern in message_lower for pattern in explanation_patterns)
+CURRENT USER MESSAGE:
+{message}
 
-        if not is_asking_explanation:
-            return False, None
+Return JSON only:
+{{
+  "needs_pubmed_followup": true/false,
+  "search_query": "2-6 keywords" or null,
+  "reasoning": "brief reason"
+}}
 
-        search_query = self._build_followup_search_query(last_ai_msg)
+Rules:
+- true only when user asks for explanation/detail/clarification of medical content
+- false for casual chat, greetings, emotion, social messages, name/memory questions
+- false for pure modification/translation requests
+- keep search_query as short keywords, not full sentence
+"""
+        parsed = self._llm_json(prompt)
+        needs_pubmed_followup = bool(parsed.get("needs_pubmed_followup", False))
+        search_query = parsed.get("search_query")
 
-        if not search_query:
+        if needs_pubmed_followup and not search_query:
+            search_query = self._build_followup_search_query(last_ai_msg)
+
+        if not needs_pubmed_followup or not search_query:
             return False, None
 
         print(f"\n[FOLLOW-UP DETECTED]")
@@ -341,31 +261,18 @@ Medical search terms:"""
         if not last_ai_msg:
             return None
 
-        prompt = f"""You convert a medical explanation into a short PubMed keyword query.
+        prompt = f"""Convert medical text into short PubMed keywords.
 
 SOURCE TEXT:
 {last_ai_msg}
 
 Rules:
-- Return ONLY keywords, no full sentence
-- Prefer diagnosis names, pathology/radiology terms, organ names, and core disease concepts
-- Remove filler words and descriptive prose
-- Keep it between 2 and 6 keywords
-- No punctuation except spaces
-- No markdown
-
-Examples:
-- "The image demonstrates a heart with a notable dilation of the left ventricle and aortic root." -> left ventricle dilation aortic root dilation
-- "This may be a benign mixed mesodermal tumor also known as a teratoma." -> benign mixed mesodermal tumor teratoma
-- "Features are consistent with constrictive pericarditis." -> constrictive pericarditis
-
-Keyword query:"""
+- Return JSON only: {{"query":"2-6 keywords"}}
+- No full sentence, no markdown"""
 
         try:
-            response = self.model.generate_content(prompt)
-            query = (response.text or "").strip()
-
-            import re
+            parsed = self._llm_json(prompt)
+            query = (parsed.get("query") or "").strip()
 
             query = re.sub(r'```.*?```', '', query, flags=re.DOTALL).strip()
             query = re.sub(r'[^A-Za-z0-9\s\-]', ' ', query)
@@ -386,97 +293,121 @@ Keyword query:"""
         if not last_ai_msg:
             return None
 
-        import re
-
         cleaned = re.sub(r'\s+', ' ', last_ai_msg).strip()
         cleaned = re.sub(r'\*+', '', cleaned)
         cleaned = re.sub(r'\[[^\]]+\]\([^)]+\)', '', cleaned).strip()
-
         if not cleaned:
             return None
 
-        patterns = [
-            r'consistent with\s+(?:a|an)?\s*([^.;:()]+)',
-            r'likely (?:a|an)?\s*([^.;:()]+)',
-            r'may be\s+(?:a|an)?\s*([^.;:()]+)',
-            r'suggests (?:this may be|it may be)?\s*(?:a|an)?\s*([^.;:()]+)',
-            r'also referred to as\s+(?:a|an)?\s*([^.;:()]+)',
-            r'also known as\s+(?:a|an)?\s*([^.;:()]+)',
-        ]
+        tokens = re.findall(r"[A-Za-z][A-Za-z\-]+", cleaned.lower())
+        if not tokens:
+            return None
 
-        extracted_chunks = []
-        for pattern in patterns:
-            matches = re.findall(pattern, cleaned, flags=re.IGNORECASE)
-            for match in matches:
-                chunk = re.sub(r'\s+', ' ', match).strip(" .,:;!-")
-                if chunk and chunk.lower() not in [c.lower() for c in extracted_chunks]:
-                    extracted_chunks.append(chunk)
+        common = {
+            "the", "and", "for", "with", "this", "that", "from", "into", "shows",
+            "showing", "image", "likely", "could", "would", "there", "their"
+        }
+        keywords = []
+        for token in tokens:
+            if token in common or len(token) < 3:
+                continue
+            if token not in keywords:
+                keywords.append(token)
+            if len(keywords) == 6:
+                break
 
-        def to_keyword_query(text: str) -> Optional[str]:
-            stopwords = {
-                "the", "a", "an", "and", "or", "with", "without", "of", "to",
-                "in", "on", "for", "from", "by", "this", "that", "these", "those",
-                "image", "shows", "showing", "reveals", "revealing", "exhibiting",
-                "appearance", "surface", "presence", "including", "includes",
-                "characteristic", "characterized", "consistent", "likely", "suggests",
-                "suggesting", "also", "known", "referred", "referredto", "may", "be",
-                "due", "large", "irregular", "fleshy", "multicolored", "lobulated"
-            }
-
-            tokens = re.findall(r"[A-Za-z][A-Za-z\-]+", text.lower())
-            keywords = []
-
-            for token in tokens:
-                normalized = token.replace("-", "")
-                if normalized in stopwords:
-                    continue
-                if len(normalized) < 3:
-                    continue
-                if normalized not in keywords:
-                    keywords.append(normalized)
-
-            if not keywords:
-                return None
-
-            return " ".join(keywords[:6])
-
-        if extracted_chunks:
-            query = to_keyword_query(" ".join(extracted_chunks[:2]))
-            if query:
-                return query
-
-        # Fallback: prefer the first sentence when no diagnosis phrase is found.
-        first_sentence = re.split(r'(?<=[.!?])\s+', cleaned, maxsplit=1)[0].strip()
-        candidate = first_sentence or cleaned
-        query = to_keyword_query(candidate)
-        return query or candidate.strip(" .,:;!-") or None
+        if keywords:
+            return " ".join(keywords)
+        return " ".join(tokens[:6]) if tokens else None
 
     def is_asking_about_previous_references(self, message: str) -> bool:
-        """
-        Detect if user is asking to explain/elaborate on previous response.
+        prompt = f"""Does this message ask about earlier references/articles?
 
-        Patterns:
-        - "explain from those resources"
-        - "tell me more about that"
-        - "elaborate"
-        - "can you explain more"
-        """
-        message_lower = message.lower()
+Message: {message}
 
-        patterns = [
-            "explain", "tell me more", "elaborate", "expand",
-            "those resources", "those articles", "those references",
-            "from that", "based on that", "using that",
-            "go deeper", "more detail", "in detail",
-            "from the", "using the", "based on the",
-            # NEW - more natural patterns:
-            "can you explain", "could you explain",
-            "tell me about", "what about",
-            "dive deeper", "break it down",
-            "give me more", "say more"
+Return JSON only:
+{{
+  "asks_previous_references": true/false
+}}
+"""
+        try:
+            parsed = self._llm_json(prompt)
+            return bool(parsed.get("asks_previous_references", False))
+        except Exception:
+            message_lower = message.lower()
+            return "reference" in message_lower and ("previous" in message_lower or "those" in message_lower)
+
+    def _llm_json(self, prompt: str) -> dict:
+        raw = self.llm.invoke(prompt)
+        text = str(raw.content if hasattr(raw, "content") else raw).strip()
+        return self._parse_json_response(text)
+
+    def _parse_json_response(self, text: str) -> dict:
+        cleaned = re.sub(r"```json\s*|\s*```", "", text, flags=re.IGNORECASE).strip()
+        try:
+            return json.loads(cleaned)
+        except Exception:
+            match = re.search(r"\{.*\}", cleaned, flags=re.DOTALL)
+            if match:
+                try:
+                    return json.loads(match.group(0))
+                except Exception:
+                    pass
+        return {}
+
+    def _normalize_decision(self, decision: RoutingDecision, message_lower: str, has_image: bool) -> RoutingDecision:
+        if self._is_identity_or_memory_message(message_lower):
+            decision.response_mode = "casual_chat"
+            decision.needs_pubmed = False
+            decision.search_query = None
+
+        allowed_modes = {"casual_chat", "medical_answer", "modify_previous"}
+        if decision.response_mode not in allowed_modes:
+            decision.response_mode = "medical_answer"
+
+        # Non-negotiable invariants
+        if decision.response_mode in {"casual_chat", "modify_previous"}:
+            decision.needs_pubmed = False
+            decision.search_query = None
+
+        if decision.response_mode == "medical_answer" and decision.needs_pubmed and not decision.search_query:
+            decision.search_query = message_lower.strip()[:120] or None
+
+        # Image handling invariant
+        if has_image:
+            decision.needs_vqa = True
+            if decision.response_mode == "casual_chat":
+                decision.response_mode = "medical_answer"
+                decision.needs_pubmed = False
+                decision.search_query = None
+        else:
+            decision.needs_vqa = False
+
+        return decision
+
+    @staticmethod
+    def _is_identity_or_memory_message(message_lower: str) -> bool:
+        text = (message_lower or "").strip()
+        if not text:
+            return False
+
+        memory_patterns = [
+            "my name",
+            "what is my name",
+            "what was my name",
+            "what's my name",
+            "do you know my name",
+            "remember my name",
+            "do you remember",
+            "what did i ask",
+            "first question",
         ]
+        if any(pattern in text for pattern in memory_patterns):
+            return True
 
-        return any(pattern in message_lower for pattern in patterns)
+        return bool(
+            re.search(r"\b(my name is|i am|i'm)\s+[a-z][a-z\-']{0,39}\b", text, flags=re.IGNORECASE)
+        )
 
 
 if __name__ == "__main__":

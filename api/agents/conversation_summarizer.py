@@ -55,17 +55,13 @@ EXISTING SUMMARY:
 OLDER CONVERSATION TO COMPRESS:
 {transcript}
 
-Write an updated rolling summary that preserves:
-- the user's goals and preferences
-- important medical topics or images discussed
-- prior explanations, translations, or follow-up requests
-- unresolved questions or pending threads
+Write an updated summary that keeps:
+- user goals/preferences
+- key medical topics or image findings
+- important follow-ups/translations
+- unresolved questions
 
-Rules:
-- keep it concise and factual
-- do not invent details
-- prefer compact bullets
-- keep medically relevant details if they may matter later
+Rules: concise, factual, no invented details, bullet style preferred.
 
 UPDATED SUMMARY:"""
         )

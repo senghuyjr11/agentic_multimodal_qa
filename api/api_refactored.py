@@ -489,7 +489,12 @@ async def memory_check(
     session_data = pipeline.session_mgr.load(current_user, session_id)
     json_turns = len(session_data.get("conversation_history", []))
 
-    # RAM memory
+    # RAM memory (auto-hydrate from disk for reliable debug visibility)
+    if session_id not in pipeline.memory.active_sessions:
+        history = pipeline.session_mgr.get_conversation_history(current_user, session_id)
+        memory_state = pipeline.session_mgr.get_memory_state(current_user, session_id)
+        pipeline.memory.get_or_create(session_id, history, memory_state)
+
     in_ram = session_id in pipeline.memory.active_sessions
     ram_messages = []
     ram_count = 0
@@ -501,8 +506,17 @@ async def memory_check(
         # Last 6 messages (up to 3 turns)
         last_msgs = mem.messages[-6:] if len(mem.messages) > 6 else mem.messages
         for m in last_msgs:
+            msg_type = getattr(m, "type", None) or getattr(m, "role", None)
+            if not msg_type:
+                cls = m.__class__.__name__.lower()
+                if "human" in cls:
+                    msg_type = "human"
+                elif "ai" in cls:
+                    msg_type = "ai"
+                else:
+                    msg_type = "unknown"
             ram_messages.append({
-                "type": m.role,
+                "type": msg_type,
                 "content": (
                     m.content[:200] + "..."
                     if len(m.content) > 200

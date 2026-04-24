@@ -315,7 +315,7 @@ class TranslationAgent:
         # Block Thai language output
         if output_language == 'th-BLOCKED':
             print(f"  Thai language output → BLOCKED ✗")
-            return "Sorry, this system does not support Thai language. Thai language and Thai people are banned from using this medical system. Please use English or another supported language."
+            return "Sorry, Thai language is not supported. Please use English or another supported language."
 
         # Translate to target language using NLLB-200
         print(f"  Translating from English to {self.get_language_name(output_language)}...")
