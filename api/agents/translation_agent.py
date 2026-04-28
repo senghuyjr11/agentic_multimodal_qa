@@ -3,55 +3,31 @@ translation_agent.py - Hybrid Translation Agent
 
 Features:
 ✅ FREE language detection (langdetect library + Unicode checks)
-✅ HIGH-QUALITY translation (facebook/nllb-200-distilled-1.3B on GPU)
+✅ HIGH-QUALITY translation (Gemini)
 ✅ FAST (skips English input/output)
 ✅ Configurable supported languages via SUPPORTED_LANGUAGES
 ✅ Coming-soon languages handled gracefully with stored chat message
 """
 
-import torch
 from langdetect import detect, LangDetectException
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 from typing import Dict
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 
 class TranslationAgent:
     """
-    Translation agent using facebook/nllb-200-distilled-1.3B on GPU.
+    Translation agent using Gemini.
     Skips translation for English input/output.
 
     To add a new language:
-      1. Add its code → NLLB Flores-200 code in NLLB_CODES
-      2. Add its code to SUPPORTED_LANGUAGES
+      1. Add its code to SUPPORTED_LANGUAGES
+      2. Ensure detect_language can return its code
       3. Add its name in get_language_name()
 
     To mark a language as coming soon (detected but not supported yet):
       1. Keep its detection logic in detect_language()
       2. Add its code to COMING_SOON_LANGUAGES
     """
-
-    # ── All languages we CAN translate (NLLB Flores-200 codes) ──────────────
-    NLLB_CODES = {
-        'en':    'eng_Latn',
-        'es':    'spa_Latn',
-        'fr':    'fra_Latn',
-        'pt':    'por_Latn',
-        'de':    'deu_Latn',
-        'it':    'ita_Latn',
-        'nl':    'nld_Latn',
-        'pl':    'pol_Latn',
-        'ru':    'rus_Cyrl',
-        'ar':    'arb_Arab',
-        'hi':    'hin_Deva',
-        'bn':    'ben_Beng',
-        'vi':    'vie_Latn',
-        'id':    'ind_Latn',
-        'ms':    'zsm_Latn',
-        'ja':    'jpn_Jpan',
-        'ko':    'kor_Hang',
-        'zh-CN': 'zho_Hans',
-        'km':    'khm_Khmr',   # kept for coming-soon use
-    }
 
     # ── Languages actively supported (add/remove to control) ────────────────
     # Total: 18 languages
@@ -63,29 +39,18 @@ class TranslationAgent:
     SUPPORTED_LANGUAGES = {
         'en', 'es', 'fr', 'pt', 'de', 'it', 'nl', 'pl',
         'ru', 'ar', 'hi', 'bn', 'vi', 'id', 'ms',
-        'ja', 'ko', 'zh-CN',
+        'ja', 'ko', 'zh-CN', 'km',
     }
 
     # ── Detected but not supported yet — shows "coming soon" message ─────────
-    COMING_SOON_LANGUAGES = {
-        'km',           # Khmer — NLLB accuracy too low for medical terms
-    }
+    COMING_SOON_LANGUAGES = set()
 
     def __init__(self, google_api_key: str = None):
-        model_name = "facebook/nllb-200-distilled-1.3B"
-        print(f"Loading translation model: {model_name}...")
-
-        # Load on CPU to reserve all GPU VRAM for VQA models (Qwen2-VL-7B + Qwen3-VL-2B)
-        # Translation runs once per message so CPU speed is acceptable
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModelForSeq2SeqLM.from_pretrained(
-            model_name,
-            dtype=torch.float32,
-            device_map="cpu",
+        self.llm = ChatGoogleGenerativeAI(
+            model="gemini-2.0-flash",
+            google_api_key=google_api_key
         )
-        self.model.eval()
-
-        print("Translation model loaded on CPU (GPU reserved for VQA models)")
+        print("Translation model: Gemini (gemini-2.0-flash)")
 
     def detect_language(self, text: str) -> str:
         """
@@ -170,36 +135,18 @@ class TranslationAgent:
         return lang_map.get(lang_code, lang_code)
 
     def _translate(self, text: str, src_lang: str, tgt_lang: str) -> str:
-        """Translate text using NLLB-200."""
-        src_nllb = self.NLLB_CODES.get(src_lang)
-        tgt_nllb = self.NLLB_CODES.get(tgt_lang)
-
-        if not src_nllb or not tgt_nllb:
-            raise ValueError(f"Unsupported language pair: {src_lang} → {tgt_lang}")
-
-        # NLLB requires src_lang set on tokenizer before encoding
-        self.tokenizer.src_lang = src_nllb
-
-        inputs = self.tokenizer(
-            text,
-            return_tensors="pt",
-            padding=True,
-            truncation=True,
-            max_length=512
+        """Translate text using Gemini."""
+        src_name = self.get_language_name(src_lang)
+        tgt_name = self.get_language_name(tgt_lang)
+        prompt = (
+            f"Translate the following medical text from {src_name} to {tgt_name}.\n"
+            "Preserve medical meaning exactly. Keep names, numbers, and units unchanged.\n"
+            "Return only the translated text.\n\n"
+            f"Text:\n{text}"
         )
-        inputs = {k: v.to("cpu") for k, v in inputs.items()}
-
-        target_lang_id = self.tokenizer.convert_tokens_to_ids(tgt_nllb)
-
-        with torch.no_grad():
-            output_ids = self.model.generate(
-                **inputs,
-                forced_bos_token_id=target_lang_id,
-                max_length=512,
-                num_beams=4,
-            )
-
-        return self.tokenizer.decode(output_ids[0], skip_special_tokens=True)
+        raw = self.llm.invoke(prompt)
+        translated = str(raw.content if hasattr(raw, "content") else raw).strip()
+        return translated or text
 
     def process_input(self, question: str) -> Dict:
         """
@@ -270,7 +217,7 @@ class TranslationAgent:
                 "needs_translation": False
             }
 
-        # Step 3: Translate to English using NLLB-200
+        # Step 3: Translate to English using Gemini
         print(f"  Translating from {self.get_language_name(source_lang)} to English...")
 
         try:
@@ -317,7 +264,7 @@ class TranslationAgent:
             print(f"  Thai language output → BLOCKED ✗")
             return "Sorry, Thai language is not supported. Please use English or another supported language."
 
-        # Translate to target language using NLLB-200
+        # Translate to target language using Gemini
         print(f"  Translating from English to {self.get_language_name(output_language)}...")
 
         try:

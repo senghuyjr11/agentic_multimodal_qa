@@ -57,7 +57,7 @@ class MedicalVQAPipeline:
         self.response_gen = ResponseGenerator(google_api_key)
         self.summarizer = ConversationSummarizer(google_api_key)
         self.memory = MemoryManager()
-        self.translator = TranslationAgent()
+        self.translator = TranslationAgent(google_api_key=google_api_key)
         self.session_mgr = SessionManager()
 
         self.image_agent = ImageAgent(
