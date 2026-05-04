@@ -1,0 +1,5 @@
+k,cases_requested,cases_scored,cases_failed,topic_adherence,agent_goal_accuracy,medical_correctness,evidence_grounding,medical_safety_caution,avg_articles_per_case
+1,10,10,0,0.3167,0.8,0.8,0.9,1.0,1.0
+3,10,10,0,0.4467,1.0,0.8,1.0,0.9,2.85
+5,10,10,0,0.419,0.9,1.0,1.0,1.0,5.0
+10,10,10,0,0.6417,0.9,1.0,1.0,1.0,10.0

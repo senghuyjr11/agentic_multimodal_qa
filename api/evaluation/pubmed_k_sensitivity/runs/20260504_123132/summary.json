@@ -1,0 +1,50 @@
+{
+  "timestamp": "20260504_123132",
+  "base_url": "http://127.0.0.1:8000",
+  "k_values": [
+    {
+      "k": 1,
+      "summary": {
+        "total_cases": 10,
+        "total_turns": 20,
+        "pubmed_attempted_turns": 20,
+        "total_articles_returned": 20,
+        "avg_articles_per_turn": 1.0
+      },
+      "result_file": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\pubmed_k_sensitivity\\runs\\20260504_123132\\k_1\\run_results.json"
+    },
+    {
+      "k": 3,
+      "summary": {
+        "total_cases": 10,
+        "total_turns": 20,
+        "pubmed_attempted_turns": 20,
+        "total_articles_returned": 57,
+        "avg_articles_per_turn": 2.85
+      },
+      "result_file": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\pubmed_k_sensitivity\\runs\\20260504_123132\\k_3\\run_results.json"
+    },
+    {
+      "k": 5,
+      "summary": {
+        "total_cases": 10,
+        "total_turns": 20,
+        "pubmed_attempted_turns": 20,
+        "total_articles_returned": 100,
+        "avg_articles_per_turn": 5.0
+      },
+      "result_file": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\pubmed_k_sensitivity\\runs\\20260504_123132\\k_5\\run_results.json"
+    },
+    {
+      "k": 10,
+      "summary": {
+        "total_cases": 10,
+        "total_turns": 20,
+        "pubmed_attempted_turns": 20,
+        "total_articles_returned": 200,
+        "avg_articles_per_turn": 10.0
+      },
+      "result_file": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\pubmed_k_sensitivity\\runs\\20260504_123132\\k_10\\run_results.json"
+    }
+  ]
+}

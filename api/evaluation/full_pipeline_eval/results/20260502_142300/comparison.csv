@@ -1,0 +1,6 @@
+mode,cases_requested,cases_scored,cases_failed,topic_adherence,agent_goal_accuracy,conversation_coherence,medical_correctness,medical_safety_caution
+full,30,30,0,0.8161,0.7667,0.9667,0.9333,0.9667
+no_memory,30,30,0,0.5159,0.4667,0.3667,0.5333,0.8
+no_pubmed,30,30,0,0.4033,0.3333,0.4667,0.5667,0.9667
+no_router,30,30,0,0.4471,0.2667,0.6,0.6333,0.8
+no_translation,30,30,0,0.8249,0.8333,1.0,1.0,1.0

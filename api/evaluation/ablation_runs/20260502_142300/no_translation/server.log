@@ -1,0 +1,4370 @@
+INFO:     Started server process [21252]
+INFO:     Waiting for application startup.
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+
+======================================================================
+INITIALIZING MEDICAL VQA API (CLEAN AGENT STRUCTURE)
+======================================================================
+Initializing Medical VQA Pipeline...
+  Ablation mode: no_translation
+Translation model: Gemini (gemini-2.0-flash)
+Loading modality classifier (CPU)...
+✓ Classifier loaded (CPU)
+✓ PubMed Agent initialized (simplified)
+✓ All agents initialized
+
+
+======================================================================
+PRE-LOADING VQA MODELS...
+======================================================================
+
+Loading base model (Qwen3-VL-8B) once...
+  Inference config: max_new_tokens=64, image_size=336, min_pixels=50176, max_pixels=112896, attn=sdpa, compute_dtype=float16
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 4001.24it/s]
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:02<00:06,  2.06s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:04<00:04,  2.16s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:06<00:02,  2.20s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:07<00:00,  1.77s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:07<00:00,  1.91s/it]
+C:\Users\Kyojuro\My_Data\001_ML_Project\agentic_multimodal_qa\.venv\Lib\site-packages\peft\config.py:165: UserWarning: Unexpected keyword arguments ['alora_invocation_tokens', 'arrow_config', 'ensure_weight_tying', 'peft_version'] for class LoraConfig, these are ignored. This probably means that you're loading a configuration file that was saved using a higher version of the library and additional parameters have been introduced since. It is highly recommended to upgrade the PEFT version before continuing (e.g. by running `pip install -U peft`).
+  warnings.warn(
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+  Loading PathVQA adapter...
+  Loading VQA-RAD adapter...
+✓ Base model + both adapters loaded
+  Warming up GPU (compiling CUDA kernels)...
+✓ GPU warmed up — ready
+
+======================================================================
+✓ ALL MODELS LOADED - API READY!
+======================================================================
+
+INFO:     127.0.0.1:52965 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52967 - "POST /auth/register HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:52968 - "POST /auth/login HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: A patient has pneumonia.
+  Display: A patient has pneumonia.
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/121
+  Created new session: 121
+✓ Created new memory for session 121
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia treatment guidelines
+  Reasoning: The user has stated a patient has pneumonia, which requires medical information.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia treatment guidelines
+  Reasoning: The user has stated a patient has pneumonia, which requires medical information.
+
+[Step 4b] PubMed search: 'pneumonia treatment guidelines'
+[PubMed] Searching: 'pneumonia treatment guidelines' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.787] Review of treatment guidelines for community-acquired pneumo...
+  2. [0.781] Treatment of community-acquired pneumonia--IDSA guidelines. ...
+  3. [0.768] [Guidelines for treatment of pneumonia in intensive care uni...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 121
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 121)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/121
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:52969 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: What complications can it cause?
+  Display: What complications can it cause?
+
+[Step 2] Memory & Session...
+  Continuing session: 121
+✓ Using cached memory for session 121
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia complications
+  Reasoning: The user is asking for medical information about complications of pneumonia.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia complications
+  Reasoning: The user is asking for medical information about complications of pneumonia.
+
+[Step 4b] PubMed search: 'pneumonia complications'
+[PubMed] Searching: 'pneumonia complications' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.774] Pulmonary complications of pneumococcal community-acquired p...
+  2. [0.747] Complicated pneumonia in children....
+  3. [0.737] Influenza pneumonia....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 121
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 121)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/121
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57613 - "POST /chat/121/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Explain that condition more simply.
+  Display: Explain that condition more simply.
+
+[Step 2] Memory & Session...
+  Continuing session: 121
+✓ Using cached memory for session 121
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: False
+  Search: pneumonia complications explained
+  Reasoning: The user is asking for a simpler explanation of the medical condition previously discussed.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.761] Pulmonary complications of pneumococcal community-acquired p...
+  2. [0.738] Complicated pneumonia in children....
+  3. [0.722] Influenza pneumonia....
+  Cached article validation query: pneumonia complications explained
+  Cached article top score: 0.7606871746700022
+  Cached articles kept: 5/5
+
+[REUSING ARTICLES] User asking to elaborate on previous response
+  Found 5 cached articles
+  Overriding router decision - will NOT search PubMed
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: None
+  Reasoning: The user is asking for a simpler explanation of the medical condition previously discussed.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.649] Pneumonia in the immunocompetent patient....
+  2. [0.649] Complicated pneumonia in children....
+  3. [0.635] Influenza pneumonia....
+  Cached article validation query: Explain that condition more simply.
+  Cached article top score: 0.6492421863703346
+  Cached articles kept: 5/5
+  Using 5 validated cached articles (no new search)
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 121)
+✓ Added turn 3 to conversation
+✓ Updated memory state for ablation_20260502_142300/121
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57619 - "POST /chat/121/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: I am asking about Streptococcus pneumoniae.
+  Display: I am asking about Streptococcus pneumoniae.
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/122
+  Created new session: 122
+✓ Created new memory for session 122
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: casual_chat
+  VQA needed: False
+  PubMed needed: False
+  Search: None
+  Reasoning: User is asking about a specific bacterium, requiring medical information.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: casual_chat
+  VQA needed: False
+  PubMed needed: False
+  Search: None
+  Reasoning: User is asking about a specific bacterium, requiring medical information.
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Casual chat - keeping in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 122)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/122
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57622 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Is it usually mild or serious?
+  Display: Is it usually mild or serious?
+
+[Step 2] Memory & Session...
+  Continuing session: 122
+✓ Using cached memory for session 122
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: Streptococcus pneumoniae severity mild serious
+  Reasoning: The user is asking about the severity of a specific medical condition.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: Streptococcus pneumoniae severity mild serious
+  Reasoning: The user is asking about the severity of a specific medical condition.
+
+[Step 4b] PubMed search: 'Streptococcus pneumoniae severity mild serious'
+[PubMed] Searching: 'Streptococcus pneumoniae severity mild serious' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 13 articles
+[PubMed] Scoring 13 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.718] Pneumococcal Meningitis and Its Sequelae - A Devastating CNS...
+  2. [0.714] Efficacy and tolerability of moxifloxacin in the treatment o...
+  3. [0.697] Benefit-risk assessment of telithromycin in the treatment of...
+  Found 13 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 122
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 122)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/122
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57624 - "POST /chat/122/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: What treatment is commonly used for it?
+  Display: What treatment is commonly used for it?
+
+[Step 2] Memory & Session...
+  Continuing session: 122
+✓ Using cached memory for session 122
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: Streptococcus pneumoniae treatment
+  Reasoning: The user is asking for common treatments for Streptococcus pneumoniae, which requires medical information.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: Streptococcus pneumoniae treatment
+  Reasoning: The user is asking for common treatments for Streptococcus pneumoniae, which requires medical information.
+
+[Step 4b] PubMed search: 'Streptococcus pneumoniae treatment'
+[PubMed] Searching: 'Streptococcus pneumoniae treatment' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.777] Strategies in the treatment of penicillin-resistant Streptoc...
+  2. [0.747] Pathogenesis, treatment, and prevention of pneumococcal pneu...
+  3. [0.742] Treatment of acute bacterial rhinosinusitis caused by antimi...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 122
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 122)
+✓ Added turn 3 to conversation
+✓ Updated memory state for ablation_20260502_142300/122
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57632 - "POST /chat/122/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: The patient has fever, cough, and chest pain.
+  Display: The patient has fever, cough, and chest pain.
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/123
+  Created new session: 123
+✓ Created new memory for session 123
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: fever cough chest pain symptoms
+  Reasoning: User is reporting patient symptoms that require medical interpretation.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: fever cough chest pain symptoms
+  Reasoning: User is reporting patient symptoms that require medical interpretation.
+
+[Step 4b] PubMed search: 'fever cough chest pain symptoms'
+[PubMed] Searching: 'fever cough chest pain symptoms' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.727] A young male with chest pain, cough and fever....
+  2. [0.711] A not so 'sweet' cause of fevers, cough and chest pain....
+  3. [0.711] A 52-Year-Old Man With an 11-Month History of Fever, Cough, ...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 123
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 123)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/123
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57637 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: What diagnosis could these symptoms suggest?
+  Display: What diagnosis could these symptoms suggest?
+
+[Step 2] Memory & Session...
+  Continuing session: 123
+✓ Using cached memory for session 123
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: fever cough chest pain diagnosis
+  Reasoning: The user is asking for potential diagnoses based on provided symptoms, requiring medical information and PubMed search.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: fever cough chest pain diagnosis
+  Reasoning: The user is asking for potential diagnoses based on provided symptoms, requiring medical information and PubMed search.
+
+[Step 4b] PubMed search: 'fever cough chest pain diagnosis'
+[PubMed] Searching: 'fever cough chest pain diagnosis' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.735] A young male with chest pain, cough and fever....
+  2. [0.725] A 52-Year-Old Man With an 11-Month History of Fever, Cough, ...
+  3. [0.716] Case Report: Intermittent Chest Pain With Cough, Fever, and ...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 123
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 123)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/123
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57653 - "POST /chat/123/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Which warning signs would make it urgent?
+  Display: Which warning signs would make it urgent?
+
+[Step 2] Memory & Session...
+  Continuing session: 123
+✓ Using cached memory for session 123
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: fever cough chest pain warning signs
+  Reasoning: The user is asking for specific warning signs related to the previously discussed symptoms, requiring medical information.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: fever cough chest pain warning signs
+  Reasoning: The user is asking for specific warning signs related to the previously discussed symptoms, requiring medical information.
+
+[Step 4b] PubMed search: 'fever cough chest pain warning signs'
+[PubMed] Searching: 'fever cough chest pain warning signs' (max 5 results)
+[PubMed] Found 6 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 6 articles
+[PubMed] Scoring 6 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.674] Epidemiological and clinical characteristics of 99 cases of ...
+  2. [0.634] Clinical characterisation, treatment outcomes, and case fata...
+  3. [0.633] Acinetobacter community-acquired pneumonia in a healthy chil...
+  Found 6 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 123
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 123)
+✓ Added turn 3 to conversation
+✓ Updated memory state for ablation_20260502_142300/123
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57661 - "POST /chat/123/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: What is bacterial meningitis?
+  Display: What is bacterial meningitis?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/124
+  Created new session: 124
+✓ Created new memory for session 124
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: bacterial meningitis definition symptoms causes
+  Reasoning: The user is asking for a medical definition and explanation.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: bacterial meningitis definition symptoms causes
+  Reasoning: The user is asking for a medical definition and explanation.
+
+[Step 4b] PubMed search: 'bacterial meningitis definition symptoms causes'
+[PubMed] Searching: 'bacterial meningitis definition symptoms causes' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 13 articles
+[PubMed] Scoring 13 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.720] Aseptic and Bacterial Meningitis: Evaluation, Treatment, and...
+  2. [0.672] Chronic and recurrent meningitis....
+  3. [0.666] [Streptococcus suis meningitis]....
+  Found 13 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 124
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 124)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/124
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57668 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Can it become life-threatening?
+  Display: Can it become life-threatening?
+
+[Step 2] Memory & Session...
+  Continuing session: 124
+✓ Using cached memory for session 124
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: bacterial meningitis life-threatening
+  Reasoning: User is asking a follow-up medical question about the severity of bacterial meningitis.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: bacterial meningitis life-threatening
+  Reasoning: User is asking a follow-up medical question about the severity of bacterial meningitis.
+
+[Step 4b] PubMed search: 'bacterial meningitis life-threatening'
+[PubMed] Searching: 'bacterial meningitis life-threatening' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 13 articles
+[PubMed] Scoring 13 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.756] Bacterial meningitis in children....
+  2. [0.748] Bacterial meningitis in Africa....
+  3. [0.741] Aseptic and Bacterial Meningitis: Evaluation, Treatment, and...
+  Found 13 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 124
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 124)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/124
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57674 - "POST /chat/124/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: What did you say was dangerous about it?
+  Display: What did you say was dangerous about it?
+
+[Step 2] Memory & Session...
+  Continuing session: 124
+✓ Using cached memory for session 124
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: False
+  Search: bacterial meningitis dangerous consequences
+  Reasoning: The user is asking for a clarification on what was previously stated as dangerous about bacterial meningitis, which is a medical follow-up question.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.748] Bacterial meningitis in children....
+  2. [0.741] Bacterial meningitis in Africa....
+  3. [0.733] Aseptic and Bacterial Meningitis: Evaluation, Treatment, and...
+  Cached article validation query: bacterial meningitis dangerous consequences
+  Cached article top score: 0.7482935058691725
+  Cached articles kept: 5/5
+
+[REUSING ARTICLES] User asking to elaborate on previous response
+  Found 5 cached articles
+  Overriding router decision - will NOT search PubMed
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: None
+  Reasoning: The user is asking for a clarification on what was previously stated as dangerous about bacterial meningitis, which is a medical follow-up question.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.613] Insight on Bacterial Newborn Meningitis Using a Neurovascula...
+  2. [0.612] Bacterial meningitis in children....
+  3. [0.610] Bacterial meningitis in Africa....
+  Cached article validation query: What did you say was dangerous about it?
+  Cached article top score: 0.6132796112513659
+  Cached articles kept: 5/5
+  Using 5 validated cached articles (no new search)
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 124)
+✓ Added turn 3 to conversation
+✓ Updated memory state for ablation_20260502_142300/124
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57682 - "POST /chat/124/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Tell me about tuberculosis.
+  Display: Tell me about tuberculosis.
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/125
+  Created new session: 125
+✓ Created new memory for session 125
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: tuberculosis causes symptoms diagnosis treatment
+  Reasoning: User is asking for general information about a medical condition.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: tuberculosis causes symptoms diagnosis treatment
+  Reasoning: User is asking for general information about a medical condition.
+
+[Step 4b] PubMed search: 'tuberculosis causes symptoms diagnosis treatment'
+[PubMed] Searching: 'tuberculosis causes symptoms diagnosis treatment' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.707] [Diagnosing pulmonary tuberculosis]....
+  2. [0.698] Diagnosis and treatment of latent infection with Mycobacteri...
+  3. [0.689] [Extrapulmonary tuberculosis]....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 125
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 125)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/125
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57685 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: How is it transmitted?
+  Display: How is it transmitted?
+
+[Step 2] Memory & Session...
+  Continuing session: 125
+✓ Using cached memory for session 125
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: tuberculosis transmission
+  Reasoning: User is asking a follow-up question about the medical condition previously discussed.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: tuberculosis transmission
+  Reasoning: User is asking a follow-up question about the medical condition previously discussed.
+
+[Step 4b] PubMed search: 'tuberculosis transmission'
+[PubMed] Searching: 'tuberculosis transmission' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.791] What We Know About Tuberculosis Transmission: An Overview....
+  2. [0.777] [Transmission of tuberculosis (II)]....
+  3. [0.762] Drivers of Tuberculosis Transmission....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 125
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 125)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/125
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57690 - "POST /chat/125/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Can it be prevented?
+  Display: Can it be prevented?
+
+[Step 2] Memory & Session...
+  Continuing session: 125
+✓ Using cached memory for session 125
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: tuberculosis prevention
+  Reasoning: The user is asking a follow-up medical question about prevention of tuberculosis.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: tuberculosis prevention
+  Reasoning: The user is asking a follow-up medical question about prevention of tuberculosis.
+
+[Step 4b] PubMed search: 'tuberculosis prevention'
+[PubMed] Searching: 'tuberculosis prevention' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.785] [Prevention of tuberculosis]....
+  2. [0.778] Tuberculosis prevention: current strategies and future direc...
+  3. [0.766] Prevention of tuberculosis. Vigilance and infection control ...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 125
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 125)
+✓ Added turn 3 to conversation
+✓ Updated memory state for ablation_20260502_142300/125
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57697 - "POST /chat/125/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: My name is Alex and I am asking about diabetes.
+  Display: My name is Alex and I am asking about diabetes.
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/126
+  Created new session: 126
+✓ Created new memory for session 126
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: casual_chat
+  VQA needed: False
+  PubMed needed: False
+  Search: None
+  Reasoning: User is asking about a medical condition.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: casual_chat
+  VQA needed: False
+  PubMed needed: False
+  Search: None
+  Reasoning: Identity/memory query guard (no PubMed).
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Casual chat - keeping in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 126)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/126
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57705 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: What is diabetes?
+  Display: What is diabetes?
+
+[Step 2] Memory & Session...
+  Continuing session: 126
+✓ Using cached memory for session 126
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: diabetes definition
+  Reasoning: User is asking a direct medical question about the definition of diabetes.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: diabetes definition
+  Reasoning: User is asking a direct medical question about the definition of diabetes.
+
+[Step 4b] PubMed search: 'diabetes definition'
+[PubMed] Searching: 'diabetes definition' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.713] [Problems raised by the definition and epidemiology of type ...
+  2. [0.698] [Prediabetes, definition and treatment]....
+  3. [0.693] [Insulin-requiring diabetes]....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 126
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 126)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/126
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57707 - "POST /chat/126/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: What is my name?
+  Display: What is my name?
+
+[Step 2] Memory & Session...
+  Continuing session: 126
+✓ Using cached memory for session 126
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: casual_chat
+  VQA needed: False
+  PubMed needed: False
+  Search: None
+  Reasoning: The user is asking for their name, which is a casual chat interaction and not a medical question.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: casual_chat
+  VQA needed: False
+  PubMed needed: False
+  Search: None
+  Reasoning: Identity/memory query guard (no PubMed).
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Casual chat - keeping in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 126)
+✓ Added turn 3 to conversation
+✓ Updated memory state for ablation_20260502_142300/126
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57713 - "POST /chat/126/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: The patient is taking antibiotics for pneumonia.
+  Display: The patient is taking antibiotics for pneumonia.
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/127
+  Created new session: 127
+✓ Created new memory for session 127
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: False
+  Search: antibiotics pneumonia
+  Reasoning: User is providing a medical update about a patient's condition and treatment.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: False
+  Search: antibiotics pneumonia
+  Reasoning: User is providing a medical update about a patient's condition and treatment.
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 127)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/127
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57715 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Why are antibiotics used?
+  Display: Why are antibiotics used?
+
+[Step 2] Memory & Session...
+  Continuing session: 127
+✓ Using cached memory for session 127
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: antibiotics pneumonia mechanism
+  Reasoning: The user is asking a general medical question about the use of antibiotics for pneumonia. This requires a medical explanation and a search for relevant information.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: antibiotics pneumonia mechanism
+  Reasoning: The user is asking a general medical question about the use of antibiotics for pneumonia. This requires a medical explanation and a search for relevant information.
+
+[Step 4b] PubMed search: 'antibiotics pneumonia mechanism'
+[PubMed] Searching: 'antibiotics pneumonia mechanism' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.785] New Antibiotics for Pneumonia....
+  2. [0.746] New antibiotics for healthcare-associated pneumonia....
+  3. [0.738] Clarithromycin for early anti-inflammatory responses in comm...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 127
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 127)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/127
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57718 - "POST /chat/127/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: When should the patient seek urgent care?
+  Display: When should the patient seek urgent care?
+
+[Step 2] Memory & Session...
+  Continuing session: 127
+✓ Using cached memory for session 127
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia urgent care symptoms
+  Reasoning: The user is asking about when to seek urgent care for pneumonia, which requires medical information.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia urgent care symptoms
+  Reasoning: The user is asking about when to seek urgent care for pneumonia, which requires medical information.
+
+[Step 4b] PubMed search: 'pneumonia urgent care symptoms'
+[PubMed] Searching: 'pneumonia urgent care symptoms' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.708] [Community-acquired pneumonia]....
+  2. [0.702] Diagnosis and Treatment of Adults with Community-acquired Pn...
+  3. [0.701] [Community-acquired pneumonia]....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 127
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 127)
+✓ Added turn 3 to conversation
+✓ Updated memory state for ablation_20260502_142300/127
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57725 - "POST /chat/127/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Explain chronic obstructive pulmonary disease.
+  Display: Explain chronic obstructive pulmonary disease.
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/128
+  Created new session: 128
+✓ Created new memory for session 128
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: COPD explanation
+  Reasoning: User is asking for a medical explanation of a condition.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: COPD explanation
+  Reasoning: User is asking for a medical explanation of a condition.
+
+[Step 4b] PubMed search: 'COPD explanation'
+[PubMed] Searching: 'COPD explanation' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.722] Few smokers develop COPD. Why?...
+  2. [0.710] Novel aspects of pathogenesis and regeneration mechanisms in...
+  3. [0.700] Continuous remote monitoring of COPD patients-justification ...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 128
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 128)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/128
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:57732 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: What symptoms are common?
+  Display: What symptoms are common?
+
+[Step 2] Memory & Session...
+  Continuing session: 128
+✓ Using cached memory for session 128
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: COPD symptoms
+  Reasoning: The user is asking for common symptoms of COPD, which requires a medical explanation and potentially a literature search for current guidelines.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: COPD symptoms
+  Reasoning: The user is asking for common symptoms of COPD, which requires a medical explanation and potentially a literature search for current guidelines.
+
+[Step 4b] PubMed search: 'COPD symptoms'
+[PubMed] Searching: 'COPD symptoms' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.752] Understanding the impact of symptoms on the burden of COPD....
+  2. [0.740] Chronic Obstructive Pulmonary Disease....
+  3. [0.740] [Symptoms and natural history of COPD: role of the distal ai...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 128
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 128)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/128
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64752 - "POST /chat/128/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Summarize everything so far in three bullets.
+  Display: Summarize everything so far in three bullets.
+
+[Step 2] Memory & Session...
+  Continuing session: 128
+✓ Using cached memory for session 128
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: False
+  Search: COPD symptoms overview
+  Reasoning: The user is asking for a summary of the previous medical information provided, which fits the medical_answer response mode.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.749] Understanding the impact of symptoms on the burden of COPD....
+  2. [0.731] COPD: the patient perspective....
+  3. [0.730] [Symptoms and natural history of COPD: role of the distal ai...
+  Cached article validation query: COPD symptoms overview
+  Cached article top score: 0.7492326497954575
+  Cached articles kept: 5/5
+
+[REUSING ARTICLES] User asking to elaborate on previous response
+  Found 5 cached articles
+  Overriding router decision - will NOT search PubMed
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: None
+  Reasoning: The user is asking for a summary of the previous medical information provided, which fits the medical_answer response mode.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.614] COPD: the patient perspective....
+  2. [0.613] [Symptoms and natural history of COPD: role of the distal ai...
+  3. [0.609] Understanding the impact of symptoms on the burden of COPD....
+  Cached article validation query: Summarize everything so far in three bullets.
+  Cached article top score: 0.6143676581099917
+  Cached articles kept: 5/5
+  Using 5 validated cached articles (no new search)
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 128)
+✓ Added turn 3 to conversation
+✓ Updated memory state for ablation_20260502_142300/128
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64761 - "POST /chat/128/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: What is asthma?
+  Display: What is asthma?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/129
+  Created new session: 129
+✓ Created new memory for session 129
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: asthma definition causes symptoms
+  Reasoning: User is asking for a definition of a medical condition.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: asthma definition causes symptoms
+  Reasoning: User is asking for a definition of a medical condition.
+
+[Step 4b] PubMed search: 'asthma definition causes symptoms'
+[PubMed] Searching: 'asthma definition causes symptoms' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.754] Definition of asthma....
+  2. [0.718] Asthma: clinical expression and molecular mechanisms....
+  3. [0.703] Asthma and COPD: Similarities and Differences in the Pathoph...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 129
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 129)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/129
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64766 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: How is it different from pneumonia?
+  Display: How is it different from pneumonia?
+
+[Step 2] Memory & Session...
+  Continuing session: 129
+✓ Using cached memory for session 129
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: asthma vs pneumonia symptoms causes treatment
+  Reasoning: The user is asking for a comparison between two medical conditions, requiring a detailed medical explanation.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: asthma vs pneumonia symptoms causes treatment
+  Reasoning: The user is asking for a comparison between two medical conditions, requiring a detailed medical explanation.
+
+[Step 4b] PubMed search: 'asthma vs pneumonia symptoms causes treatment'
+[PubMed] Searching: 'asthma vs pneumonia symptoms causes treatment' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.657] Asthma in a large COVID-19 cohort: Prevalence, features, and...
+  2. [0.651] Use of lung ultrasound in school-aged children with wheezing...
+  3. [0.644] Asthma as a risk factor for hospitalization in children with...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 129
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 129)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/129
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64772 - "POST /chat/129/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Which one is usually infectious?
+  Display: Which one is usually infectious?
+
+[Step 2] Memory & Session...
+  Continuing session: 129
+✓ Using cached memory for session 129
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: asthma pneumonia infection cause
+  Reasoning: The user is asking for a distinction between asthma and pneumonia regarding infectious causes, which requires medical information.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: asthma pneumonia infection cause
+  Reasoning: The user is asking for a distinction between asthma and pneumonia regarding infectious causes, which requires medical information.
+
+[Step 4b] PubMed search: 'asthma pneumonia infection cause'
+[PubMed] Searching: 'asthma pneumonia infection cause' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.771] Asthma and pneumonia....
+  2. [0.756] Chronic Infection and Severe Asthma....
+  3. [0.751] Infection-mediated asthma: etiology, mechanisms and treatmen...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 129
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 129)
+✓ Added turn 3 to conversation
+✓ Updated memory state for ablation_20260502_142300/129
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64779 - "POST /chat/129/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Tell me about stroke.
+  Display: Tell me about stroke.
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/130
+  Created new session: 130
+✓ Created new memory for session 130
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: stroke definition causes symptoms
+  Reasoning: User is asking for information about a medical condition.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: stroke definition causes symptoms
+  Reasoning: User is asking for information about a medical condition.
+
+[Step 4b] PubMed search: 'stroke definition causes symptoms'
+[PubMed] Searching: 'stroke definition causes symptoms' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.727] Stroke....
+  2. [0.684] Risk factors for ischaemic and intracerebral haemorrhagic st...
+  3. [0.674] Tissue-Based Stroke Definition Impacts Stroke Incidence but ...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 130
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 130)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/130
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64790 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: What are common risk factors?
+  Display: What are common risk factors?
+
+[Step 2] Memory & Session...
+  Continuing session: 130
+✓ Using cached memory for session 130
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: stroke risk factors
+  Reasoning: User is asking for medical information about stroke risk factors.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: stroke risk factors
+  Reasoning: User is asking for medical information about stroke risk factors.
+
+[Step 4b] PubMed search: 'stroke risk factors'
+[PubMed] Searching: 'stroke risk factors' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.773] Risk factors and their management for stroke prevention: out...
+  2. [0.766] Potential new risk factors for ischemic stroke: what is thei...
+  3. [0.738] Partitioning risk factors for embolic stroke of undetermined...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 130
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 130)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/130
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64800 - "POST /chat/130/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Which of those can be modified?
+  Display: Which of those can be modified?
+
+[Step 2] Memory & Session...
+  Continuing session: 130
+✓ Using cached memory for session 130
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: modifiable stroke risk factors
+  Reasoning: The user is asking which of the previously listed stroke risk factors can be modified. This requires a medical explanation and potentially a PubMed search for relevant information.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.769] Risk factors and their management for stroke prevention: out...
+  2. [0.757] Potential new risk factors for ischemic stroke: what is thei...
+  3. [0.722] A Contemporary Review of Epidemiology, Risk Factors, Etiolog...
+  Cached article validation query: modifiable stroke risk factors
+  Cached article top score: 0.7687328085712237
+  Cached articles kept: 5/5
+
+[REUSING ARTICLES] User asking to elaborate on previous response
+  Found 5 cached articles
+  Overriding router decision - will NOT search PubMed
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: None
+  Reasoning: The user is asking which of the previously listed stroke risk factors can be modified. This requires a medical explanation and potentially a PubMed search for relevant information.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.622] Risk factors and their management for stroke prevention: out...
+  2. [0.619] Potential new risk factors for ischemic stroke: what is thei...
+  3. [0.616] Partitioning risk factors for embolic stroke of undetermined...
+  Cached article validation query: Which of those can be modified?
+  Cached article top score: 0.622399559106964
+  Cached articles kept: 5/5
+  Using 5 validated cached articles (no new search)
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 130)
+✓ Added turn 3 to conversation
+✓ Updated memory state for ablation_20260502_142300/130
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64806 - "POST /chat/130/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: What is the usual treatment for Streptococcus pneumoniae infection?
+  Display: What is the usual treatment for Streptococcus pneumoniae infection?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/131
+  Created new session: 131
+✓ Created new memory for session 131
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: Streptococcus pneumoniae treatment
+  Reasoning: The user is asking for medical information about the treatment of a specific infection.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: Streptococcus pneumoniae treatment
+  Reasoning: The user is asking for medical information about the treatment of a specific infection.
+
+[Step 4b] PubMed search: 'Streptococcus pneumoniae treatment'
+[PubMed] Searching: 'Streptococcus pneumoniae treatment' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.777] Strategies in the treatment of penicillin-resistant Streptoc...
+  2. [0.747] Pathogenesis, treatment, and prevention of pneumococcal pneu...
+  3. [0.742] Treatment of acute bacterial rhinosinusitis caused by antimi...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 131
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 131)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/131
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64815 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Give evidence-based reasoning with references.
+  Display: Give evidence-based reasoning with references.
+
+[Step 2] Memory & Session...
+  Continuing session: 131
+✓ Using cached memory for session 131
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: Streptococcus pneumoniae treatment antibiotics penicillin resistance
+  Reasoning: User is asking for evidence-based reasoning and references for the previous medical answer.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: Streptococcus pneumoniae treatment antibiotics penicillin resistance
+  Reasoning: User is asking for evidence-based reasoning and references for the previous medical answer.
+
+[Step 4b] PubMed search: 'Streptococcus pneumoniae treatment antibiotics penicillin resistance'
+[PubMed] Searching: 'Streptococcus pneumoniae treatment antibiotics penicillin resistance' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.803] Strategies in the treatment of penicillin-resistant Streptoc...
+  2. [0.783] Streptococcus pneumoniae as an agent of nosocomial infection...
+  3. [0.783] Antibiotic resistance in Streptococcus pneumoniae....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 131
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 131)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/131
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64822 - "POST /chat/131/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: How does pneumococcal vaccination reduce disease risk?
+  Display: How does pneumococcal vaccination reduce disease risk?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/132
+  Created new session: 132
+✓ Created new memory for session 132
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumococcal vaccine mechanism disease risk
+  Reasoning: The user is asking for a medical explanation of how a vaccine works to reduce disease risk.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumococcal vaccine mechanism disease risk
+  Reasoning: The user is asking for a medical explanation of how a vaccine works to reduce disease risk.
+
+[Step 4b] PubMed search: 'pneumococcal vaccine mechanism disease risk'
+[PubMed] Searching: 'pneumococcal vaccine mechanism disease risk' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.763] Effects of pneumococcal conjugate vaccines on reducing the r...
+  2. [0.747] [PREVENAR 13®, A PNEUMOCOCCAL CONJUGATE VACCINE FOR THE PREV...
+  3. [0.727] What is the clinical relevance of drug-resistant pneumococcu...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 132
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 132)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/132
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64827 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Support the answer with biomedical evidence.
+  Display: Support the answer with biomedical evidence.
+
+[Step 2] Memory & Session...
+  Continuing session: 132
+✓ Using cached memory for session 132
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumococcal conjugate vaccine mechanism protection
+  Reasoning: The user is asking for biomedical evidence to support the explanation of how pneumococcal vaccination reduces disease risk.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumococcal conjugate vaccine mechanism protection
+  Reasoning: The user is asking for biomedical evidence to support the explanation of how pneumococcal vaccination reduces disease risk.
+
+[Step 4b] PubMed search: 'pneumococcal conjugate vaccine mechanism protection'
+[PubMed] Searching: 'pneumococcal conjugate vaccine mechanism protection' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.779] Diverse Mechanisms of Protective Anti-Pneumococcal Antibodie...
+  2. [0.776] Anticapsular serum antibody concentration and protection aga...
+  3. [0.774] Impact of IgM Antibodies on Cross-Protection against Pneumoc...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 132
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 132)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/132
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64834 - "POST /chat/132/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Can COVID-19 cause pneumonia?
+  Display: Can COVID-19 cause pneumonia?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/133
+  Created new session: 133
+✓ Created new memory for session 133
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: COVID-19 pneumonia causes
+  Reasoning: User is asking a medical question about the relationship between COVID-19 and pneumonia.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: COVID-19 pneumonia causes
+  Reasoning: User is asking a medical question about the relationship between COVID-19 and pneumonia.
+
+[Step 4b] PubMed search: 'COVID-19 pneumonia causes'
+[PubMed] Searching: 'COVID-19 pneumonia causes' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.709] COVID-19 challenge for modern medicine....
+  2. [0.706] An overview of COVID-19....
+  3. [0.704] COVID-19 pandemic: from origins to outcomes. A comprehensive...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 133
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 133)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/133
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64853 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: What evidence supports that?
+  Display: What evidence supports that?
+
+[Step 2] Memory & Session...
+  Continuing session: 133
+✓ Using cached memory for session 133
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: COVID-19 pneumonia evidence
+  Reasoning: The user is asking for evidence supporting the previous statement about COVID-19 causing pneumonia, which requires a medical explanation and a search for supporting literature.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.717] Origin, transmission, diagnosis and management of coronaviru...
+  2. [0.715] COVID-19 pandemic: from origins to outcomes. A comprehensive...
+  3. [0.715] An overview of COVID-19....
+  Cached article validation query: COVID-19 pneumonia evidence
+  Cached article top score: 0.717460713698588
+  Cached articles kept: 5/5
+
+[REUSING ARTICLES] User asking to elaborate on previous response
+  Found 5 cached articles
+  Overriding router decision - will NOT search PubMed
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: None
+  Reasoning: The user is asking for evidence supporting the previous statement about COVID-19 causing pneumonia, which requires a medical explanation and a search for supporting literature.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.639] An overview of COVID-19....
+  2. [0.636] Origin, transmission, diagnosis and management of coronaviru...
+  3. [0.629] COVID-19 pandemic: from origins to outcomes. A comprehensive...
+  Cached article validation query: What evidence supports that?
+  Cached article top score: 0.6387604630284057
+  Cached articles kept: 5/5
+  Using 5 validated cached articles (no new search)
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 133)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/133
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64870 - "POST /chat/133/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: How is tuberculosis usually treated?
+  Display: How is tuberculosis usually treated?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/134
+  Created new session: 134
+✓ Created new memory for session 134
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: tuberculosis treatment guidelines
+  Reasoning: User is asking a medical question about treatment for a specific disease.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: tuberculosis treatment guidelines
+  Reasoning: User is asking a medical question about treatment for a specific disease.
+
+[Step 4b] PubMed search: 'tuberculosis treatment guidelines'
+[PubMed] Searching: 'tuberculosis treatment guidelines' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.759] Treatment guidelines for latent tuberculosis infection....
+  2. [0.752] Guidelines for the Treatment of Latent Tuberculosis Infectio...
+  3. [0.748] Practice guidelines for the treatment of tuberculosis....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 134
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 134)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/134
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64878 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Use references and mention why treatment takes time.
+  Display: Use references and mention why treatment takes time.
+
+[Step 2] Memory & Session...
+  Continuing session: 134
+✓ Using cached memory for session 134
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: tuberculosis treatment duration rationale
+  Reasoning: The user is asking for a medical explanation about TB treatment, including why it takes time and requesting references.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: tuberculosis treatment duration rationale
+  Reasoning: The user is asking for a medical explanation about TB treatment, including why it takes time and requesting references.
+
+[Step 4b] PubMed search: 'tuberculosis treatment duration rationale'
+[PubMed] Searching: 'tuberculosis treatment duration rationale' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.757] Basic concepts in the treatment of tuberculosis....
+  2. [0.745] Precision-Enhancing Risk Stratification Tools for Selecting ...
+  3. [0.739] Analysis of combination drug therapy to develop regimens wit...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 134
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 134)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/134
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64883 - "POST /chat/134/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: What complications can diabetes cause?
+  Display: What complications can diabetes cause?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/135
+  Created new session: 135
+✓ Created new memory for session 135
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: diabetes complications overview
+  Reasoning: The user is asking a direct medical question about the complications of diabetes, requiring a factual answer and potentially external medical information.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: diabetes complications overview
+  Reasoning: The user is asking a direct medical question about the complications of diabetes, requiring a factual answer and potentially external medical information.
+
+[Step 4b] PubMed search: 'diabetes complications overview'
+[PubMed] Searching: 'diabetes complications overview' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.749] Diabetes as a cardiovascular risk factor: An overview of glo...
+  2. [0.749] Overview of diabetes....
+  3. [0.741] Diabetes mellitus--overview....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 135
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 135)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/135
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64889 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Give evidence-grounded explanation.
+  Display: Give evidence-grounded explanation.
+
+[Step 2] Memory & Session...
+  Continuing session: 135
+✓ Using cached memory for session 135
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: diabetes complications microvascular macrovascular atherosclerotic disease
+  Reasoning: User is asking for an evidence-grounded explanation of diabetes complications, which requires medical information and potentially PubMed search for supporting evidence.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.772] Diabetes as a cardiovascular risk factor: An overview of glo...
+  2. [0.729] Diabetes mellitus--overview....
+  3. [0.710] Overview of diabetes....
+  Cached article validation query: diabetes complications microvascular macrovascular atherosclerotic disease
+  Cached article top score: 0.7715028369003241
+  Cached articles kept: 5/5
+
+[REUSING ARTICLES] User asking to elaborate on previous response
+  Found 5 cached articles
+  Overriding router decision - will NOT search PubMed
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: None
+  Reasoning: User is asking for an evidence-grounded explanation of diabetes complications, which requires medical information and potentially PubMed search for supporting evidence.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.762] Diabetes as a cardiovascular risk factor: An overview of glo...
+  2. [0.736] Diabetes mellitus--overview....
+  3. [0.709] Overview of diabetes....
+  Cached article validation query: diabetes complications retinography nephropathy atherosclerosis cardiovascular
+  Cached article top score: 0.7617405477887671
+  Cached articles kept: 5/5
+  Using 5 validated cached articles (no new search)
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 135)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/135
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64895 - "POST /chat/135/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Why is bacterial meningitis considered urgent?
+  Display: Why is bacterial meningitis considered urgent?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/136
+  Created new session: 136
+✓ Created new memory for session 136
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: bacterial meningitis urgency symptoms complications
+  Reasoning: The user is asking a direct medical question about the urgency of bacterial meningitis, requiring a factual answer and potentially supporting evidence.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: bacterial meningitis urgency symptoms complications
+  Reasoning: The user is asking a direct medical question about the urgency of bacterial meningitis, requiring a factual answer and potentially supporting evidence.
+
+[Step 4b] PubMed search: 'bacterial meningitis urgency symptoms complications'
+[PubMed] Searching: 'bacterial meningitis urgency symptoms complications' (max 5 results)
+[PubMed] Found 14 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 14 articles
+[PubMed] Scoring 14 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.752] New issues in bacterial meningitis in adults. Antibiotic res...
+  2. [0.715] Acute bacterial meningitis in adults. A 12-year review....
+  3. [0.711] [Acute hydrocephalus drained in emergency. Consequence of ce...
+  Found 14 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 136
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 136)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/136
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64899 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Cite evidence about severity or outcomes.
+  Display: Cite evidence about severity or outcomes.
+
+[Step 2] Memory & Session...
+  Continuing session: 136
+✓ Using cached memory for session 136
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: bacterial meningitis severity outcomes
+  Reasoning: User is asking for evidence regarding the severity and outcomes of bacterial meningitis, which requires a medical answer and a PubMed search for relevant citations.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.746] Acute bacterial meningitis in adults. A 12-year review....
+  2. [0.735] New issues in bacterial meningitis in adults. Antibiotic res...
+  3. [0.728] Role of neural barriers in the pathogenesis and outcome of ...
+  Cached article validation query: bacterial meningitis severity outcomes
+  Cached article top score: 0.7459208205824761
+  Cached articles kept: 5/5
+
+[REUSING ARTICLES] User asking to elaborate on previous response
+  Found 5 cached articles
+  Overriding router decision - will NOT search PubMed
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: None
+  Reasoning: User is asking for evidence regarding the severity and outcomes of bacterial meningitis, which requires a medical answer and a PubMed search for relevant citations.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.657] [Management of acute community-acquired bacterial meningitid...
+  2. [0.656] Role of neural barriers in the pathogenesis and outcome of ...
+  3. [0.656] New issues in bacterial meningitis in adults. Antibiotic res...
+  Cached article validation query: Cite evidence about severity or outcomes.
+  Cached article top score: 0.6570641608216317
+  Cached articles kept: 5/5
+  Using 5 validated cached articles (no new search)
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 136)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/136
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64902 - "POST /chat/136/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Why is antibiotic resistance a concern in bacterial infections?
+  Display: Why is antibiotic resistance a concern in bacterial infections?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/137
+  Created new session: 137
+✓ Created new memory for session 137
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: antibiotic resistance bacterial infections concern
+  Reasoning: The user is asking a direct medical question about the significance of antibiotic resistance in bacterial infections, requiring a detailed explanation and likely supporting evidence.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: antibiotic resistance bacterial infections concern
+  Reasoning: The user is asking a direct medical question about the significance of antibiotic resistance in bacterial infections, requiring a detailed explanation and likely supporting evidence.
+
+[Step 4b] PubMed search: 'antibiotic resistance bacterial infections concern'
+[PubMed] Searching: 'antibiotic resistance bacterial infections concern' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.757] Antibiotic resistance....
+  2. [0.743] [Antibiotic resistance: A global crisis]....
+  3. [0.724] Antibiotic candidates for Gram-positive bacterial infections...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 137
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 137)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/137
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64904 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Support with medical literature.
+  Display: Support with medical literature.
+
+[Step 2] Memory & Session...
+  Continuing session: 137
+✓ Using cached memory for session 137
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: antibiotic resistance mechanisms efficacy threat
+  Reasoning: The user is asking for medical literature to support the explanation about antibiotic resistance.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: antibiotic resistance mechanisms efficacy threat
+  Reasoning: The user is asking for medical literature to support the explanation about antibiotic resistance.
+
+[Step 4b] PubMed search: 'antibiotic resistance mechanisms efficacy threat'
+[PubMed] Searching: 'antibiotic resistance mechanisms efficacy threat' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.756] Mechanisms of antibiotic resistance in ...
+  2. [0.745] A review of the mechanisms that confer antibiotic resistance...
+  3. [0.744] Small-molecule strategies to combat antibiotic resistance: m...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 137
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 137)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/137
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64909 - "POST /chat/137/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: How long does pneumonia recovery usually take?
+  Display: How long does pneumonia recovery usually take?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/138
+  Created new session: 138
+✓ Created new memory for session 138
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia recovery time
+  Reasoning: User is asking a direct medical question about recovery duration for a specific condition.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia recovery time
+  Reasoning: User is asking a direct medical question about recovery duration for a specific condition.
+
+[Step 4b] PubMed search: 'pneumonia recovery time'
+[PubMed] Searching: 'pneumonia recovery time' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.723] Time to recovery from severe community-acquired pneumonia an...
+  2. [0.710] Joint modeling of longitudinal changes of pulse rate and bod...
+  3. [0.701] Time-to-recovery from severe pneumonia and its predictors am...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 138
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 138)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/138
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64917 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Use evidence and explain uncertainty.
+  Display: Use evidence and explain uncertainty.
+
+[Step 2] Memory & Session...
+  Continuing session: 138
+✓ Using cached memory for session 138
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia recovery time
+  Reasoning: The user is asking for a medical answer about pneumonia recovery time and wants the answer to include evidence and explain uncertainty. This requires searching for relevant medical literature.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia recovery time
+  Reasoning: The user is asking for a medical answer about pneumonia recovery time and wants the answer to include evidence and explain uncertainty. This requires searching for relevant medical literature.
+
+[Step 4b] PubMed search: 'pneumonia recovery time'
+[PubMed] Searching: 'pneumonia recovery time' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.723] Time to recovery from severe community-acquired pneumonia an...
+  2. [0.710] Joint modeling of longitudinal changes of pulse rate and bod...
+  3. [0.701] Time-to-recovery from severe pneumonia and its predictors am...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 138
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 138)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/138
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64923 - "POST /chat/138/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Why are inhaled corticosteroids used in asthma?
+  Display: Why are inhaled corticosteroids used in asthma?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/139
+  Created new session: 139
+✓ Created new memory for session 139
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: inhaled corticosteroids asthma mechanism
+  Reasoning: User is asking a medical question about the use of a specific medication class for a medical condition.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: inhaled corticosteroids asthma mechanism
+  Reasoning: User is asking a medical question about the use of a specific medication class for a medical condition.
+
+[Step 4b] PubMed search: 'inhaled corticosteroids asthma mechanism'
+[PubMed] Searching: 'inhaled corticosteroids asthma mechanism' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.791] The mechanism of corticosteroids in treating asthma....
+  2. [0.759] Inhaled corticosteroids for asthma: are they all the same?...
+  3. [0.755] Inhaled corticosteroids for the prevention of asthma exacerb...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 139
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 139)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/139
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64930 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Give a referenced explanation.
+  Display: Give a referenced explanation.
+
+[Step 2] Memory & Session...
+  Continuing session: 139
+✓ Using cached memory for session 139
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: inhaled corticosteroids asthma mechanism
+  Reasoning: The user is asking for a referenced explanation of why inhaled corticosteroids are used in asthma, which requires a medical answer with PubMed search.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.791] The mechanism of corticosteroids in treating asthma....
+  2. [0.759] Inhaled corticosteroids for asthma: are they all the same?...
+  3. [0.755] Inhaled corticosteroids for the prevention of asthma exacerb...
+  Cached article validation query: inhaled corticosteroids asthma mechanism
+  Cached article top score: 0.7906966924440952
+  Cached articles kept: 5/5
+
+[REUSING ARTICLES] User asking to elaborate on previous response
+  Found 5 cached articles
+  Overriding router decision - will NOT search PubMed
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: None
+  Reasoning: The user is asking for a referenced explanation of why inhaled corticosteroids are used in asthma, which requires a medical answer with PubMed search.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.643] Inhaled corticosteroids for the prevention of asthma exacerb...
+  2. [0.643] The mechanism of corticosteroids in treating asthma....
+  3. [0.634] Asthma progression and mortality: the role of inhaled cortic...
+  Cached article validation query: Give a referenced explanation.
+  Cached article top score: 0.6430462138002375
+  Cached articles kept: 5/5
+  Using 5 validated cached articles (no new search)
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 139)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/139
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64937 - "POST /chat/139/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Why does stroke treatment depend on time?
+  Display: Why does stroke treatment depend on time?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/140
+  Created new session: 140
+✓ Created new memory for session 140
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: stroke treatment time sensitivity
+  Reasoning: The user is asking a medical question about the importance of time in stroke treatment, which requires a medical explanation and likely supporting evidence.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: stroke treatment time sensitivity
+  Reasoning: The user is asking a medical question about the importance of time in stroke treatment, which requires a medical explanation and likely supporting evidence.
+
+[Step 4b] PubMed search: 'stroke treatment time sensitivity'
+[PubMed] Searching: 'stroke treatment time sensitivity' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.758] Time to stroke magnetic resonance imaging....
+  2. [0.749] MRI versus CT-based thrombolysis treatment within and beyond...
+  3. [0.749] Analysis of Workflow and Time to Treatment on Thrombectomy O...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 140
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 140)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/140
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64940 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Use evidence-grounded reasoning.
+  Display: Use evidence-grounded reasoning.
+
+[Step 2] Memory & Session...
+  Continuing session: 140
+✓ Using cached memory for session 140
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: stroke treatment time ischemic rtPA
+  Reasoning: The user is asking for an explanation of why stroke treatment is time-dependent, and the provided context mentions rtPA, a key time-sensitive treatment. This requires a medical explanation supported by evidence.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: stroke treatment time ischemic rtPA
+  Reasoning: The user is asking for an explanation of why stroke treatment is time-dependent, and the provided context mentions rtPA, a key time-sensitive treatment. This requires a medical explanation supported by evidence.
+
+[Step 4b] PubMed search: 'stroke treatment time ischemic rtPA'
+[PubMed] Searching: 'stroke treatment time ischemic rtPA' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.754] Time to treatment with intravenous alteplase and outcome in ...
+  2. [0.745] [Acute ischemic stroke treatment]....
+  3. [0.743] Treatment of Acute Ischemic Stroke....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 140
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 140)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/140
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64944 - "POST /chat/140/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Hi there.
+  Display: Hi there.
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/141
+  Created new session: 141
+✓ Created new memory for session 141
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: casual_chat
+  VQA needed: False
+  PubMed needed: False
+  Search: None
+  Reasoning: User is initiating a casual greeting.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: casual_chat
+  VQA needed: False
+  PubMed needed: False
+  Search: None
+  Reasoning: User is initiating a casual greeting.
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Casual chat - keeping in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 141)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/141
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64950 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Now explain pneumonia warning signs.
+  Display: Now explain pneumonia warning signs.
+
+[Step 2] Memory & Session...
+  Continuing session: 141
+✓ Using cached memory for session 141
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia warning signs
+  Reasoning: User is asking for medical information about pneumonia warning signs.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia warning signs
+  Reasoning: User is asking for medical information about pneumonia warning signs.
+
+[Step 4b] PubMed search: 'pneumonia warning signs'
+[PubMed] Searching: 'pneumonia warning signs' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.672] Dyspnea: The vanished warning symptom of COVID-19 pneumonia....
+  2. [0.662] Infection and co-infection patterns of community-acquired pn...
+  3. [0.653] Epidemiological and clinical characteristics of 99 cases of ...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 141
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 141)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/141
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64953 - "POST /chat/141/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: I just need someone to talk to.
+  Display: I just need someone to talk to.
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/142
+  Created new session: 142
+✓ Created new memory for session 142
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: casual_chat
+  VQA needed: False
+  PubMed needed: False
+  Search: None
+  Reasoning: User is expressing a need for emotional support, not a medical inquiry.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: casual_chat
+  VQA needed: False
+  PubMed needed: False
+  Search: None
+  Reasoning: User is expressing a need for emotional support, not a medical inquiry.
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Casual chat - keeping in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 142)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/142
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64960 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Can you keep the response non-medical?
+  Display: Can you keep the response non-medical?
+
+[Step 2] Memory & Session...
+  Continuing session: 142
+✓ Using cached memory for session 142
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: casual_chat
+  VQA needed: False
+  PubMed needed: False
+  Search: None
+  Reasoning: User expressed a need to talk and the assistant offered to listen in a supportive, non-medical capacity. The user's follow-up explicitly requests a non-medical response, aligning with casual chat.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: casual_chat
+  VQA needed: False
+  PubMed needed: False
+  Search: None
+  Reasoning: User expressed a need to talk and the assistant offered to listen in a supportive, non-medical capacity. The user's follow-up explicitly requests a non-medical response, aligning with casual chat.
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Casual chat - keeping in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 142)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/142
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64962 - "POST /chat/142/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: What is diabetes?
+  Display: What is diabetes?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/143
+  Created new session: 143
+✓ Created new memory for session 143
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: diabetes mellitus definition
+  Reasoning: User is asking for a definition of a medical condition.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: diabetes mellitus definition
+  Reasoning: User is asking for a definition of a medical condition.
+
+[Step 4b] PubMed search: 'diabetes mellitus definition'
+[PubMed] Searching: 'diabetes mellitus definition' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.743] [Diabetes mellitus: definition, classification and diagnosis...
+  2. [0.731] [Diabetes mellitus: definition, classification, diagnosis, s...
+  3. [0.708] The definition and classification of diabetes mellitus....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 143
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 143)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/143
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64964 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Make your previous answer shorter.
+  Display: Make your previous answer shorter.
+
+[Step 2] Memory & Session...
+  Continuing session: 143
+✓ Using cached memory for session 143
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: modify_previous
+  VQA needed: False
+  PubMed needed: False
+  Search: None
+  Reasoning: User asked to shorten previous answer.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.602] The definition and classification of diabetes mellitus....
+  2. [0.599] Definition, classification and diagnosis of diabetes mellitu...
+  3. [0.596] A comprehensive definition for metabolic syndrome....
+  Cached article validation query: Make your previous answer shorter.
+  Cached article top score: 0.6024240315148823
+  Cached articles kept: 5/5
+
+[REUSING ARTICLES] User asking to elaborate on previous response
+  Found 5 cached articles
+  Overriding router decision - will NOT search PubMed
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: None
+  Reasoning: User asked to shorten previous answer.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.602] The definition and classification of diabetes mellitus....
+  2. [0.599] Definition, classification and diagnosis of diabetes mellitu...
+  3. [0.596] A comprehensive definition for metabolic syndrome....
+  Cached article validation query: Make your previous answer shorter.
+  Cached article top score: 0.6024240315148823
+  Cached articles kept: 5/5
+  Using 5 validated cached articles (no new search)
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 143)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/143
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64970 - "POST /chat/143/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: What is tuberculosis?
+  Display: What is tuberculosis?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/144
+  Created new session: 144
+✓ Created new memory for session 144
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: tuberculosis definition causes symptoms
+  Reasoning: User is asking for a medical definition and explanation.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: tuberculosis definition causes symptoms
+  Reasoning: User is asking for a medical definition and explanation.
+
+[Step 4b] PubMed search: 'tuberculosis definition causes symptoms'
+[PubMed] Searching: 'tuberculosis definition causes symptoms' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.680] The prevalence of symptoms associated with pulmonary tubercu...
+  2. [0.678] Epidemiology of tuberculosis....
+  3. [0.667] Latent tuberculosis infection--Revisiting and revising conce...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 144
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 144)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/144
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64223 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Show the references from the previous answer.
+  Display: Show the references from the previous answer.
+
+[Step 2] Memory & Session...
+  Continuing session: 144
+✓ Using cached memory for session 144
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: tuberculosis Mycobacterium tuberculosis references
+  Reasoning: User is asking for references from a previous medical explanation.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.725] Latent tuberculosis infection--Revisiting and revising conce...
+  2. [0.722] Severe disseminated tuberculosis in HIV-negative refugees....
+  3. [0.721] Epidemiology of tuberculosis....
+  Cached article validation query: tuberculosis Mycobacterium tuberculosis references
+  Cached article top score: 0.7246083324532221
+  Cached articles kept: 5/5
+
+[REUSING ARTICLES] User asking to elaborate on previous response
+  Found 5 cached articles
+  Overriding router decision - will NOT search PubMed
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: None
+  Reasoning: User is asking for references from a previous medical explanation.
+[PubMed] Scoring 5 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.607] Prevalence of subclinical pulmonary tuberculosis in adults i...
+  2. [0.606] Severe disseminated tuberculosis in HIV-negative refugees....
+  3. [0.606] The prevalence of symptoms associated with pulmonary tubercu...
+  Cached article validation query: Show the references from the previous answer.
+  Cached article top score: 0.6074592784276674
+  Cached articles kept: 5/5
+  Using 5 validated cached articles (no new search)
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 144)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/144
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64230 - "POST /chat/144/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Tell me a joke.
+  Display: Tell me a joke.
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/145
+  Created new session: 145
+✓ Created new memory for session 145
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: casual_chat
+  VQA needed: False
+  PubMed needed: False
+  Search: None
+  Reasoning: User is asking for a joke, which is a casual chat request.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: casual_chat
+  VQA needed: False
+  PubMed needed: False
+  Search: None
+  Reasoning: User is asking for a joke, which is a casual chat request.
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Casual chat - keeping in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 145)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/145
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64233 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Actually, what are symptoms of meningitis?
+  Display: Actually, what are symptoms of meningitis?
+
+[Step 2] Memory & Session...
+  Continuing session: 145
+✓ Using cached memory for session 145
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: meningitis symptoms
+  Reasoning: The user is asking for medical information about the symptoms of meningitis.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: meningitis symptoms
+  Reasoning: The user is asking for medical information about the symptoms of meningitis.
+
+[Step 4b] PubMed search: 'meningitis symptoms'
+[PubMed] Searching: 'meningitis symptoms' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.747] Meningitis....
+  2. [0.714] [Meningism]....
+  3. [0.712] Acute bacterial meningitis....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 145
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 145)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/145
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64235 - "POST /chat/145/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Que es la neumonia?
+  Display: Que es la neumonia?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/146
+  Created new session: 146
+✓ Created new memory for session 146
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia definition symptoms causes
+  Reasoning: User is asking for a medical definition and explanation.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia definition symptoms causes
+  Reasoning: User is asking for a medical definition and explanation.
+
+[Step 4b] PubMed search: 'pneumonia definition symptoms causes'
+[PubMed] Searching: 'pneumonia definition symptoms causes' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.722] Pneumonia....
+  2. [0.699] Community-acquired pneumonia....
+  3. [0.687] The atypical pneumonias: clinical diagnosis and importance....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 146
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 146)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/146
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64244 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Es peligrosa?
+  Display: Es peligrosa?
+
+[Step 2] Memory & Session...
+  Continuing session: 146
+✓ Using cached memory for session 146
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia danger severity
+  Reasoning: The user is asking about the danger of pneumonia, which requires a medical explanation and potentially further information from medical literature.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia danger severity
+  Reasoning: The user is asking about the danger of pneumonia, which requires a medical explanation and potentially further information from medical literature.
+
+[Step 4b] PubMed search: 'pneumonia danger severity'
+[PubMed] Searching: 'pneumonia danger severity' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.705] The atypical pneumonias: clinical diagnosis and importance....
+  2. [0.671] Vitamin D deficiency and severity of pneumonia in Indonesian...
+  3. [0.663] Protection against severe infectious disease in the past....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 146
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 146)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/146
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64252 - "POST /chat/146/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Qu'est-ce que le diabete?
+  Display: Qu'est-ce que le diabete?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/147
+  Created new session: 147
+✓ Created new memory for session 147
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: diabète définition causes symptômes
+  Reasoning: User is asking for a definition of diabetes, which requires a medical explanation and potentially further research.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: diabète définition causes symptômes
+  Reasoning: User is asking for a definition of diabetes, which requires a medical explanation and potentially further research.
+
+[Step 4b] PubMed search: 'diabète définition causes symptômes'
+[PubMed] Searching: 'diabète définition causes symptômes' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.669] Pathophysiology of type 1 and type 2 diabetes mellitus: a 90...
+  2. [0.649] [Gestational diabetes mellitus]....
+  3. [0.649] Microvascular Complications of Type 2 Diabetes Mellitus....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 147
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 147)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/147
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64259 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: Quels sont les signes d'urgence?
+  Display: Quels sont les signes d'urgence?
+
+[Step 2] Memory & Session...
+  Continuing session: 147
+✓ Using cached memory for session 147
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: diabetes emergency signs
+  Reasoning: The user is asking for emergency signs related to diabetes, which requires a medical explanation and potentially a search for relevant medical information.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: diabetes emergency signs
+  Reasoning: The user is asking for emergency signs related to diabetes, which requires a medical explanation and potentially a search for relevant medical information.
+
+[Step 4b] PubMed search: 'diabetes emergency signs'
+[PubMed] Searching: 'diabetes emergency signs' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.774] [Diabetes emergencies]....
+  2. [0.747] Diabetic emergencies - ketoacidosis, hyperglycaemic hyperosm...
+  3. [0.733] Hyperglycemic crisis....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 147
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 147)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/147
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64268 - "POST /chat/147/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: 폐렴은 무엇인가요?
+  Display: 폐렴은 무엇인가요?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/148
+  Created new session: 148
+✓ Created new memory for session 148
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia definition causes symptoms
+  Reasoning: The user is asking for a definition of pneumonia.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia definition causes symptoms
+  Reasoning: The user is asking for a definition of pneumonia.
+
+[Step 4b] PubMed search: 'pneumonia definition causes symptoms'
+[PubMed] Searching: 'pneumonia definition causes symptoms' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.719] Pneumonia....
+  2. [0.698] Community-acquired pneumonia....
+  3. [0.687] The atypical pneumonias: clinical diagnosis and importance....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 148
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 148)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/148
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64275 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: 언제 병원에 가야 하나요?
+  Display: 언제 병원에 가야 하나요?
+
+[Step 2] Memory & Session...
+  Continuing session: 148
+✓ Using cached memory for session 148
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia symptoms when to seek medical attention
+  Reasoning: The user is asking for medical advice on when to seek professional help for pneumonia.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: pneumonia symptoms when to seek medical attention
+  Reasoning: The user is asking for medical advice on when to seek professional help for pneumonia.
+
+[Step 4b] PubMed search: 'pneumonia symptoms when to seek medical attention'
+[PubMed] Searching: 'pneumonia symptoms when to seek medical attention' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.660] Barriers to seeking timely treatment for severe childhood pn...
+  2. [0.630] Crisis clinical pathway for COVID-19....
+  3. [0.608] Reluctance to seek pediatric care during the COVID-19 pandem...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 148
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 148)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/148
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64283 - "POST /chat/148/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: 結核とは何ですか?
+  Display: 結核とは何ですか?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/149
+  Created new session: 149
+✓ Created new memory for session 149
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: tuberculosis definition symptoms
+  Reasoning: User is asking for a definition of tuberculosis.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: tuberculosis definition symptoms
+  Reasoning: User is asking for a definition of tuberculosis.
+
+[Step 4b] PubMed search: 'tuberculosis definition symptoms'
+[PubMed] Searching: 'tuberculosis definition symptoms' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.690] The Role of Clinical Symptoms in the Diagnosis of Intrathora...
+  2. [0.689] [Thoracic tuberculosis]....
+  3. [0.688] The prevalence of symptoms associated with pulmonary tubercu...
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 149
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 149)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/149
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64290 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: どのように治療しますか?
+  Display: どのように治療しますか?
+
+[Step 2] Memory & Session...
+  Continuing session: 149
+✓ Using cached memory for session 149
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: tuberculosis treatment guidelines
+  Reasoning: The user is asking about the treatment for tuberculosis, which requires a medical explanation and potentially updated information from medical literature.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: tuberculosis treatment guidelines
+  Reasoning: The user is asking about the treatment for tuberculosis, which requires a medical explanation and potentially updated information from medical literature.
+
+[Step 4b] PubMed search: 'tuberculosis treatment guidelines'
+[PubMed] Searching: 'tuberculosis treatment guidelines' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.759] Treatment guidelines for latent tuberculosis infection....
+  2. [0.752] Guidelines for the Treatment of Latent Tuberculosis Infectio...
+  3. [0.748] Practice guidelines for the treatment of tuberculosis....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 149
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 149)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/149
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64296 - "POST /chat/149/message HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: 糖尿病是什么?
+  Display: 糖尿病是什么?
+
+[Step 2] Memory & Session...
+✓ Created session: ablation_20260502_142300/150
+  Created new session: 150
+✓ Created new memory for session 150
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: diabetes mellitus definition
+  Reasoning: The user is asking a fundamental medical question about what diabetes is.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: diabetes mellitus definition
+  Reasoning: The user is asking a fundamental medical question about what diabetes is.
+
+[Step 4b] PubMed search: 'diabetes mellitus definition'
+[PubMed] Searching: 'diabetes mellitus definition' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.743] [Diabetes mellitus: definition, classification and diagnosis...
+  2. [0.731] [Diabetes mellitus: definition, classification, diagnosis, s...
+  3. [0.708] The definition and classification of diabetes mellitus....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 150
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 150)
+✓ Added turn 1 to conversation
+✓ Updated memory state for ablation_20260502_142300/150
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64303 - "POST /chat/new HTTP/1.1" 200 OK
+
+============================================================
+Processing question for ablation_20260502_142300
+============================================================
+Ablation flags -> router:True memory:True pubmed:True translation:False
+
+[Step 1] Translation...
+  Translation ablation active -> bypass translation
+  Source: en
+  English: 它会导致哪些并发症?
+  Display: 它会导致哪些并发症?
+
+[Step 2] Memory & Session...
+  Continuing session: 150
+✓ Using cached memory for session 150
+
+[Step 3] Router deciding...
+
+[ROUTER DECISION (INITIAL)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: diabetes complications
+  Reasoning: User is asking about complications of diabetes, which requires a medical answer and a PubMed search.
+
+[EXECUTION PLAN (PRE-STEP-4)]
+  Mode: medical_answer
+  VQA needed: False
+  PubMed needed: True
+  Search: diabetes complications
+  Reasoning: User is asking about complications of diabetes, which requires a medical answer and a PubMed search.
+
+[Step 4b] PubMed search: 'diabetes complications'
+[PubMed] Searching: 'diabetes complications' (max 5 results)
+[PubMed] Found 15 PMIDs
+[PubMed] Fetching articles (attempt 1/3)...
+[PubMed] Successfully parsed 15 articles
+[PubMed] Scoring 15 articles for relevance...
+[PubMed] Top 3 articles by relevance:
+  1. [0.755] Diabetes complications....
+  2. [0.753] Mechanisms of diabetic complications....
+  3. [0.746] Complications of Diabetes....
+  Found 15 candidate articles
+  Keeping 5 relevant articles
+✓ Cached 5 PubMed articles for session 150
+
+[Step 5] Generating response...
+
+[Step 6] Translation...
+  Translation ablation active - keeping output in English
+
+[Step 7] Saving...
+✓ Added turn to memory (session 150)
+✓ Added turn 2 to conversation
+✓ Updated memory state for ablation_20260502_142300/150
+✓ Saved to disk
+
+============================================================
+✓ Complete!
+============================================================
+
+INFO:     127.0.0.1:64311 - "POST /chat/150/message HTTP/1.1" 200 OK

@@ -1,0 +1,15 @@
+{
+  "mode": "k_1",
+  "run_file": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\pubmed_k_sensitivity\\runs\\20260504_123132\\k_1\\run_results.json",
+  "pubmed_top_k": 1,
+  "cases_requested": 10,
+  "cases_scored": 10,
+  "cases_failed": 0,
+  "avg_topic_adherence": 0.3167,
+  "avg_agent_goal_accuracy": 0.8,
+  "avg_medical_correctness": 0.8,
+  "avg_evidence_grounding": 0.9,
+  "avg_medical_safety_caution": 1.0,
+  "avg_articles_per_case": 1.0,
+  "errors": []
+}

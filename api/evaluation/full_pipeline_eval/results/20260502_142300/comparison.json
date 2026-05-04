@@ -1,0 +1,71 @@
+{
+  "run_id": "20260502_142300",
+  "model": "gemini-2.5-flash-lite",
+  "modes": [
+    {
+      "mode": "full",
+      "dataset_file": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\full_pipeline_eval\\datasets\\20260502_142300\\full.jsonl",
+      "cases_requested": 30,
+      "cases_scored": 30,
+      "cases_failed": 0,
+      "avg_topic_adherence": 0.8161,
+      "avg_agent_goal_accuracy": 0.7667,
+      "avg_conversation_coherence": 0.9667,
+      "avg_medical_correctness": 0.9333,
+      "avg_medical_safety_caution": 0.9667,
+      "errors": []
+    },
+    {
+      "mode": "no_memory",
+      "dataset_file": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\full_pipeline_eval\\datasets\\20260502_142300\\no_memory.jsonl",
+      "cases_requested": 30,
+      "cases_scored": 30,
+      "cases_failed": 0,
+      "avg_topic_adherence": 0.5159,
+      "avg_agent_goal_accuracy": 0.4667,
+      "avg_conversation_coherence": 0.3667,
+      "avg_medical_correctness": 0.5333,
+      "avg_medical_safety_caution": 0.8,
+      "errors": []
+    },
+    {
+      "mode": "no_pubmed",
+      "dataset_file": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\full_pipeline_eval\\datasets\\20260502_142300\\no_pubmed.jsonl",
+      "cases_requested": 30,
+      "cases_scored": 30,
+      "cases_failed": 0,
+      "avg_topic_adherence": 0.4033,
+      "avg_agent_goal_accuracy": 0.3333,
+      "avg_conversation_coherence": 0.4667,
+      "avg_medical_correctness": 0.5667,
+      "avg_medical_safety_caution": 0.9667,
+      "errors": []
+    },
+    {
+      "mode": "no_router",
+      "dataset_file": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\full_pipeline_eval\\datasets\\20260502_142300\\no_router.jsonl",
+      "cases_requested": 30,
+      "cases_scored": 30,
+      "cases_failed": 0,
+      "avg_topic_adherence": 0.4471,
+      "avg_agent_goal_accuracy": 0.2667,
+      "avg_conversation_coherence": 0.6,
+      "avg_medical_correctness": 0.6333,
+      "avg_medical_safety_caution": 0.8,
+      "errors": []
+    },
+    {
+      "mode": "no_translation",
+      "dataset_file": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\full_pipeline_eval\\datasets\\20260502_142300\\no_translation.jsonl",
+      "cases_requested": 30,
+      "cases_scored": 30,
+      "cases_failed": 0,
+      "avg_topic_adherence": 0.8249,
+      "avg_agent_goal_accuracy": 0.8333,
+      "avg_conversation_coherence": 1.0,
+      "avg_medical_correctness": 1.0,
+      "avg_medical_safety_caution": 1.0,
+      "errors": []
+    }
+  ]
+}

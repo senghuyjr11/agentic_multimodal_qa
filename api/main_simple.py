@@ -29,7 +29,7 @@ from agents.conversation_summarizer import ConversationSummarizer
 from agents.memory_manager import MemoryManager
 from agents.pubmed_agent import PubMedAgent
 from agents.response_generator import ResponseGenerator
-from agents.router_agent import RouterAgent
+from agents.router_agent import RouterAgent, RoutingDecision
 from agents.session_manager import SessionManager
 from agents.translation_agent import TranslationAgent
 
@@ -51,6 +51,14 @@ class MedicalVQAPipeline:
         classifier_path: str
     ):
         print("Initializing Medical VQA Pipeline...")
+        self.ablation_mode = os.getenv("ABLATION_MODE", "full").strip().lower()
+        valid_modes = {"full", "no_memory", "no_pubmed", "no_router", "no_translation"}
+        if self.ablation_mode not in valid_modes:
+            print(f"  Unknown ABLATION_MODE='{self.ablation_mode}', fallback to 'full'")
+            self.ablation_mode = "full"
+        print(f"  Ablation mode: {self.ablation_mode}")
+        self.pubmed_top_k = self._read_pubmed_top_k()
+        print(f"  PubMed top-k: {self.pubmed_top_k}")
 
         # Initialize all agents (each does ONE job)
         self.router = RouterAgent(google_api_key)
@@ -74,6 +82,50 @@ class MedicalVQAPipeline:
 
         print("✓ All agents initialized\n")
 
+    @property
+    def memory_enabled(self) -> bool:
+        return self.ablation_mode != "no_memory"
+
+    @property
+    def pubmed_enabled(self) -> bool:
+        return self.ablation_mode != "no_pubmed"
+
+    @property
+    def router_enabled(self) -> bool:
+        return self.ablation_mode != "no_router"
+
+    @property
+    def translation_enabled(self) -> bool:
+        return self.ablation_mode != "no_translation"
+
+    @staticmethod
+    def _simple_router_decide(message: Optional[str], has_image: bool) -> RoutingDecision:
+        text = (message or "").strip().lower()
+        casual_markers = {"hi", "hello", "hey", "thanks", "thank you"}
+        if has_image:
+            return RoutingDecision(
+                needs_vqa=True,
+                needs_pubmed=False,
+                search_query=None,
+                response_mode="medical_answer",
+                reasoning="Ablation(no_router): image present -> VQA medical answer.",
+            )
+        if text in casual_markers:
+            return RoutingDecision(
+                needs_vqa=False,
+                needs_pubmed=False,
+                search_query=None,
+                response_mode="casual_chat",
+                reasoning="Ablation(no_router): greeting -> casual_chat.",
+            )
+        return RoutingDecision(
+            needs_vqa=False,
+            needs_pubmed=True,
+            search_query=(message or "").strip() or None,
+            response_mode="medical_answer",
+            reasoning="Ablation(no_router): text medical fallback with PubMed.",
+        )
+
     @staticmethod
     def _log_decision(label: str, decision) -> None:
         print(f"\n[{label}]")
@@ -82,6 +134,19 @@ class MedicalVQAPipeline:
         print(f"  PubMed needed: {decision.needs_pubmed}")
         print(f"  Search: {decision.search_query}")
         print(f"  Reasoning: {decision.reasoning}")
+
+    @staticmethod
+    def _read_pubmed_top_k() -> int:
+        raw_value = os.getenv("PUBMED_TOP_K", "5").strip()
+        try:
+            top_k = int(raw_value)
+        except ValueError:
+            print(f"  Invalid PUBMED_TOP_K='{raw_value}', fallback to 5")
+            return 5
+        if top_k < 1:
+            print(f"  PUBMED_TOP_K must be >= 1, got {top_k}; fallback to 5")
+            return 5
+        return min(top_k, 10)
 
     @staticmethod
     def _filter_pubmed_articles(articles, min_relevance: float = 0.30, max_keep: int = 5):
@@ -172,7 +237,7 @@ class MedicalVQAPipeline:
         print(f"  Cached article top score: {top_score}")
         print(f"  Cached articles kept: {len(filtered_articles)}/{len(scored_articles)}")
 
-        return filtered_articles[:5]
+        return filtered_articles[:self.pubmed_top_k]
 
     def run(
         self,
@@ -204,6 +269,10 @@ class MedicalVQAPipeline:
         print(f"\n{'='*60}")
         print(f"Processing question for {username}")
         print(f"{'='*60}")
+        print(
+            f"Ablation flags -> router:{self.router_enabled} memory:{self.memory_enabled} "
+            f"pubmed:{self.pubmed_enabled} translation:{self.translation_enabled}"
+        )
 
         # Track if this was an image-only upload (no user question)
         is_image_only = (not question or not question.strip()) and image_path is not None
@@ -214,7 +283,17 @@ class MedicalVQAPipeline:
         # STEP 1: TRANSLATE INPUT
         # ==========================================
         print("\n[Step 1] Translation...")
-        if effective_question is None:
+        if not self.translation_enabled:
+            translation_result = {
+                "english_question": effective_question,
+                "source_language": "en",
+                "output_language": "en",
+            }
+            english_question = effective_question
+            source_lang = "en"
+            output_lang = "en"
+            print("  Translation ablation active -> bypass translation")
+        elif effective_question is None:
             translation_result = {
                 "english_question": None,
                 "source_language": "en",
@@ -387,34 +466,49 @@ class MedicalVQAPipeline:
                     }
 
         # Get memory for this session
-        memory = self.memory.get_or_create(session_id, conversation_history, memory_state)
-
-        compaction_result = self.memory.compact_if_needed(
-            session_id=session_id,
-            summarizer=self.summarizer,
-            full_conversation_history=conversation_history,
-            persist_callback=lambda state: self.session_mgr.update_memory_state(
-                username, session_id, state
+        if self.memory_enabled:
+            memory = self.memory.get_or_create(session_id, conversation_history, memory_state)
+            compaction_result = self.memory.compact_if_needed(
+                session_id=session_id,
+                summarizer=self.summarizer,
+                full_conversation_history=conversation_history,
+                persist_callback=lambda state: self.session_mgr.update_memory_state(
+                    username, session_id, state
+                )
             )
-        )
 
-        if compaction_result.get("compacted"):
-            memory = self.memory.get_or_create(
-                session_id,
-                conversation_history,
-                self.session_mgr.get_memory_state(username, session_id)
-            )
+            if compaction_result.get("compacted"):
+                memory = self.memory.get_or_create(
+                    session_id,
+                    conversation_history,
+                    self.session_mgr.get_memory_state(username, session_id)
+                )
+        else:
+            memory = self.memory.get_or_create(session_id, [], {})
+            memory.history.clear()
+            memory.pubmed_articles = []
+            memory.rolling_summary = ""
+            memory.summarized_turn_count = 0
+            memory.compression_count = 0
+            memory.last_compaction_at = None
+            compaction_result = {"compacted": False}
 
         # ==========================================
         # STEP 3: ROUTER DECIDES
         # ==========================================
         print("\n[Step 3] Router deciding...")
 
-        decision = self.router.decide(
-            message=english_question or "[Image Uploaded]",
-            has_image=bool(image_path),
-            memory=memory
-        )
+        if self.router_enabled:
+            decision = self.router.decide(
+                message=english_question or "[Image Uploaded]",
+                has_image=bool(image_path),
+                memory=memory
+            )
+        else:
+            decision = self._simple_router_decide(
+                message=english_question or "[Image Uploaded]",
+                has_image=bool(image_path)
+            )
         self._log_decision("ROUTER DECISION (INITIAL)", decision)
 
         # Hard guard: identity/memory messages must stay in casual mode, never PubMed.
@@ -442,11 +536,22 @@ class MedicalVQAPipeline:
             else:
                 decision.reasoning = "PubMed deferred for initial image turn."
 
+        if not self.pubmed_enabled:
+            decision.needs_pubmed = False
+            decision.search_query = None
+            if decision.reasoning:
+                decision.reasoning += " | Ablation(no_pubmed): PubMed disabled."
+            else:
+                decision.reasoning = "Ablation(no_pubmed): PubMed disabled."
+
         # Check 1: User asking to elaborate on existing references (MOVED UP - HIGHER PRIORITY)
         use_cached_articles = False
         is_memory_query = self._is_identity_or_memory_message(english_question)
         if (
-            not is_memory_query
+            self.memory_enabled
+            and self.router_enabled
+            and self.pubmed_enabled
+            and not is_memory_query
             and english_question
             and self.router.is_asking_about_previous_references(english_question)
         ):
@@ -475,7 +580,10 @@ class MedicalVQAPipeline:
 
         # Check 2: Follow-up asking for explanation of previous short answer
         elif (
-            not is_memory_query
+            self.memory_enabled
+            and self.router_enabled
+            and self.pubmed_enabled
+            and not is_memory_query
             and
             decision.response_mode == "medical_answer"
             and not decision.needs_pubmed
@@ -533,7 +641,7 @@ class MedicalVQAPipeline:
             self._log_decision("EXECUTION PLAN (POST-VQA OVERRIDE)", decision)
 
         # 4b. PubMed search?
-        if decision.needs_pubmed:
+        if decision.needs_pubmed and self.pubmed_enabled:
             pubmed_attempted = True
             # Case 1: Reuse cached articles
             if use_cached_articles:
@@ -550,7 +658,7 @@ class MedicalVQAPipeline:
                 print(f"\n[Step 4b] PubMed search: '{decision.search_query}'")
                 articles = self.pubmed_agent.search(
                     decision.search_query,
-                    max_results=5
+                    max_results=max(self.pubmed_top_k, 5)
                 )
 
                 if articles:
@@ -558,7 +666,10 @@ class MedicalVQAPipeline:
                         query=decision.search_query,
                         articles=articles
                     )
-                    pubmed_articles = self._filter_pubmed_articles(ranked_articles)
+                    pubmed_articles = self._filter_pubmed_articles(
+                        ranked_articles,
+                        max_keep=self.pubmed_top_k
+                    )
                     print(f"  Found {len(articles)} candidate articles")
                     print(f"  Keeping {len(pubmed_articles)} relevant articles")
 
@@ -606,10 +717,13 @@ class MedicalVQAPipeline:
         print("\n[Step 6] Translation...")
 
         # Skip translation for casual chat - keep it in English
-        if decision.response_mode == "casual_chat":
+        if decision.response_mode == "casual_chat" or not self.translation_enabled:
             final_response = english_response
             output_lang = "en"
-            print("  Casual chat - keeping in English")
+            if decision.response_mode == "casual_chat":
+                print("  Casual chat - keeping in English")
+            else:
+                print("  Translation ablation active - keeping output in English")
         else:
             final_response = self.translator.process_output(
                 english_response,
@@ -622,11 +736,12 @@ class MedicalVQAPipeline:
         print("\n[Step 7] Saving...")
 
         # Add to memory - use display_question so history makes sense
-        self.memory.add_turn(
-            session_id=session_id,
-            user_message=display_question,  # ← was english_question, causes "[Image Uploaded]" to be stored correctly
-            ai_message=english_response
-        )
+        if self.memory_enabled:
+            self.memory.add_turn(
+                session_id=session_id,
+                user_message=display_question,
+                ai_message=english_response
+            )
 
         metadata = {
             "translation": {
@@ -644,9 +759,21 @@ class MedicalVQAPipeline:
             "pubmed_attempted": pubmed_attempted,
             "references_note": references_note,
             "num_articles": len(pubmed_articles),
+            "pubmed_top_k": self.pubmed_top_k,
             "memory": {
-                **self.memory.get_context_status(session_id),
+                **(self.memory.get_context_status(session_id) if self.memory_enabled else {
+                    "message_count": 0,
+                    "summary_present": False,
+                    "summarized_turn_count": 0,
+                }),
                 "summary_updated": compaction_result.get("compacted", False)
+            },
+            "ablation": {
+                "mode": self.ablation_mode,
+                "router_enabled": self.router_enabled,
+                "memory_enabled": self.memory_enabled,
+                "pubmed_enabled": self.pubmed_enabled,
+                "translation_enabled": self.translation_enabled,
             },
             "articles": [
                 {
@@ -655,7 +782,7 @@ class MedicalVQAPipeline:
                     "url": a.url,
                     "relevance": getattr(a, 'relevance_score', None)
                 }
-                for a in pubmed_articles[:5]
+                for a in pubmed_articles[:self.pubmed_top_k]
             ] if pubmed_articles else []
         }
 
@@ -668,11 +795,12 @@ class MedicalVQAPipeline:
             meta=metadata
         )
 
-        self.session_mgr.update_memory_state(
-            username=username,
-            session_id=session_id,
-            memory_state=self.memory.active_sessions[session_id].memory_state()
-        )
+        if self.memory_enabled and session_id in self.memory.active_sessions:
+            self.session_mgr.update_memory_state(
+                username=username,
+                session_id=session_id,
+                memory_state=self.memory.active_sessions[session_id].memory_state()
+            )
 
         print("✓ Saved to disk")
 

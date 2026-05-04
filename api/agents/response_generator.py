@@ -6,6 +6,7 @@ ONE JOB: Create the final response text
 NO routing decisions - that's router_agent.py's job
 """
 
+import os
 import re
 from typing import Optional, List
 from dataclasses import dataclass
@@ -41,6 +42,18 @@ class ResponseGenerator:
             google_api_key=google_api_key
         )
         self.parser = StrOutputParser()
+        self.pubmed_top_k = self._read_pubmed_top_k()
+
+    @staticmethod
+    def _read_pubmed_top_k() -> int:
+        raw_value = os.getenv("PUBMED_TOP_K", "5").strip()
+        try:
+            top_k = int(raw_value)
+        except ValueError:
+            return 5
+        if top_k < 1:
+            return 5
+        return min(top_k, 10)
 
     def generate(
             self,
@@ -190,7 +203,7 @@ Formatted Response:"""
             context = self._get_context(memory, num_turns=10) if memory else ""
 
             lit_lines = ["Medical Literature:"]
-            for i, article in enumerate(pubmed_articles[:5], 1):
+            for i, article in enumerate(pubmed_articles[:self.pubmed_top_k], 1):
                 lit_lines.append(f"[{i}] {article.title}")
                 lit_lines.append(f"    {article.abstract[:300]}...")
             lit_section = "\n".join(lit_lines)
@@ -281,7 +294,7 @@ Response:"""
             # Add references ONLY if user didn't ask to hide them
             if not hide_references:
                 answer += "\n\n**References:**"
-                for i, article in enumerate(pubmed_articles[:5], 1):
+                for i, article in enumerate(pubmed_articles[:self.pubmed_top_k], 1):
                     score_text = ""
                     if hasattr(article, 'relevance_score') and article.relevance_score:
                         score_pct = int(article.relevance_score * 100)

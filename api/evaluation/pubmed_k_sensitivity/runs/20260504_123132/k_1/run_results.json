@@ -1,0 +1,3542 @@
+{
+  "cases": [
+    {
+      "name": "pneumococcal_treatment",
+      "session_id": 1,
+      "turn_count": 2,
+      "turn_logs": [
+        {
+          "turn": 1,
+          "question": "What is the usual treatment for Streptococcus pneumoniae infection?",
+          "response": "The provided medical literature does not contain information on the usual treatment for Streptococcus pneumoniae infection.\n\n**References:**\n1. [Antimicrobial treatment guidelines for acute bacterial rhinosinusitis.](https://pubmed.ncbi.nlm.nih.gov/14726904/) (relevance: 72%)",
+          "raw": {
+            "message": "New conversation started",
+            "session_id": 1,
+            "response": "The provided medical literature does not contain information on the usual treatment for Streptococcus pneumoniae infection.\n\n**References:**\n1. [Antimicrobial treatment guidelines for acute bacterial rhinosinusitis.](https://pubmed.ncbi.nlm.nih.gov/14726904/) (relevance: 72%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "Streptococcus pneumoniae treatment guidelines",
+                "reasoning": "User is asking for medical information about a specific infection."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 1,
+                "estimated_tokens": 85,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0071,
+                "percent_used": 1,
+                "percent_left": 99,
+                "active_context_tokens": 85,
+                "active_context_usage_ratio": 0.0071,
+                "active_context_percent_used": 1,
+                "active_context_percent_left": 99,
+                "message_count": 2,
+                "active_turns": 1,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "Antimicrobial treatment guidelines for acute bacterial rhinosinusitis.",
+                  "pmid": "14726904",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/14726904/",
+                  "relevance": 0.7253461762206532
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 1,
+              "created_at": "2026-05-04T12:32:20.915530",
+              "updated_at": "2026-05-04T12:32:29.278750",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 85
+              },
+              "input": {
+                "image_path": null,
+                "question": "What is the usual treatment for Streptococcus pneumoniae infection?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "What is the usual treatment for Streptococcus pneumoniae infection?",
+                  "assistant": "The provided medical literature does not contain information on the usual treatment for Streptococcus pneumoniae infection.\n\n**References:**\n1. [Antimicrobial treatment guidelines for acute bacterial rhinosinusitis.](https://pubmed.ncbi.nlm.nih.gov/14726904/) (relevance: 72%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:32:29.278750",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "Streptococcus pneumoniae treatment guidelines",
+                      "reasoning": "User is asking for medical information about a specific infection."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 1,
+                      "estimated_tokens": 85,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0071,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 85,
+                      "active_context_usage_ratio": 0.0071,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Antimicrobial treatment guidelines for acute bacterial rhinosinusitis.",
+                        "pmid": "14726904",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/14726904/",
+                        "relevance": 0.7253461762206532
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "question": "Give evidence-based reasoning with references.",
+          "response": "The provided medical literature does not contain information on the usual treatment for *Streptococcus pneumoniae* infection.\n\n**References:**\n1. [Antimicrobial treatment guidelines for acute bacterial rhinosinusitis.](https://pubmed.ncbi.nlm.nih.gov/14726904/) (relevance: 72%)",
+          "raw": {
+            "message": "Message sent",
+            "session_id": 1,
+            "response": "The provided medical literature does not contain information on the usual treatment for *Streptococcus pneumoniae* infection.\n\n**References:**\n1. [Antimicrobial treatment guidelines for acute bacterial rhinosinusitis.](https://pubmed.ncbi.nlm.nih.gov/14726904/) (relevance: 72%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "Streptococcus pneumoniae treatment guidelines",
+                "reasoning": "The user is asking for evidence-based treatment information for a specific infection, requiring a search for relevant medical guidelines."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 1,
+                "estimated_tokens": 166,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0138,
+                "percent_used": 1,
+                "percent_left": 99,
+                "active_context_tokens": 166,
+                "active_context_usage_ratio": 0.0138,
+                "active_context_percent_used": 1,
+                "active_context_percent_left": 99,
+                "message_count": 4,
+                "active_turns": 2,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "Antimicrobial treatment guidelines for acute bacterial rhinosinusitis.",
+                  "pmid": "14726904",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/14726904/",
+                  "relevance": 0.7253461762206532
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 1,
+              "created_at": "2026-05-04T12:32:20.915530",
+              "updated_at": "2026-05-04T12:32:36.195274",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 166
+              },
+              "input": {
+                "image_path": null,
+                "question": "What is the usual treatment for Streptococcus pneumoniae infection?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "What is the usual treatment for Streptococcus pneumoniae infection?",
+                  "assistant": "The provided medical literature does not contain information on the usual treatment for Streptococcus pneumoniae infection.\n\n**References:**\n1. [Antimicrobial treatment guidelines for acute bacterial rhinosinusitis.](https://pubmed.ncbi.nlm.nih.gov/14726904/) (relevance: 72%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:32:29.278750",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "Streptococcus pneumoniae treatment guidelines",
+                      "reasoning": "User is asking for medical information about a specific infection."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 1,
+                      "estimated_tokens": 85,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0071,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 85,
+                      "active_context_usage_ratio": 0.0071,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Antimicrobial treatment guidelines for acute bacterial rhinosinusitis.",
+                        "pmid": "14726904",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/14726904/",
+                        "relevance": 0.7253461762206532
+                      }
+                    ]
+                  }
+                },
+                {
+                  "turn": 2,
+                  "user": "Give evidence-based reasoning with references.",
+                  "assistant": "The provided medical literature does not contain information on the usual treatment for *Streptococcus pneumoniae* infection.\n\n**References:**\n1. [Antimicrobial treatment guidelines for acute bacterial rhinosinusitis.](https://pubmed.ncbi.nlm.nih.gov/14726904/) (relevance: 72%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:32:36.194274",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "Streptococcus pneumoniae treatment guidelines",
+                      "reasoning": "The user is asking for evidence-based treatment information for a specific infection, requiring a search for relevant medical guidelines."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 1,
+                      "estimated_tokens": 166,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0138,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 166,
+                      "active_context_usage_ratio": 0.0138,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 4,
+                      "active_turns": 2,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Antimicrobial treatment guidelines for acute bacterial rhinosinusitis.",
+                        "pmid": "14726904",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/14726904/",
+                        "relevance": 0.7253461762206532
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pneumococcal_vaccine",
+      "session_id": 2,
+      "turn_count": 2,
+      "turn_logs": [
+        {
+          "turn": 1,
+          "question": "How does pneumococcal vaccination reduce disease risk?",
+          "response": "Pneumococcal vaccination reduces disease risk by targeting the bacterial capsule polysaccharide of *Streptococcus pneumoniae*, a bacterium that causes pneumonia, otitis media, septicemia, and meningitis [1].\n\n**References:**\n1. [Diverse Mechanisms of Protective Anti-Pneumococcal Antibodies.](https://pubmed.ncbi.nlm.nih.gov/35155281/) (relevance: 75%)",
+          "raw": {
+            "message": "New conversation started",
+            "session_id": 2,
+            "response": "Pneumococcal vaccination reduces disease risk by targeting the bacterial capsule polysaccharide of *Streptococcus pneumoniae*, a bacterium that causes pneumonia, otitis media, septicemia, and meningitis [1].\n\n**References:**\n1. [Diverse Mechanisms of Protective Anti-Pneumococcal Antibodies.](https://pubmed.ncbi.nlm.nih.gov/35155281/) (relevance: 75%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "pneumococcal vaccine mechanism disease prevention",
+                "reasoning": "User is asking for a medical explanation of how a vaccine works."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 2,
+                "estimated_tokens": 101,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0084,
+                "percent_used": 1,
+                "percent_left": 99,
+                "active_context_tokens": 101,
+                "active_context_usage_ratio": 0.0084,
+                "active_context_percent_used": 1,
+                "active_context_percent_left": 99,
+                "message_count": 2,
+                "active_turns": 1,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "Diverse Mechanisms of Protective Anti-Pneumococcal Antibodies.",
+                  "pmid": "35155281",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/35155281/",
+                  "relevance": 0.7595423877477547
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 2,
+              "created_at": "2026-05-04T12:32:36.216296",
+              "updated_at": "2026-05-04T12:32:45.145786",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 101
+              },
+              "input": {
+                "image_path": null,
+                "question": "How does pneumococcal vaccination reduce disease risk?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "How does pneumococcal vaccination reduce disease risk?",
+                  "assistant": "Pneumococcal vaccination reduces disease risk by targeting the bacterial capsule polysaccharide of *Streptococcus pneumoniae*, a bacterium that causes pneumonia, otitis media, septicemia, and meningitis [1].\n\n**References:**\n1. [Diverse Mechanisms of Protective Anti-Pneumococcal Antibodies.](https://pubmed.ncbi.nlm.nih.gov/35155281/) (relevance: 75%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:32:45.145786",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "pneumococcal vaccine mechanism disease prevention",
+                      "reasoning": "User is asking for a medical explanation of how a vaccine works."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 2,
+                      "estimated_tokens": 101,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0084,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 101,
+                      "active_context_usage_ratio": 0.0084,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Diverse Mechanisms of Protective Anti-Pneumococcal Antibodies.",
+                        "pmid": "35155281",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/35155281/",
+                        "relevance": 0.7595423877477547
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "question": "Support the answer with biomedical evidence.",
+          "response": "Pneumococcal vaccination reduces disease risk by targeting the bacterial capsule polysaccharide of *Streptococcus pneumoniae*, a bacterium that causes pneumonia, otitis media, septicemia, and meningitis [1].\n\n**References:**\n1. [Diverse Mechanisms of Protective Anti-Pneumococcal Antibodies.](https://pubmed.ncbi.nlm.nih.gov/35155281/) (relevance: 77%)",
+          "raw": {
+            "message": "Message sent",
+            "session_id": 2,
+            "response": "Pneumococcal vaccination reduces disease risk by targeting the bacterial capsule polysaccharide of *Streptococcus pneumoniae*, a bacterium that causes pneumonia, otitis media, septicemia, and meningitis [1].\n\n**References:**\n1. [Diverse Mechanisms of Protective Anti-Pneumococcal Antibodies.](https://pubmed.ncbi.nlm.nih.gov/35155281/) (relevance: 77%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "pneumococcal vaccine mechanism S. pneumoniae immunity",
+                "reasoning": "User is asking for biomedical evidence to support the previous explanation about how the pneumococcal vaccine works."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 2,
+                "estimated_tokens": 200,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0167,
+                "percent_used": 2,
+                "percent_left": 98,
+                "active_context_tokens": 200,
+                "active_context_usage_ratio": 0.0167,
+                "active_context_percent_used": 2,
+                "active_context_percent_left": 98,
+                "message_count": 4,
+                "active_turns": 2,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "Diverse Mechanisms of Protective Anti-Pneumococcal Antibodies.",
+                  "pmid": "35155281",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/35155281/",
+                  "relevance": 0.7757268721214474
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 2,
+              "created_at": "2026-05-04T12:32:36.216296",
+              "updated_at": "2026-05-04T12:32:52.467755",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 200
+              },
+              "input": {
+                "image_path": null,
+                "question": "How does pneumococcal vaccination reduce disease risk?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "How does pneumococcal vaccination reduce disease risk?",
+                  "assistant": "Pneumococcal vaccination reduces disease risk by targeting the bacterial capsule polysaccharide of *Streptococcus pneumoniae*, a bacterium that causes pneumonia, otitis media, septicemia, and meningitis [1].\n\n**References:**\n1. [Diverse Mechanisms of Protective Anti-Pneumococcal Antibodies.](https://pubmed.ncbi.nlm.nih.gov/35155281/) (relevance: 75%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:32:45.145786",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "pneumococcal vaccine mechanism disease prevention",
+                      "reasoning": "User is asking for a medical explanation of how a vaccine works."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 2,
+                      "estimated_tokens": 101,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0084,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 101,
+                      "active_context_usage_ratio": 0.0084,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Diverse Mechanisms of Protective Anti-Pneumococcal Antibodies.",
+                        "pmid": "35155281",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/35155281/",
+                        "relevance": 0.7595423877477547
+                      }
+                    ]
+                  }
+                },
+                {
+                  "turn": 2,
+                  "user": "Support the answer with biomedical evidence.",
+                  "assistant": "Pneumococcal vaccination reduces disease risk by targeting the bacterial capsule polysaccharide of *Streptococcus pneumoniae*, a bacterium that causes pneumonia, otitis media, septicemia, and meningitis [1].\n\n**References:**\n1. [Diverse Mechanisms of Protective Anti-Pneumococcal Antibodies.](https://pubmed.ncbi.nlm.nih.gov/35155281/) (relevance: 77%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:32:52.466753",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "pneumococcal vaccine mechanism S. pneumoniae immunity",
+                      "reasoning": "User is asking for biomedical evidence to support the previous explanation about how the pneumococcal vaccine works."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 2,
+                      "estimated_tokens": 200,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0167,
+                      "percent_used": 2,
+                      "percent_left": 98,
+                      "active_context_tokens": 200,
+                      "active_context_usage_ratio": 0.0167,
+                      "active_context_percent_used": 2,
+                      "active_context_percent_left": 98,
+                      "message_count": 4,
+                      "active_turns": 2,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Diverse Mechanisms of Protective Anti-Pneumococcal Antibodies.",
+                        "pmid": "35155281",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/35155281/",
+                        "relevance": 0.7757268721214474
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "covid_pneumonia",
+      "session_id": 3,
+      "turn_count": 2,
+      "turn_logs": [
+        {
+          "turn": 1,
+          "question": "Can COVID-19 cause pneumonia?",
+          "response": "Yes, coronaviruses, including those that cause COVID-19, can cause infections of the lower respiratory tract [1]. Pneumonia is an infection that inflames the air sacs in one or both lungs, and the air sacs may fill with fluid or pus [1].\n\n**References:**\n1. [COVID-19 challenge for modern medicine.](https://pubmed.ncbi.nlm.nih.gov/32286679/) (relevance: 70%)",
+          "raw": {
+            "message": "New conversation started",
+            "session_id": 3,
+            "response": "Yes, coronaviruses, including those that cause COVID-19, can cause infections of the lower respiratory tract [1]. Pneumonia is an infection that inflames the air sacs in one or both lungs, and the air sacs may fill with fluid or pus [1].\n\n**References:**\n1. [COVID-19 challenge for modern medicine.](https://pubmed.ncbi.nlm.nih.gov/32286679/) (relevance: 70%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "COVID-19 pneumonia causes",
+                "reasoning": "User is asking a direct medical question about a known complication of COVID-19."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 3,
+                "estimated_tokens": 97,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0081,
+                "percent_used": 1,
+                "percent_left": 99,
+                "active_context_tokens": 97,
+                "active_context_usage_ratio": 0.0081,
+                "active_context_percent_used": 1,
+                "active_context_percent_left": 99,
+                "message_count": 2,
+                "active_turns": 1,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "COVID-19 challenge for modern medicine.",
+                  "pmid": "32286679",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/32286679/",
+                  "relevance": 0.7089220133686326
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 3,
+              "created_at": "2026-05-04T12:32:52.471753",
+              "updated_at": "2026-05-04T12:33:03.033852",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 97
+              },
+              "input": {
+                "image_path": null,
+                "question": "Can COVID-19 cause pneumonia?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "Can COVID-19 cause pneumonia?",
+                  "assistant": "Yes, coronaviruses, including those that cause COVID-19, can cause infections of the lower respiratory tract [1]. Pneumonia is an infection that inflames the air sacs in one or both lungs, and the air sacs may fill with fluid or pus [1].\n\n**References:**\n1. [COVID-19 challenge for modern medicine.](https://pubmed.ncbi.nlm.nih.gov/32286679/) (relevance: 70%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:33:03.032350",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "COVID-19 pneumonia causes",
+                      "reasoning": "User is asking a direct medical question about a known complication of COVID-19."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 3,
+                      "estimated_tokens": 97,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0081,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 97,
+                      "active_context_usage_ratio": 0.0081,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "COVID-19 challenge for modern medicine.",
+                        "pmid": "32286679",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/32286679/",
+                        "relevance": 0.7089220133686326
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "question": "What evidence supports that?",
+          "response": "Human coronaviruses are known to cause infections of the lower respiratory tract [1]. The provided literature indicates that coronaviruses can cause infections of the lower respiratory tract, and pneumonia is an infection of the lungs [1].\n\n**References:**\n1. [COVID-19 challenge for modern medicine.](https://pubmed.ncbi.nlm.nih.gov/32286679/) (relevance: 62%)",
+          "raw": {
+            "message": "Message sent",
+            "session_id": 3,
+            "response": "Human coronaviruses are known to cause infections of the lower respiratory tract [1]. The provided literature indicates that coronaviruses can cause infections of the lower respiratory tract, and pneumonia is an infection of the lungs [1].\n\n**References:**\n1. [COVID-19 challenge for modern medicine.](https://pubmed.ncbi.nlm.nih.gov/32286679/) (relevance: 62%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": null,
+                "reasoning": "The user is asking for evidence to support the previous medical answer about COVID-19 causing pneumonia."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 3,
+                "estimated_tokens": 194,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0162,
+                "percent_used": 2,
+                "percent_left": 98,
+                "active_context_tokens": 194,
+                "active_context_usage_ratio": 0.0162,
+                "active_context_percent_used": 2,
+                "active_context_percent_left": 98,
+                "message_count": 4,
+                "active_turns": 2,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "COVID-19 challenge for modern medicine.",
+                  "pmid": "32286679",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/32286679/",
+                  "relevance": 0.6279240884777507
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 3,
+              "created_at": "2026-05-04T12:32:52.471753",
+              "updated_at": "2026-05-04T12:33:10.314703",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 194
+              },
+              "input": {
+                "image_path": null,
+                "question": "Can COVID-19 cause pneumonia?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "Can COVID-19 cause pneumonia?",
+                  "assistant": "Yes, coronaviruses, including those that cause COVID-19, can cause infections of the lower respiratory tract [1]. Pneumonia is an infection that inflames the air sacs in one or both lungs, and the air sacs may fill with fluid or pus [1].\n\n**References:**\n1. [COVID-19 challenge for modern medicine.](https://pubmed.ncbi.nlm.nih.gov/32286679/) (relevance: 70%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:33:03.032350",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "COVID-19 pneumonia causes",
+                      "reasoning": "User is asking a direct medical question about a known complication of COVID-19."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 3,
+                      "estimated_tokens": 97,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0081,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 97,
+                      "active_context_usage_ratio": 0.0081,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "COVID-19 challenge for modern medicine.",
+                        "pmid": "32286679",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/32286679/",
+                        "relevance": 0.7089220133686326
+                      }
+                    ]
+                  }
+                },
+                {
+                  "turn": 2,
+                  "user": "What evidence supports that?",
+                  "assistant": "Human coronaviruses are known to cause infections of the lower respiratory tract [1]. The provided literature indicates that coronaviruses can cause infections of the lower respiratory tract, and pneumonia is an infection of the lungs [1].\n\n**References:**\n1. [COVID-19 challenge for modern medicine.](https://pubmed.ncbi.nlm.nih.gov/32286679/) (relevance: 62%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:33:10.313700",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": null,
+                      "reasoning": "The user is asking for evidence to support the previous medical answer about COVID-19 causing pneumonia."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 3,
+                      "estimated_tokens": 194,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0162,
+                      "percent_used": 2,
+                      "percent_left": 98,
+                      "active_context_tokens": 194,
+                      "active_context_usage_ratio": 0.0162,
+                      "active_context_percent_used": 2,
+                      "active_context_percent_left": 98,
+                      "message_count": 4,
+                      "active_turns": 2,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "COVID-19 challenge for modern medicine.",
+                        "pmid": "32286679",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/32286679/",
+                        "relevance": 0.6279240884777507
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "tuberculosis_treatment",
+      "session_id": 4,
+      "turn_count": 2,
+      "turn_logs": [
+        {
+          "turn": 1,
+          "question": "How is tuberculosis usually treated?",
+          "response": "The treatment of latent tuberculosis infection (LTBI) has been established as valid for patients at high risk for developing active tuberculosis [1]. Treatment of LTBI is also considered an important strategy for eliminating tuberculosis (TB) [1].\n\n**References:**\n1. [Treatment guidelines for latent tuberculosis infection.](https://pubmed.ncbi.nlm.nih.gov/24654427/) (relevance: 75%)",
+          "raw": {
+            "message": "New conversation started",
+            "session_id": 4,
+            "response": "The treatment of latent tuberculosis infection (LTBI) has been established as valid for patients at high risk for developing active tuberculosis [1]. Treatment of LTBI is also considered an important strategy for eliminating tuberculosis (TB) [1].\n\n**References:**\n1. [Treatment guidelines for latent tuberculosis infection.](https://pubmed.ncbi.nlm.nih.gov/24654427/) (relevance: 75%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "tuberculosis treatment guidelines",
+                "reasoning": "User is asking a direct medical question about the treatment of tuberculosis."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 4,
+                "estimated_tokens": 105,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0088,
+                "percent_used": 1,
+                "percent_left": 99,
+                "active_context_tokens": 105,
+                "active_context_usage_ratio": 0.0088,
+                "active_context_percent_used": 1,
+                "active_context_percent_left": 99,
+                "message_count": 2,
+                "active_turns": 1,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "Treatment guidelines for latent tuberculosis infection.",
+                  "pmid": "24654427",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/24654427/",
+                  "relevance": 0.7585096247171257
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 4,
+              "created_at": "2026-05-04T12:33:10.339729",
+              "updated_at": "2026-05-04T12:33:17.795594",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 105
+              },
+              "input": {
+                "image_path": null,
+                "question": "How is tuberculosis usually treated?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "How is tuberculosis usually treated?",
+                  "assistant": "The treatment of latent tuberculosis infection (LTBI) has been established as valid for patients at high risk for developing active tuberculosis [1]. Treatment of LTBI is also considered an important strategy for eliminating tuberculosis (TB) [1].\n\n**References:**\n1. [Treatment guidelines for latent tuberculosis infection.](https://pubmed.ncbi.nlm.nih.gov/24654427/) (relevance: 75%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:33:17.794593",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "tuberculosis treatment guidelines",
+                      "reasoning": "User is asking a direct medical question about the treatment of tuberculosis."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 4,
+                      "estimated_tokens": 105,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0088,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 105,
+                      "active_context_usage_ratio": 0.0088,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Treatment guidelines for latent tuberculosis infection.",
+                        "pmid": "24654427",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/24654427/",
+                        "relevance": 0.7585096247171257
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "question": "Use references and mention why treatment takes time.",
+          "response": "Limited research has been conducted on the prevalence and factors associated with extended drug-susceptible tuberculosis (TB) treatment [1].\n\n**References:**\n1. [Prevalence, clinical reasons and associated factors of extended treatment durati...](https://pubmed.ncbi.nlm.nih.gov/40289199/) (relevance: 75%)",
+          "raw": {
+            "message": "Message sent",
+            "session_id": 4,
+            "response": "Limited research has been conducted on the prevalence and factors associated with extended drug-susceptible tuberculosis (TB) treatment [1].\n\n**References:**\n1. [Prevalence, clinical reasons and associated factors of extended treatment durati...](https://pubmed.ncbi.nlm.nih.gov/40289199/) (relevance: 75%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "tuberculosis treatment duration reasons",
+                "reasoning": "The user is asking for information on tuberculosis treatment, including why it takes time, and wants references. This requires a medical answer with a PubMed search."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 4,
+                "estimated_tokens": 194,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0162,
+                "percent_used": 2,
+                "percent_left": 98,
+                "active_context_tokens": 194,
+                "active_context_usage_ratio": 0.0162,
+                "active_context_percent_used": 2,
+                "active_context_percent_left": 98,
+                "message_count": 4,
+                "active_turns": 2,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "Prevalence, clinical reasons and associated factors of extended treatment duration for drug susceptible tuberculosis - a real-world experience.",
+                  "pmid": "40289199",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/40289199/",
+                  "relevance": 0.7532657310089609
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 4,
+              "created_at": "2026-05-04T12:33:10.339729",
+              "updated_at": "2026-05-04T12:33:25.194758",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 194
+              },
+              "input": {
+                "image_path": null,
+                "question": "How is tuberculosis usually treated?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "How is tuberculosis usually treated?",
+                  "assistant": "The treatment of latent tuberculosis infection (LTBI) has been established as valid for patients at high risk for developing active tuberculosis [1]. Treatment of LTBI is also considered an important strategy for eliminating tuberculosis (TB) [1].\n\n**References:**\n1. [Treatment guidelines for latent tuberculosis infection.](https://pubmed.ncbi.nlm.nih.gov/24654427/) (relevance: 75%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:33:17.794593",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "tuberculosis treatment guidelines",
+                      "reasoning": "User is asking a direct medical question about the treatment of tuberculosis."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 4,
+                      "estimated_tokens": 105,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0088,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 105,
+                      "active_context_usage_ratio": 0.0088,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Treatment guidelines for latent tuberculosis infection.",
+                        "pmid": "24654427",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/24654427/",
+                        "relevance": 0.7585096247171257
+                      }
+                    ]
+                  }
+                },
+                {
+                  "turn": 2,
+                  "user": "Use references and mention why treatment takes time.",
+                  "assistant": "Limited research has been conducted on the prevalence and factors associated with extended drug-susceptible tuberculosis (TB) treatment [1].\n\n**References:**\n1. [Prevalence, clinical reasons and associated factors of extended treatment durati...](https://pubmed.ncbi.nlm.nih.gov/40289199/) (relevance: 75%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:33:25.193756",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "tuberculosis treatment duration reasons",
+                      "reasoning": "The user is asking for information on tuberculosis treatment, including why it takes time, and wants references. This requires a medical answer with a PubMed search."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 4,
+                      "estimated_tokens": 194,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0162,
+                      "percent_used": 2,
+                      "percent_left": 98,
+                      "active_context_tokens": 194,
+                      "active_context_usage_ratio": 0.0162,
+                      "active_context_percent_used": 2,
+                      "active_context_percent_left": 98,
+                      "message_count": 4,
+                      "active_turns": 2,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Prevalence, clinical reasons and associated factors of extended treatment duration for drug susceptible tuberculosis - a real-world experience.",
+                        "pmid": "40289199",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/40289199/",
+                        "relevance": 0.7532657310089609
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "diabetes_complications",
+      "session_id": 5,
+      "turn_count": 2,
+      "turn_logs": [
+        {
+          "turn": 1,
+          "question": "What complications can diabetes cause?",
+          "response": "Diabetes can cause complications [1].\n\n**References:**\n1. [Diabetes complications.](https://pubmed.ncbi.nlm.nih.gov/15161810/) (relevance: 75%)",
+          "raw": {
+            "message": "New conversation started",
+            "session_id": 5,
+            "response": "Diabetes can cause complications [1].\n\n**References:**\n1. [Diabetes complications.](https://pubmed.ncbi.nlm.nih.gov/15161810/) (relevance: 75%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "diabetes complications",
+                "reasoning": "User is asking for medical information about the complications of diabetes."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 5,
+                "estimated_tokens": 45,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0037,
+                "percent_used": 0,
+                "percent_left": 100,
+                "active_context_tokens": 45,
+                "active_context_usage_ratio": 0.0037,
+                "active_context_percent_used": 0,
+                "active_context_percent_left": 100,
+                "message_count": 2,
+                "active_turns": 1,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "Diabetes complications.",
+                  "pmid": "15161810",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/15161810/",
+                  "relevance": 0.7553772320177244
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 5,
+              "created_at": "2026-05-04T12:33:25.198759",
+              "updated_at": "2026-05-04T12:33:32.718092",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 45
+              },
+              "input": {
+                "image_path": null,
+                "question": "What complications can diabetes cause?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "What complications can diabetes cause?",
+                  "assistant": "Diabetes can cause complications [1].\n\n**References:**\n1. [Diabetes complications.](https://pubmed.ncbi.nlm.nih.gov/15161810/) (relevance: 75%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:33:32.692661",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "diabetes complications",
+                      "reasoning": "User is asking for medical information about the complications of diabetes."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 5,
+                      "estimated_tokens": 45,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0037,
+                      "percent_used": 0,
+                      "percent_left": 100,
+                      "active_context_tokens": 45,
+                      "active_context_usage_ratio": 0.0037,
+                      "active_context_percent_used": 0,
+                      "active_context_percent_left": 100,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Diabetes complications.",
+                        "pmid": "15161810",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/15161810/",
+                        "relevance": 0.7553772320177244
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "question": "Give evidence-grounded explanation.",
+          "response": "Diabetes can cause complications [1]. The provided literature does not contain specific details about these complications, only that they can occur [1].\n\n**References:**\n1. [Diabetes complications.](https://pubmed.ncbi.nlm.nih.gov/15161810/) (relevance: 75%)",
+          "raw": {
+            "message": "Message sent",
+            "session_id": 5,
+            "response": "Diabetes can cause complications [1]. The provided literature does not contain specific details about these complications, only that they can occur [1].\n\n**References:**\n1. [Diabetes complications.](https://pubmed.ncbi.nlm.nih.gov/15161810/) (relevance: 75%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "diabetes complications",
+                "reasoning": "User is asking for an explanation of diabetes complications, which requires a medical answer and a PubMed search."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 5,
+                "estimated_tokens": 118,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0098,
+                "percent_used": 1,
+                "percent_left": 99,
+                "active_context_tokens": 118,
+                "active_context_usage_ratio": 0.0098,
+                "active_context_percent_used": 1,
+                "active_context_percent_left": 99,
+                "message_count": 4,
+                "active_turns": 2,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "Diabetes complications.",
+                  "pmid": "15161810",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/15161810/",
+                  "relevance": 0.7553772320177244
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 5,
+              "created_at": "2026-05-04T12:33:25.198759",
+              "updated_at": "2026-05-04T12:33:40.367436",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 118
+              },
+              "input": {
+                "image_path": null,
+                "question": "What complications can diabetes cause?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "What complications can diabetes cause?",
+                  "assistant": "Diabetes can cause complications [1].\n\n**References:**\n1. [Diabetes complications.](https://pubmed.ncbi.nlm.nih.gov/15161810/) (relevance: 75%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:33:32.692661",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "diabetes complications",
+                      "reasoning": "User is asking for medical information about the complications of diabetes."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 5,
+                      "estimated_tokens": 45,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0037,
+                      "percent_used": 0,
+                      "percent_left": 100,
+                      "active_context_tokens": 45,
+                      "active_context_usage_ratio": 0.0037,
+                      "active_context_percent_used": 0,
+                      "active_context_percent_left": 100,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Diabetes complications.",
+                        "pmid": "15161810",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/15161810/",
+                        "relevance": 0.7553772320177244
+                      }
+                    ]
+                  }
+                },
+                {
+                  "turn": 2,
+                  "user": "Give evidence-grounded explanation.",
+                  "assistant": "Diabetes can cause complications [1]. The provided literature does not contain specific details about these complications, only that they can occur [1].\n\n**References:**\n1. [Diabetes complications.](https://pubmed.ncbi.nlm.nih.gov/15161810/) (relevance: 75%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:33:40.366443",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "diabetes complications",
+                      "reasoning": "User is asking for an explanation of diabetes complications, which requires a medical answer and a PubMed search."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 5,
+                      "estimated_tokens": 118,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0098,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 118,
+                      "active_context_usage_ratio": 0.0098,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 4,
+                      "active_turns": 2,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Diabetes complications.",
+                        "pmid": "15161810",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/15161810/",
+                        "relevance": 0.7553772320177244
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "meningitis_urgency",
+      "session_id": 6,
+      "turn_count": 2,
+      "turn_logs": [
+        {
+          "turn": 1,
+          "question": "Why is bacterial meningitis considered urgent?",
+          "response": "Bacterial meningitis is considered urgent due to the need for emergency antibiotherapy [1].\n\n**References:**\n1. [[Emergency antibiotherapy and adjuvant treatments for acute bacterial meningitis...](https://pubmed.ncbi.nlm.nih.gov/19409743/) (relevance: 77%)",
+          "raw": {
+            "message": "New conversation started",
+            "session_id": 6,
+            "response": "Bacterial meningitis is considered urgent due to the need for emergency antibiotherapy [1].\n\n**References:**\n1. [[Emergency antibiotherapy and adjuvant treatments for acute bacterial meningitis...](https://pubmed.ncbi.nlm.nih.gov/19409743/) (relevance: 77%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "bacterial meningitis urgency",
+                "reasoning": "The user is asking a medical question about the urgency of a specific condition."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 6,
+                "estimated_tokens": 75,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0063,
+                "percent_used": 1,
+                "percent_left": 99,
+                "active_context_tokens": 75,
+                "active_context_usage_ratio": 0.0063,
+                "active_context_percent_used": 1,
+                "active_context_percent_left": 99,
+                "message_count": 2,
+                "active_turns": 1,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "[Emergency antibiotherapy and adjuvant treatments for acute bacterial meningitis].",
+                  "pmid": "19409743",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/19409743/",
+                  "relevance": 0.7756774897653451
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 6,
+              "created_at": "2026-05-04T12:33:40.372443",
+              "updated_at": "2026-05-04T12:33:47.125162",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 75
+              },
+              "input": {
+                "image_path": null,
+                "question": "Why is bacterial meningitis considered urgent?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "Why is bacterial meningitis considered urgent?",
+                  "assistant": "Bacterial meningitis is considered urgent due to the need for emergency antibiotherapy [1].\n\n**References:**\n1. [[Emergency antibiotherapy and adjuvant treatments for acute bacterial meningitis...](https://pubmed.ncbi.nlm.nih.gov/19409743/) (relevance: 77%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:33:47.124159",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "bacterial meningitis urgency",
+                      "reasoning": "The user is asking a medical question about the urgency of a specific condition."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 6,
+                      "estimated_tokens": 75,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0063,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 75,
+                      "active_context_usage_ratio": 0.0063,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "[Emergency antibiotherapy and adjuvant treatments for acute bacterial meningitis].",
+                        "pmid": "19409743",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/19409743/",
+                        "relevance": 0.7756774897653451
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "question": "Cite evidence about severity or outcomes.",
+          "response": "Bacterial meningitis is associated with death and persistent neurologic sequelae in children [1].\n\n**References:**\n1. [Outcomes of bacterial meningitis in children: a meta-analysis.](https://pubmed.ncbi.nlm.nih.gov/8327300/) (relevance: 77%)",
+          "raw": {
+            "message": "Message sent",
+            "session_id": 6,
+            "response": "Bacterial meningitis is associated with death and persistent neurologic sequelae in children [1].\n\n**References:**\n1. [Outcomes of bacterial meningitis in children: a meta-analysis.](https://pubmed.ncbi.nlm.nih.gov/8327300/) (relevance: 77%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "bacterial meningitis severity outcomes",
+                "reasoning": "User is asking for evidence on severity/outcomes, which requires a medical answer and a PubMed search."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 6,
+                "estimated_tokens": 146,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0122,
+                "percent_used": 1,
+                "percent_left": 99,
+                "active_context_tokens": 146,
+                "active_context_usage_ratio": 0.0122,
+                "active_context_percent_used": 1,
+                "active_context_percent_left": 99,
+                "message_count": 4,
+                "active_turns": 2,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "Outcomes of bacterial meningitis in children: a meta-analysis.",
+                  "pmid": "8327300",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/8327300/",
+                  "relevance": 0.7721018099378207
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 6,
+              "created_at": "2026-05-04T12:33:40.372443",
+              "updated_at": "2026-05-04T12:33:55.481089",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 146
+              },
+              "input": {
+                "image_path": null,
+                "question": "Why is bacterial meningitis considered urgent?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "Why is bacterial meningitis considered urgent?",
+                  "assistant": "Bacterial meningitis is considered urgent due to the need for emergency antibiotherapy [1].\n\n**References:**\n1. [[Emergency antibiotherapy and adjuvant treatments for acute bacterial meningitis...](https://pubmed.ncbi.nlm.nih.gov/19409743/) (relevance: 77%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:33:47.124159",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "bacterial meningitis urgency",
+                      "reasoning": "The user is asking a medical question about the urgency of a specific condition."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 6,
+                      "estimated_tokens": 75,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0063,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 75,
+                      "active_context_usage_ratio": 0.0063,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "[Emergency antibiotherapy and adjuvant treatments for acute bacterial meningitis].",
+                        "pmid": "19409743",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/19409743/",
+                        "relevance": 0.7756774897653451
+                      }
+                    ]
+                  }
+                },
+                {
+                  "turn": 2,
+                  "user": "Cite evidence about severity or outcomes.",
+                  "assistant": "Bacterial meningitis is associated with death and persistent neurologic sequelae in children [1].\n\n**References:**\n1. [Outcomes of bacterial meningitis in children: a meta-analysis.](https://pubmed.ncbi.nlm.nih.gov/8327300/) (relevance: 77%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:33:55.480088",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "bacterial meningitis severity outcomes",
+                      "reasoning": "User is asking for evidence on severity/outcomes, which requires a medical answer and a PubMed search."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 6,
+                      "estimated_tokens": 146,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0122,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 146,
+                      "active_context_usage_ratio": 0.0122,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 4,
+                      "active_turns": 2,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Outcomes of bacterial meningitis in children: a meta-analysis.",
+                        "pmid": "8327300",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/8327300/",
+                        "relevance": 0.7721018099378207
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "antibiotic_resistance",
+      "session_id": 7,
+      "turn_count": 2,
+      "turn_logs": [
+        {
+          "turn": 1,
+          "question": "Why is antibiotic resistance a concern in bacterial infections?",
+          "response": "Antibiotic resistance is a concern in bacterial infections because of the widespread problems that exist today in a global sense [1]. This is due to the incorporation of antibiotics with a high resistance potential into animal feeds and the uncontrolled use of antibiotics with a high resistance potential in the clinical setting [1].\n\n**References:**\n1. [Antibiotic resistance.](https://pubmed.ncbi.nlm.nih.gov/11155850/) (relevance: 75%)",
+          "raw": {
+            "message": "New conversation started",
+            "session_id": 7,
+            "response": "Antibiotic resistance is a concern in bacterial infections because of the widespread problems that exist today in a global sense [1]. This is due to the incorporation of antibiotics with a high resistance potential into animal feeds and the uncontrolled use of antibiotics with a high resistance potential in the clinical setting [1].\n\n**References:**\n1. [Antibiotic resistance.](https://pubmed.ncbi.nlm.nih.gov/11155850/) (relevance: 75%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "antibiotic resistance bacterial infections concern",
+                "reasoning": "The user is asking a direct medical question about the significance of antibiotic resistance in bacterial infections."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 7,
+                "estimated_tokens": 125,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0104,
+                "percent_used": 1,
+                "percent_left": 99,
+                "active_context_tokens": 125,
+                "active_context_usage_ratio": 0.0104,
+                "active_context_percent_used": 1,
+                "active_context_percent_left": 99,
+                "message_count": 2,
+                "active_turns": 1,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "Antibiotic resistance.",
+                  "pmid": "11155850",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/11155850/",
+                  "relevance": 0.7570382092119419
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 7,
+              "created_at": "2026-05-04T12:33:55.509138",
+              "updated_at": "2026-05-04T12:34:03.932520",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 125
+              },
+              "input": {
+                "image_path": null,
+                "question": "Why is antibiotic resistance a concern in bacterial infections?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "Why is antibiotic resistance a concern in bacterial infections?",
+                  "assistant": "Antibiotic resistance is a concern in bacterial infections because of the widespread problems that exist today in a global sense [1]. This is due to the incorporation of antibiotics with a high resistance potential into animal feeds and the uncontrolled use of antibiotics with a high resistance potential in the clinical setting [1].\n\n**References:**\n1. [Antibiotic resistance.](https://pubmed.ncbi.nlm.nih.gov/11155850/) (relevance: 75%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:34:03.913991",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "antibiotic resistance bacterial infections concern",
+                      "reasoning": "The user is asking a direct medical question about the significance of antibiotic resistance in bacterial infections."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 7,
+                      "estimated_tokens": 125,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0104,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 125,
+                      "active_context_usage_ratio": 0.0104,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Antibiotic resistance.",
+                        "pmid": "11155850",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/11155850/",
+                        "relevance": 0.7570382092119419
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "question": "Support with medical literature.",
+          "response": "Antibiotic resistance is a major health concern globally because it is estimated to cause 10 million deaths worldwide by the year 2050 if the current trend of inappropriate and excessive antibiotic use continues [1].\n\n**References:**\n1. [Antimicrobial resistance: Prevalence, economic burden, mechanisms of resistance ...](https://pubmed.ncbi.nlm.nih.gov/34936936/) (relevance: 76%)",
+          "raw": {
+            "message": "Message sent",
+            "session_id": 7,
+            "response": "Antibiotic resistance is a major health concern globally because it is estimated to cause 10 million deaths worldwide by the year 2050 if the current trend of inappropriate and excessive antibiotic use continues [1].\n\n**References:**\n1. [Antimicrobial resistance: Prevalence, economic burden, mechanisms of resistance ...](https://pubmed.ncbi.nlm.nih.gov/34936936/) (relevance: 76%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "antibiotic resistance global concern mechanism",
+                "reasoning": "The user is asking for the reason behind antibiotic resistance, which requires a medical explanation supported by literature."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 7,
+                "estimated_tokens": 229,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0191,
+                "percent_used": 2,
+                "percent_left": 98,
+                "active_context_tokens": 229,
+                "active_context_usage_ratio": 0.0191,
+                "active_context_percent_used": 2,
+                "active_context_percent_left": 98,
+                "message_count": 4,
+                "active_turns": 2,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "Antimicrobial resistance: Prevalence, economic burden, mechanisms of resistance and strategies to overcome.",
+                  "pmid": "34936936",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/34936936/",
+                  "relevance": 0.7649334377752374
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 7,
+              "created_at": "2026-05-04T12:33:55.509138",
+              "updated_at": "2026-05-04T12:34:12.545308",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 229
+              },
+              "input": {
+                "image_path": null,
+                "question": "Why is antibiotic resistance a concern in bacterial infections?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "Why is antibiotic resistance a concern in bacterial infections?",
+                  "assistant": "Antibiotic resistance is a concern in bacterial infections because of the widespread problems that exist today in a global sense [1]. This is due to the incorporation of antibiotics with a high resistance potential into animal feeds and the uncontrolled use of antibiotics with a high resistance potential in the clinical setting [1].\n\n**References:**\n1. [Antibiotic resistance.](https://pubmed.ncbi.nlm.nih.gov/11155850/) (relevance: 75%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:34:03.913991",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "antibiotic resistance bacterial infections concern",
+                      "reasoning": "The user is asking a direct medical question about the significance of antibiotic resistance in bacterial infections."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 7,
+                      "estimated_tokens": 125,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0104,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 125,
+                      "active_context_usage_ratio": 0.0104,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Antibiotic resistance.",
+                        "pmid": "11155850",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/11155850/",
+                        "relevance": 0.7570382092119419
+                      }
+                    ]
+                  }
+                },
+                {
+                  "turn": 2,
+                  "user": "Support with medical literature.",
+                  "assistant": "Antibiotic resistance is a major health concern globally because it is estimated to cause 10 million deaths worldwide by the year 2050 if the current trend of inappropriate and excessive antibiotic use continues [1].\n\n**References:**\n1. [Antimicrobial resistance: Prevalence, economic burden, mechanisms of resistance ...](https://pubmed.ncbi.nlm.nih.gov/34936936/) (relevance: 76%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:34:12.544305",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "antibiotic resistance global concern mechanism",
+                      "reasoning": "The user is asking for the reason behind antibiotic resistance, which requires a medical explanation supported by literature."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 7,
+                      "estimated_tokens": 229,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0191,
+                      "percent_used": 2,
+                      "percent_left": 98,
+                      "active_context_tokens": 229,
+                      "active_context_usage_ratio": 0.0191,
+                      "active_context_percent_used": 2,
+                      "active_context_percent_left": 98,
+                      "message_count": 4,
+                      "active_turns": 2,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Antimicrobial resistance: Prevalence, economic burden, mechanisms of resistance and strategies to overcome.",
+                        "pmid": "34936936",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/34936936/",
+                        "relevance": 0.7649334377752374
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "pneumonia_recovery",
+      "session_id": 8,
+      "turn_count": 2,
+      "turn_logs": [
+        {
+          "turn": 1,
+          "question": "How long does pneumonia recovery usually take?",
+          "response": "The provided literature does not state how long pneumonia recovery usually takes. It focuses on severe community-acquired pneumonia in older adults and its mortality rates [1].\n\n**References:**\n1. [Time to recovery from severe community-acquired pneumonia and its determinants a...](https://pubmed.ncbi.nlm.nih.gov/39325926/) (relevance: 72%)",
+          "raw": {
+            "message": "New conversation started",
+            "session_id": 8,
+            "response": "The provided literature does not state how long pneumonia recovery usually takes. It focuses on severe community-acquired pneumonia in older adults and its mortality rates [1].\n\n**References:**\n1. [Time to recovery from severe community-acquired pneumonia and its determinants a...](https://pubmed.ncbi.nlm.nih.gov/39325926/) (relevance: 72%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "pneumonia recovery time",
+                "reasoning": "User is asking a medical question about recovery time for a specific condition."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 8,
+                "estimated_tokens": 97,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0081,
+                "percent_used": 1,
+                "percent_left": 99,
+                "active_context_tokens": 97,
+                "active_context_usage_ratio": 0.0081,
+                "active_context_percent_used": 1,
+                "active_context_percent_left": 99,
+                "message_count": 2,
+                "active_turns": 1,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "Time to recovery from severe community-acquired pneumonia and its determinants among older adults admitted to North Wollo hospitals: A multi-centred cohort study.",
+                  "pmid": "39325926",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/39325926/",
+                  "relevance": 0.7226216019539515
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 8,
+              "created_at": "2026-05-04T12:34:12.569831",
+              "updated_at": "2026-05-04T12:34:20.981921",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 97
+              },
+              "input": {
+                "image_path": null,
+                "question": "How long does pneumonia recovery usually take?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "How long does pneumonia recovery usually take?",
+                  "assistant": "The provided literature does not state how long pneumonia recovery usually takes. It focuses on severe community-acquired pneumonia in older adults and its mortality rates [1].\n\n**References:**\n1. [Time to recovery from severe community-acquired pneumonia and its determinants a...](https://pubmed.ncbi.nlm.nih.gov/39325926/) (relevance: 72%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:34:20.980921",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "pneumonia recovery time",
+                      "reasoning": "User is asking a medical question about recovery time for a specific condition."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 8,
+                      "estimated_tokens": 97,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0081,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 97,
+                      "active_context_usage_ratio": 0.0081,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Time to recovery from severe community-acquired pneumonia and its determinants among older adults admitted to North Wollo hospitals: A multi-centred cohort study.",
+                        "pmid": "39325926",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/39325926/",
+                        "relevance": 0.7226216019539515
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "question": "Use evidence and explain uncertainty.",
+          "response": "Summary:\n* The provided literature focuses on severe community-acquired pneumonia in older adults and its mortality rates, not specifically on the duration of recovery.\n* Therefore, a precise timeline for pneumonia recovery cannot be determined from this specific text.\n\nWhy It Matters:\n* Understanding recovery time is important for patients to manage expectations and plan for their return to daily activities.\n* Knowing recovery timelines can help healthcare providers monitor patient progress and identify potential complications.\n* For severe cases, as discussed in the literature, recovery can be a prolonged process, especially in older adults with comorbidities.\n\nKey Evidence:\n* The study's background highlights that severe community-acquired pneumonia presents a \"looming threat to older adults globally, often resulting in alarming mortality rates\" [1].\n* The literature mentions that \"challenges persist, exacerbated by factors like increasing comorbidity\" in older adults with severe pneumonia [1].\n* The focus is on \"mortality rates\" and determinants influencing them, rather than the specific timeframe for regaining full health [1].\n\n**References:**\n1. [Time to recovery from severe community-acquired pneumonia and its determinants a...](https://pubmed.ncbi.nlm.nih.gov/39325926/) (relevance: 72%)",
+          "raw": {
+            "message": "Message sent",
+            "session_id": 8,
+            "response": "Summary:\n* The provided literature focuses on severe community-acquired pneumonia in older adults and its mortality rates, not specifically on the duration of recovery.\n* Therefore, a precise timeline for pneumonia recovery cannot be determined from this specific text.\n\nWhy It Matters:\n* Understanding recovery time is important for patients to manage expectations and plan for their return to daily activities.\n* Knowing recovery timelines can help healthcare providers monitor patient progress and identify potential complications.\n* For severe cases, as discussed in the literature, recovery can be a prolonged process, especially in older adults with comorbidities.\n\nKey Evidence:\n* The study's background highlights that severe community-acquired pneumonia presents a \"looming threat to older adults globally, often resulting in alarming mortality rates\" [1].\n* The literature mentions that \"challenges persist, exacerbated by factors like increasing comorbidity\" in older adults with severe pneumonia [1].\n* The focus is on \"mortality rates\" and determinants influencing them, rather than the specific timeframe for regaining full health [1].\n\n**References:**\n1. [Time to recovery from severe community-acquired pneumonia and its determinants a...](https://pubmed.ncbi.nlm.nih.gov/39325926/) (relevance: 72%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "pneumonia recovery time",
+                "reasoning": "User is asking a medical question about recovery time. The previous answer stated the literature did not contain this information, so a new search is needed."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 8,
+                "estimated_tokens": 435,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0362,
+                "percent_used": 4,
+                "percent_left": 96,
+                "active_context_tokens": 435,
+                "active_context_usage_ratio": 0.0362,
+                "active_context_percent_used": 4,
+                "active_context_percent_left": 96,
+                "message_count": 4,
+                "active_turns": 2,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "Time to recovery from severe community-acquired pneumonia and its determinants among older adults admitted to North Wollo hospitals: A multi-centred cohort study.",
+                  "pmid": "39325926",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/39325926/",
+                  "relevance": 0.7226216019539515
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 8,
+              "created_at": "2026-05-04T12:34:12.569831",
+              "updated_at": "2026-05-04T12:34:29.872089",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 435
+              },
+              "input": {
+                "image_path": null,
+                "question": "How long does pneumonia recovery usually take?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "How long does pneumonia recovery usually take?",
+                  "assistant": "The provided literature does not state how long pneumonia recovery usually takes. It focuses on severe community-acquired pneumonia in older adults and its mortality rates [1].\n\n**References:**\n1. [Time to recovery from severe community-acquired pneumonia and its determinants a...](https://pubmed.ncbi.nlm.nih.gov/39325926/) (relevance: 72%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:34:20.980921",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "pneumonia recovery time",
+                      "reasoning": "User is asking a medical question about recovery time for a specific condition."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 8,
+                      "estimated_tokens": 97,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0081,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 97,
+                      "active_context_usage_ratio": 0.0081,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Time to recovery from severe community-acquired pneumonia and its determinants among older adults admitted to North Wollo hospitals: A multi-centred cohort study.",
+                        "pmid": "39325926",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/39325926/",
+                        "relevance": 0.7226216019539515
+                      }
+                    ]
+                  }
+                },
+                {
+                  "turn": 2,
+                  "user": "Use evidence and explain uncertainty.",
+                  "assistant": "Summary:\n* The provided literature focuses on severe community-acquired pneumonia in older adults and its mortality rates, not specifically on the duration of recovery.\n* Therefore, a precise timeline for pneumonia recovery cannot be determined from this specific text.\n\nWhy It Matters:\n* Understanding recovery time is important for patients to manage expectations and plan for their return to daily activities.\n* Knowing recovery timelines can help healthcare providers monitor patient progress and identify potential complications.\n* For severe cases, as discussed in the literature, recovery can be a prolonged process, especially in older adults with comorbidities.\n\nKey Evidence:\n* The study's background highlights that severe community-acquired pneumonia presents a \"looming threat to older adults globally, often resulting in alarming mortality rates\" [1].\n* The literature mentions that \"challenges persist, exacerbated by factors like increasing comorbidity\" in older adults with severe pneumonia [1].\n* The focus is on \"mortality rates\" and determinants influencing them, rather than the specific timeframe for regaining full health [1].\n\n**References:**\n1. [Time to recovery from severe community-acquired pneumonia and its determinants a...](https://pubmed.ncbi.nlm.nih.gov/39325926/) (relevance: 72%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:34:29.872089",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "pneumonia recovery time",
+                      "reasoning": "User is asking a medical question about recovery time. The previous answer stated the literature did not contain this information, so a new search is needed."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 8,
+                      "estimated_tokens": 435,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0362,
+                      "percent_used": 4,
+                      "percent_left": 96,
+                      "active_context_tokens": 435,
+                      "active_context_usage_ratio": 0.0362,
+                      "active_context_percent_used": 4,
+                      "active_context_percent_left": 96,
+                      "message_count": 4,
+                      "active_turns": 2,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Time to recovery from severe community-acquired pneumonia and its determinants among older adults admitted to North Wollo hospitals: A multi-centred cohort study.",
+                        "pmid": "39325926",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/39325926/",
+                        "relevance": 0.7226216019539515
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "asthma_inhaled_steroids",
+      "session_id": 9,
+      "turn_count": 2,
+      "turn_logs": [
+        {
+          "turn": 1,
+          "question": "Why are inhaled corticosteroids used in asthma?",
+          "response": "Inhaled corticosteroids are used in asthma because they act on many sites to help reverse the pathologic process of bronchial asthma [1]. They enhance the beta-adrenergic response [1].\n\n**References:**\n1. [The mechanism of corticosteroids in treating asthma.](https://pubmed.ncbi.nlm.nih.gov/3026210/) (relevance: 79%)",
+          "raw": {
+            "message": "New conversation started",
+            "session_id": 9,
+            "response": "Inhaled corticosteroids are used in asthma because they act on many sites to help reverse the pathologic process of bronchial asthma [1]. They enhance the beta-adrenergic response [1].\n\n**References:**\n1. [The mechanism of corticosteroids in treating asthma.](https://pubmed.ncbi.nlm.nih.gov/3026210/) (relevance: 79%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "inhaled corticosteroids asthma mechanism",
+                "reasoning": "The user is asking for a medical explanation about the use of inhaled corticosteroids in asthma."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 9,
+                "estimated_tokens": 91,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0076,
+                "percent_used": 1,
+                "percent_left": 99,
+                "active_context_tokens": 91,
+                "active_context_usage_ratio": 0.0076,
+                "active_context_percent_used": 1,
+                "active_context_percent_left": 99,
+                "message_count": 2,
+                "active_turns": 1,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "The mechanism of corticosteroids in treating asthma.",
+                  "pmid": "3026210",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/3026210/",
+                  "relevance": 0.7906966924440952
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 9,
+              "created_at": "2026-05-04T12:34:29.878604",
+              "updated_at": "2026-05-04T12:34:38.130690",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 91
+              },
+              "input": {
+                "image_path": null,
+                "question": "Why are inhaled corticosteroids used in asthma?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "Why are inhaled corticosteroids used in asthma?",
+                  "assistant": "Inhaled corticosteroids are used in asthma because they act on many sites to help reverse the pathologic process of bronchial asthma [1]. They enhance the beta-adrenergic response [1].\n\n**References:**\n1. [The mechanism of corticosteroids in treating asthma.](https://pubmed.ncbi.nlm.nih.gov/3026210/) (relevance: 79%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:34:38.129690",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "inhaled corticosteroids asthma mechanism",
+                      "reasoning": "The user is asking for a medical explanation about the use of inhaled corticosteroids in asthma."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 9,
+                      "estimated_tokens": 91,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0076,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 91,
+                      "active_context_usage_ratio": 0.0076,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "The mechanism of corticosteroids in treating asthma.",
+                        "pmid": "3026210",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/3026210/",
+                        "relevance": 0.7906966924440952
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "question": "Give a referenced explanation.",
+          "response": "Inhaled corticosteroids are used in asthma because they can interact with beta2-adrenergic agonists to produce beneficial effects on airway function [1].\n\n**References:**\n1. [The complementary role of glucocorticosteroids and long-acting beta-adrenergic a...](https://pubmed.ncbi.nlm.nih.gov/9615840/) (relevance: 79%)",
+          "raw": {
+            "message": "Message sent",
+            "session_id": 9,
+            "response": "Inhaled corticosteroids are used in asthma because they can interact with beta2-adrenergic agonists to produce beneficial effects on airway function [1].\n\n**References:**\n1. [The complementary role of glucocorticosteroids and long-acting beta-adrenergic a...](https://pubmed.ncbi.nlm.nih.gov/9615840/) (relevance: 79%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "inhaled corticosteroids asthma mechanism beta-adrenergic",
+                "reasoning": "The user is asking for a referenced explanation of why inhaled corticosteroids are used in asthma, which is a medical question requiring a PubMed search for supporting evidence."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 9,
+                "estimated_tokens": 178,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0148,
+                "percent_used": 1,
+                "percent_left": 99,
+                "active_context_tokens": 178,
+                "active_context_usage_ratio": 0.0148,
+                "active_context_percent_used": 1,
+                "active_context_percent_left": 99,
+                "message_count": 4,
+                "active_turns": 2,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "The complementary role of glucocorticosteroids and long-acting beta-adrenergic agonists.",
+                  "pmid": "9615840",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/9615840/",
+                  "relevance": 0.7943679975284028
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 9,
+              "created_at": "2026-05-04T12:34:29.878604",
+              "updated_at": "2026-05-04T12:34:44.873615",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 178
+              },
+              "input": {
+                "image_path": null,
+                "question": "Why are inhaled corticosteroids used in asthma?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "Why are inhaled corticosteroids used in asthma?",
+                  "assistant": "Inhaled corticosteroids are used in asthma because they act on many sites to help reverse the pathologic process of bronchial asthma [1]. They enhance the beta-adrenergic response [1].\n\n**References:**\n1. [The mechanism of corticosteroids in treating asthma.](https://pubmed.ncbi.nlm.nih.gov/3026210/) (relevance: 79%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:34:38.129690",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "inhaled corticosteroids asthma mechanism",
+                      "reasoning": "The user is asking for a medical explanation about the use of inhaled corticosteroids in asthma."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 9,
+                      "estimated_tokens": 91,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0076,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 91,
+                      "active_context_usage_ratio": 0.0076,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "The mechanism of corticosteroids in treating asthma.",
+                        "pmid": "3026210",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/3026210/",
+                        "relevance": 0.7906966924440952
+                      }
+                    ]
+                  }
+                },
+                {
+                  "turn": 2,
+                  "user": "Give a referenced explanation.",
+                  "assistant": "Inhaled corticosteroids are used in asthma because they can interact with beta2-adrenergic agonists to produce beneficial effects on airway function [1].\n\n**References:**\n1. [The complementary role of glucocorticosteroids and long-acting beta-adrenergic a...](https://pubmed.ncbi.nlm.nih.gov/9615840/) (relevance: 79%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:34:44.872100",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "inhaled corticosteroids asthma mechanism beta-adrenergic",
+                      "reasoning": "The user is asking for a referenced explanation of why inhaled corticosteroids are used in asthma, which is a medical question requiring a PubMed search for supporting evidence."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 9,
+                      "estimated_tokens": 178,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0148,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 178,
+                      "active_context_usage_ratio": 0.0148,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 4,
+                      "active_turns": 2,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "The complementary role of glucocorticosteroids and long-acting beta-adrenergic agonists.",
+                        "pmid": "9615840",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/9615840/",
+                        "relevance": 0.7943679975284028
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "stroke_time_window",
+      "session_id": 10,
+      "turn_count": 2,
+      "turn_logs": [
+        {
+          "turn": 1,
+          "question": "Why does stroke treatment depend on time?",
+          "response": "Stroke treatment depends on time because recent guidelines recommend magnetic resonance imaging (MRI) over computed tomography (CT) for stroke diagnosis when patients present within 12 hours of onset [1].\n\n**References:**\n1. [Time to stroke magnetic resonance imaging.](https://pubmed.ncbi.nlm.nih.gov/22541605/) (relevance: 75%)",
+          "raw": {
+            "message": "New conversation started",
+            "session_id": 10,
+            "response": "Stroke treatment depends on time because recent guidelines recommend magnetic resonance imaging (MRI) over computed tomography (CT) for stroke diagnosis when patients present within 12 hours of onset [1].\n\n**References:**\n1. [Time to stroke magnetic resonance imaging.](https://pubmed.ncbi.nlm.nih.gov/22541605/) (relevance: 75%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "stroke treatment time sensitivity",
+                "reasoning": "The user is asking a medical question about the importance of time in stroke treatment, which requires a detailed explanation and potentially links to medical literature."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 10,
+                "estimated_tokens": 92,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0077,
+                "percent_used": 1,
+                "percent_left": 99,
+                "active_context_tokens": 92,
+                "active_context_usage_ratio": 0.0077,
+                "active_context_percent_used": 1,
+                "active_context_percent_left": 99,
+                "message_count": 2,
+                "active_turns": 1,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "Time to stroke magnetic resonance imaging.",
+                  "pmid": "22541605",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/22541605/",
+                  "relevance": 0.7578982613850368
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 10,
+              "created_at": "2026-05-04T12:34:44.877620",
+              "updated_at": "2026-05-04T12:34:53.592606",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 92
+              },
+              "input": {
+                "image_path": null,
+                "question": "Why does stroke treatment depend on time?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "Why does stroke treatment depend on time?",
+                  "assistant": "Stroke treatment depends on time because recent guidelines recommend magnetic resonance imaging (MRI) over computed tomography (CT) for stroke diagnosis when patients present within 12 hours of onset [1].\n\n**References:**\n1. [Time to stroke magnetic resonance imaging.](https://pubmed.ncbi.nlm.nih.gov/22541605/) (relevance: 75%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:34:53.591607",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "stroke treatment time sensitivity",
+                      "reasoning": "The user is asking a medical question about the importance of time in stroke treatment, which requires a detailed explanation and potentially links to medical literature."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 10,
+                      "estimated_tokens": 92,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0077,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 92,
+                      "active_context_usage_ratio": 0.0077,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Time to stroke magnetic resonance imaging.",
+                        "pmid": "22541605",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/22541605/",
+                        "relevance": 0.7578982613850368
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "question": "Use evidence-grounded reasoning.",
+          "response": "Stroke treatment depends on time because recent guidelines from the American Academy of Neurology (AAN) recommend magnetic resonance imaging (MRI) over computed tomography (CT) for stroke diagnosis when patients present within 12 hours of onset [1].\n\n**References:**\n1. [Time to stroke magnetic resonance imaging.](https://pubmed.ncbi.nlm.nih.gov/22541605/) (relevance: 79%)",
+          "raw": {
+            "message": "Message sent",
+            "session_id": 10,
+            "response": "Stroke treatment depends on time because recent guidelines from the American Academy of Neurology (AAN) recommend magnetic resonance imaging (MRI) over computed tomography (CT) for stroke diagnosis when patients present within 12 hours of onset [1].\n\n**References:**\n1. [Time to stroke magnetic resonance imaging.](https://pubmed.ncbi.nlm.nih.gov/22541605/) (relevance: 79%)",
+            "metadata": {
+              "translation": {
+                "source_language": "en",
+                "output_language": "en"
+              },
+              "decision": {
+                "response_mode": "medical_answer",
+                "needs_pubmed": true,
+                "search_query": "stroke treatment time sensitivity guidelines MRI CT",
+                "reasoning": "User wants an explanation for time-dependent stroke treatment, referencing recent guidelines and imaging modalities."
+              },
+              "vqa_answer": null,
+              "total_seconds": null,
+              "pubmed_attempted": true,
+              "references_note": null,
+              "num_articles": 1,
+              "pubmed_top_k": 1,
+              "memory": {
+                "session_id": 10,
+                "estimated_tokens": 194,
+                "max_context_tokens": 12000,
+                "usage_ratio": 0.0162,
+                "percent_used": 2,
+                "percent_left": 98,
+                "active_context_tokens": 194,
+                "active_context_usage_ratio": 0.0162,
+                "active_context_percent_used": 2,
+                "active_context_percent_left": 98,
+                "message_count": 4,
+                "active_turns": 2,
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "has_summary": false,
+                "last_compaction_at": null,
+                "should_compact": false,
+                "summary_updated": false
+              },
+              "ablation": {
+                "mode": "full",
+                "router_enabled": true,
+                "memory_enabled": true,
+                "pubmed_enabled": true,
+                "translation_enabled": true
+              },
+              "articles": [
+                {
+                  "title": "Time to stroke magnetic resonance imaging.",
+                  "pmid": "22541605",
+                  "url": "https://pubmed.ncbi.nlm.nih.gov/22541605/",
+                  "relevance": 0.7953947731518425
+                }
+              ]
+            },
+            "full_session": {
+              "username": "pubmed_k_20260504_123132_1",
+              "session_id": 10,
+              "created_at": "2026-05-04T12:34:44.877620",
+              "updated_at": "2026-05-04T12:35:01.759894",
+              "memory_state": {
+                "rolling_summary": "",
+                "summarized_turn_count": 0,
+                "compression_count": 0,
+                "last_compaction_at": null,
+                "estimated_tokens": 194
+              },
+              "input": {
+                "image_path": null,
+                "question": "Why does stroke treatment depend on time?",
+                "input_type": "text_only"
+              },
+              "conversation_history": [
+                {
+                  "turn": 1,
+                  "user": "Why does stroke treatment depend on time?",
+                  "assistant": "Stroke treatment depends on time because recent guidelines recommend magnetic resonance imaging (MRI) over computed tomography (CT) for stroke diagnosis when patients present within 12 hours of onset [1].\n\n**References:**\n1. [Time to stroke magnetic resonance imaging.](https://pubmed.ncbi.nlm.nih.gov/22541605/) (relevance: 75%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:34:53.591607",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "stroke treatment time sensitivity",
+                      "reasoning": "The user is asking a medical question about the importance of time in stroke treatment, which requires a detailed explanation and potentially links to medical literature."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 10,
+                      "estimated_tokens": 92,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0077,
+                      "percent_used": 1,
+                      "percent_left": 99,
+                      "active_context_tokens": 92,
+                      "active_context_usage_ratio": 0.0077,
+                      "active_context_percent_used": 1,
+                      "active_context_percent_left": 99,
+                      "message_count": 2,
+                      "active_turns": 1,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Time to stroke magnetic resonance imaging.",
+                        "pmid": "22541605",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/22541605/",
+                        "relevance": 0.7578982613850368
+                      }
+                    ]
+                  }
+                },
+                {
+                  "turn": 2,
+                  "user": "Use evidence-grounded reasoning.",
+                  "assistant": "Stroke treatment depends on time because recent guidelines from the American Academy of Neurology (AAN) recommend magnetic resonance imaging (MRI) over computed tomography (CT) for stroke diagnosis when patients present within 12 hours of onset [1].\n\n**References:**\n1. [Time to stroke magnetic resonance imaging.](https://pubmed.ncbi.nlm.nih.gov/22541605/) (relevance: 79%)",
+                  "image_path": null,
+                  "timestamp": "2026-05-04T12:35:01.758894",
+                  "meta": {
+                    "translation": {
+                      "source_language": "en",
+                      "output_language": "en"
+                    },
+                    "decision": {
+                      "response_mode": "medical_answer",
+                      "needs_pubmed": true,
+                      "search_query": "stroke treatment time sensitivity guidelines MRI CT",
+                      "reasoning": "User wants an explanation for time-dependent stroke treatment, referencing recent guidelines and imaging modalities."
+                    },
+                    "vqa_answer": null,
+                    "total_seconds": null,
+                    "pubmed_attempted": true,
+                    "references_note": null,
+                    "num_articles": 1,
+                    "pubmed_top_k": 1,
+                    "memory": {
+                      "session_id": 10,
+                      "estimated_tokens": 194,
+                      "max_context_tokens": 12000,
+                      "usage_ratio": 0.0162,
+                      "percent_used": 2,
+                      "percent_left": 98,
+                      "active_context_tokens": 194,
+                      "active_context_usage_ratio": 0.0162,
+                      "active_context_percent_used": 2,
+                      "active_context_percent_left": 98,
+                      "message_count": 4,
+                      "active_turns": 2,
+                      "summarized_turn_count": 0,
+                      "compression_count": 0,
+                      "has_summary": false,
+                      "last_compaction_at": null,
+                      "should_compact": false,
+                      "summary_updated": false
+                    },
+                    "ablation": {
+                      "mode": "full",
+                      "router_enabled": true,
+                      "memory_enabled": true,
+                      "pubmed_enabled": true,
+                      "translation_enabled": true
+                    },
+                    "articles": [
+                      {
+                        "title": "Time to stroke magnetic resonance imaging.",
+                        "pmid": "22541605",
+                        "url": "https://pubmed.ncbi.nlm.nih.gov/22541605/",
+                        "relevance": 0.7953947731518425
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "pubmed_top_k": 1,
+  "summary": {
+    "total_cases": 10,
+    "total_turns": 20,
+    "pubmed_attempted_turns": 20,
+    "total_articles_returned": 20,
+    "avg_articles_per_turn": 1.0
+  }
+}

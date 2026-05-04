@@ -1,0 +1,56 @@
+{
+  "timestamp": "20260502_142300",
+  "base_url": "http://127.0.0.1:8000",
+  "modes": [
+    {
+      "mode": "full",
+      "summary": {
+        "total_cases": 30,
+        "total_turns": 70,
+        "pubmed_attempted_turns": 63,
+        "total_articles_returned": 311
+      },
+      "result_file": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\ablation_runs\\20260502_142300\\full\\run_results.json"
+    },
+    {
+      "mode": "no_memory",
+      "summary": {
+        "total_cases": 30,
+        "total_turns": 70,
+        "pubmed_attempted_turns": 56,
+        "total_articles_returned": 276
+      },
+      "result_file": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\ablation_runs\\20260502_142300\\no_memory\\run_results.json"
+    },
+    {
+      "mode": "no_pubmed",
+      "summary": {
+        "total_cases": 30,
+        "total_turns": 70,
+        "pubmed_attempted_turns": 0,
+        "total_articles_returned": 0
+      },
+      "result_file": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\ablation_runs\\20260502_142300\\no_pubmed\\run_results.json"
+    },
+    {
+      "mode": "no_router",
+      "summary": {
+        "total_cases": 30,
+        "total_turns": 70,
+        "pubmed_attempted_turns": 68,
+        "total_articles_returned": 254
+      },
+      "result_file": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\ablation_runs\\20260502_142300\\no_router\\run_results.json"
+    },
+    {
+      "mode": "no_translation",
+      "summary": {
+        "total_cases": 30,
+        "total_turns": 70,
+        "pubmed_attempted_turns": 62,
+        "total_articles_returned": 310
+      },
+      "result_file": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\ablation_runs\\20260502_142300\\no_translation\\run_results.json"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "mode": "no_pubmed",
+  "dataset_file": "C:\\Users\\Kyojuro\\My_Data\\001_ML_Project\\agentic_multimodal_qa\\api\\evaluation\\full_pipeline_eval\\datasets\\20260502_142300\\no_pubmed.jsonl",
+  "cases_requested": 30,
+  "cases_scored": 30,
+  "cases_failed": 0,
+  "avg_topic_adherence": 0.4033,
+  "avg_agent_goal_accuracy": 0.3333,
+  "avg_conversation_coherence": 0.4667,
+  "avg_medical_correctness": 0.5667,
+  "avg_medical_safety_caution": 0.9667,
+  "errors": []
+}
