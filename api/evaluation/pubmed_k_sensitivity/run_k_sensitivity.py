@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import secrets
 import subprocess
 import sys
 import time
@@ -280,7 +281,6 @@ def main() -> None:
     root.mkdir(parents=True, exist_ok=True)
 
     base_url = f"http://{args.host}:{args.port}"
-    password = "pubmed_k_pass_123"
     overall = {"timestamp": timestamp, "base_url": base_url, "k_values": []}
 
     for top_k in args.k_values:
@@ -297,6 +297,7 @@ def main() -> None:
         try:
             wait_for_health(base_url, args.startup_timeout, proc=proc)
             username = f"pubmed_k_{timestamp}_{top_k}"
+            password = f"eval_{secrets.token_urlsafe(18)}"
             token = register_and_login(base_url, username=username, password=password)
             run_data = run_suite(base_url, token)
             run_data["pubmed_top_k"] = top_k

@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import secrets
 import subprocess
 import sys
 import time
@@ -422,7 +423,7 @@ def main() -> None:
 
     base_url = f"http://{args.host}:{args.port}"
     username = f"ablation_{ts}"
-    password = "ablation_pass_123"
+    password = f"eval_{secrets.token_urlsafe(18)}"
 
     overall = {"timestamp": ts, "base_url": base_url, "modes": []}
 
